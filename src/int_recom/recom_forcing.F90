@@ -10,24 +10,24 @@ subroutine REcoM_Forcing(zNodes, n, Nn, state, SurfSW, Loc_slp, Temp, Sali, Sali
             , OmegaC_watercolumn                                       &          ! NEW DISS
             , kspc_watercolumn                                         &          ! NEW DISS
             , rhoSW_watercolumn                                        &          ! NEW DISS
-            , Nutlim_phy                                               &          ! NEWOUT
-            , Nutlim_dia                                               &          ! NEWOUT
-            , Nutlim_cocco                                             &          ! NEWOUT
-            , Tlim_arr                                                 &          ! NEWOUT
-            , Tlim_cocco                                               &          ! NEWOUT
-            , Llim_phy                                                 &          ! NEWOUT
-            , Llim_dia                                                 &          ! NEWOUT
-            , Llim_cocco                                               &          ! NEWOUT
-            , CO2lim_phy                                               &          ! NEWOUT
-            , CO2lim_dia                                               &          ! NEWOUT
-            , CO2lim_cocco                                             &          ! NEWOUT
-            , PR_phy                                                   &          ! NEWOUT
-            , PR_dia                                                   &          ! NEWOUT
-            , PR_cocco                                                 &          ! NEWOUT
-            , Cal_Tlim                                                 &          ! NEWOUT
-            , Cal_CO2lim                                               &          ! NEWOUT
-            , Cal_Nlim                                                 &          ! NEWOUT
-            , Cal_pure                                                 &          ! NEWOUT
+            !, Nutlim_phy                                               &          ! NEWOUT
+            !, Nutlim_dia                                               &          ! NEWOUT
+            !, Nutlim_cocco                                             &          ! NEWOUT
+            !, Tlim_arr                                                 &          ! NEWOUT
+            !, Tlim_cocco                                               &          ! NEWOUT
+            !, Llim_phy                                                 &          ! NEWOUT
+            !, Llim_dia                                                 &          ! NEWOUT
+            !, Llim_cocco                                               &          ! NEWOUT
+            !, CO2lim_phy                                               &          ! NEWOUT
+            !, CO2lim_dia                                               &          ! NEWOUT
+            !, CO2lim_cocco                                             &          ! NEWOUT
+            !, PR_phy                                                   &          ! NEWOUT
+            !, PR_dia                                                   &          ! NEWOUT
+            !, PR_cocco                                                 &          ! NEWOUT
+            !, Cal_Tlim                                                 &          ! NEWOUT
+            !, Cal_CO2lim                                               &          ! NEWOUT
+            !, Cal_Nlim                                                 &          ! NEWOUT
+            !, Cal_pure                                                 &          ! NEWOUT
             , PAR, mesh)
 
   use REcoM_declarations
@@ -74,24 +74,24 @@ subroutine REcoM_Forcing(zNodes, n, Nn, state, SurfSW, Loc_slp, Temp, Sali, Sali
   Real(kind=8),dimension(mesh%nl-1)         :: kspc_watercolumn     ! NEW DISS
   Real(kind=8),dimension(mesh%nl-1)         :: rhoSW_watercolumn    ! NEW DISS
 ! NEWOUT: new output to analyse limitations
-  Real(kind=8),dimension(mesh%nl-1)         :: Nutlim_phy           ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: Nutlim_dia           ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: Nutlim_cocco         ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: Tlim_arr             ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: Tlim_cocco           ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: Llim_phy             ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: Llim_dia             ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: Llim_cocco           ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: CO2lim_phy           ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: CO2lim_dia           ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: CO2lim_cocco         ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: PR_phy               ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: PR_dia               ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: PR_cocco             ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: Cal_Tlim             ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: Cal_CO2lim           ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: Cal_Nlim             ! NEWOUT
-  Real(kind=8),dimension(mesh%nl-1)         :: Cal_pure             ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: Nutlim_phy           ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: Nutlim_dia           ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: Nutlim_cocco         ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: Tlim_arr             ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: Tlim_cocco           ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: Llim_phy             ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: Llim_dia             ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: Llim_cocco           ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: CO2lim_phy           ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: CO2lim_dia           ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: CO2lim_cocco         ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: PR_phy               ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: PR_dia               ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: PR_cocco             ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: Cal_Tlim             ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: Cal_CO2lim           ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: Cal_Nlim             ! NEWOUT
+  !Real(kind=8),dimension(mesh%nl-1)         :: Cal_pure             ! NEWOUT
 
   real(kind=8),dimension(mesh%nl-1)         :: PAR
 
@@ -131,8 +131,10 @@ subroutine REcoM_Forcing(zNodes, n, Nn, state, SurfSW, Loc_slp, Temp, Sali, Sali
 
     tiny_N   = tiny_chl/chl2N_max      ! 0.00001/ 3.15d0   Chl2N_max [mg CHL/mmol N] Maximum CHL a : N ratio = 0.3 gCHL gN^-1
     tiny_N_d = tiny_chl/chl2N_max_d    ! 0.00001/ 4.2d0
+    tiny_N_c = tiny_chl/chl2N_max_c    ! 0.00001/ 3.5d0    NEW
     tiny_C   = tiny_N  /NCmax          ! NCmax   = 0.2d0   [mmol N/mmol C] Maximum cell quota of nitrogen (N:C)
     tiny_C_d = tiny_N_d/NCmax_d        ! NCmax_d = 0.2d0 
+    tiny_C_c = tiny_N_c/NCmax_c        ! NCmax_c = 0.15d0  NEW
     tiny_Si  = tiny_C_d/SiCmax         ! SiCmax = 0.8d0
 
 
@@ -140,6 +142,11 @@ subroutine REcoM_Forcing(zNodes, n, Nn, state, SurfSW, Loc_slp, Temp, Sali, Sali
   call Depth_calculations(n, Nn,SinkVel,zF,thick,recipthick, mesh)
 
 !! ----- mocsy -------! 
+
+  !if((state(one,idic) > 100000.d0)) then               ! NEW: added this entire print statement (if to endif)
+  !   print*,'NEW ERROR: idic massively high !'
+  !   print*,'idic: ',state(one,idic)
+  !endif
 
 !! convert from mmol/m3 to mol/m3
   REcoM_DIC  = max(tiny*1e-3, state(one,idic)*1e-3)
@@ -170,6 +177,32 @@ subroutine REcoM_Forcing(zNodes, n, Nn, state, SurfSW, Loc_slp, Temp, Sali, Sali
 ! pistonvel already scaled for ice-free area:
 
   call pistonvel(ULoc, Loc_ice_conc, Nmocsy, kw660)
+
+  if((REcoM_DIC(1) > 10000.d0)) then               ! NEW: added this entire print statement (if to endif)
+      print*,'NEW ERROR: DIC !'  
+      print*,'pco2surf: ',pco2surf
+      print*,'co2: ',co2
+      print*,'rhoSW: ', rhoSW
+      print*,'temp: ',REcoM_T
+      print*,'tempis: ',tempis
+      print*,'REcoM_S: ', REcoM_S
+      print*, 'REcoM_Alk: ', REcom_Alk
+      print*, 'REcoM_DIC: ', REcoM_DIC
+      print*, 'REcoM_Si: ', REcoM_Si
+      print*, 'REcoM_Phos: ', REcoM_Phos
+      print*, 'kw660: ',kw660
+      print*, 'LocAtmCO2: ', LocAtmCO2
+      print*, 'Patm: ', Patm
+      print*, 'thick(One): ',thick(One)
+      print*, 'Nmocsy: ', Nmocsy
+      print*, 'Lond: ', Lond
+      print*, 'Latd: ', Latd
+      print*, 'ULoc: ', ULoc
+      print*, 'Loc_ice_conc: ', Loc_ice_conc
+      stop
+    endif
+
+  
   call flxco2(co2flux, co2ex, dpco2surf,                                                    &
                   ph, pco2surf, fco2, co2, hco3, co3, OmegaA, OmegaC, BetaD, rhoSW, p, tempis,  &
                   REcoM_T, REcoM_S, REcoM_Alk, REcoM_DIC, REcoM_Si, REcoM_Phos, kw660, LocAtmCO2, Patm, thick(One), Nmocsy, Lond,Latd,     &
@@ -236,24 +269,24 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_sms'/
         , OmegaC_watercolumn                                           & ! NEW DISS calcite saturation state
         , kspc_watercolumn                                             & ! NEW DISS stoichiometric solubility product [mol^2/kg^2]
         , rhoSW_watercolumn                                            & ! NEW DISS in-situ density of seawater [kg/m3]
-        , Nutlim_phy                                                   & ! NEWOUT nutrient limitation of small phytoplankton
-        , Nutlim_dia                                                   & ! NEWOUT nutrient limitation of diatoms
-        , Nutlim_cocco                                                 & ! NEWOUT nutrient limitation of coccolithophores
-        , Tlim_arr                                                     & ! NEWOUT temperature limitation according to Arrhenius function
-        , Tlim_cocco                                                   & ! NEWOUT temperature limitation of coccolithophores
-        , Llim_phy                                                     & ! NEWOUT light limitation of small phytoplankton
-        , Llim_dia                                                     & ! NEWOUT light limitation of diatoms
-        , Llim_cocco                                                   & ! NEWOUT light limitation of coccolithophores
-        , CO2lim_phy                                                   & ! NEWOUT CO2 limitation of small phytoplankton
-        , CO2lim_dia                                                   & ! NEWOUT CO2 limitation of diatoms
-        , CO2lim_cocco                                                 & ! NEWOUT CO2 limitation of coccolithophores
-        , PR_phy                                                       & ! NEWOUT Photosynthesis rate of small phytoplankton
-        , PR_dia                                                       & ! NEWOUT Photosynthesis rate of diatoms
-        , PR_cocco                                                     & ! NEWOUT Photosynthesis rate of coccolithophores
-        , Cal_Tlim                                                     & ! NEWOUT Temperature dependence of calcification
-        , Cal_CO2lim                                                   & ! NEWOUT CO2 dependence of calcification
-        , Cal_Nlim                                                     & ! NEWOUT Nitrate dependence of calcification
-        , Cal_pure                                                     & ! NEWOUT PIC only dependent on PICPOCmax, CoccoC, T, N, CO2
+        !, Nutlim_phy                                                   & ! NEWOUT nutrient limitation of small phytoplankton
+        !, Nutlim_dia                                                   & ! NEWOUT nutrient limitation of diatoms
+        !, Nutlim_cocco                                                 & ! NEWOUT nutrient limitation of coccolithophores
+        !, Tlim_arr                                                     & ! NEWOUT temperature limitation according to Arrhenius function
+        !, Tlim_cocco                                                   & ! NEWOUT temperature limitation of coccolithophores
+        !, Llim_phy                                                     & ! NEWOUT light limitation of small phytoplankton
+        !, Llim_dia                                                     & ! NEWOUT light limitation of diatoms
+        !, Llim_cocco                                                   & ! NEWOUT light limitation of coccolithophores
+        !, CO2lim_phy                                                   & ! NEWOUT CO2 limitation of small phytoplankton
+        !, CO2lim_dia                                                   & ! NEWOUT CO2 limitation of diatoms
+        !, CO2lim_cocco                                                 & ! NEWOUT CO2 limitation of coccolithophores
+        !, PR_phy                                                       & ! NEWOUT Photosynthesis rate of small phytoplankton
+        !, PR_dia                                                       & ! NEWOUT Photosynthesis rate of diatoms
+        !, PR_cocco                                                     & ! NEWOUT Photosynthesis rate of coccolithophores
+        !, Cal_Tlim                                                     & ! NEWOUT Temperature dependence of calcification
+        !, Cal_CO2lim                                                   & ! NEWOUT CO2 dependence of calcification
+        !, Cal_Nlim                                                     & ! NEWOUT Nitrate dependence of calcification
+        !, Cal_pure                                                     & ! NEWOUT PIC only dependent on PICPOCmax, CoccoC, T, N, CO2
         , Loc_slp, SinkVel, zF, PAR, Lond, Latd, mesh)
 
 !  addtiny(1:nn,1) = (state(1:nn,isi)           - aux(1:nn,isi))
@@ -337,13 +370,17 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> ciso after 
      state(:,idiac_14)  = max(tiny_C_d,state(:,idiac_14))
   end if
 
+ if (recom_debug .and. mype==0) write(*,*), "REcoM_forcing worked until here"      ! NEW: added print statement
+
 !-------------------------------------------------------------------------------
 ! Diagnostics
   if (Diags) then
-	do idiags = one,12                                                  ! NEW (changed from 8 to 12)
+	do idiags = one,8                                                  ! NEW (changed from 8 to 12) -> no, changed it back for now bcs not added yet
 	  LocDiags2D(idiags) = sum(diags3Dloc(1:nn,idiags) * thick(1:nn))
 	end do
   end if
+
+  if (recom_debug .and. mype==0) write(*,*), "REcoM_forcing could read diagnostics"       ! NEW: added print statement
 
 end subroutine REcoM_Forcing
 
