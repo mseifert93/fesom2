@@ -173,89 +173,89 @@ end if
     co2      = 0.d0                                      ! NEW
 
     if (Diags) then
-        allocate(diags2D(node_size,12))                  ! NEW (changed size from 8 to 12)
+        allocate(diags2D(node_size,8))                  ! NEW (changed size from 8 to 12) ! Changed in back to 8 because I haven't added Cocco NPP,... yet
         diags2D(:,:)      = 0.d0
         allocate(diags3D(nl-1,node_size,diags3d_num))
         diags3D(:,:,:)      = 0.d0
     end if
 
-  allocate(CO23D(nl-1,node_size))                   !NEW MOCSY
-  CO23D(:,:)          = 0.d0
+    allocate(CO23D(nl-1,node_size))                   !NEW MOCSY
+    CO23D(:,:)          = 0.d0
 
-  allocate(pH3D(nl-1,node_size))                    !NEW MOCSY 
-  pH3D(:,:)           = 0.d0
+    allocate(pH3D(nl-1,node_size))                    !NEW MOCSY 
+    pH3D(:,:)           = 0.d0
 
-  allocate(pCO23D(nl-1,node_size))                  !NEW MOCSY 
-  pCO23D(:,:)         = 0.d0
+    allocate(pCO23D(nl-1,node_size))                  !NEW MOCSY 
+    pCO23D(:,:)         = 0.d0
 
-  allocate(HCO33D(nl-1,node_size))                  !NEW MOCSY 
-  HCO33D(:,:)         = 0.d0
+    allocate(HCO33D(nl-1,node_size))                  !NEW MOCSY 
+    HCO33D(:,:)         = 0.d0
 
-  allocate(CO33D(nl-1,node_size))                   !NEW DISS
-  CO33D(:,:)          = 0.d0
+    allocate(CO33D(nl-1,node_size))                   !NEW DISS
+    CO33D(:,:)          = 0.d0
 
-  allocate(OmegaC3D(nl-1,node_size))                !NEW DISS
-  OmegaC3D(:,:)       = 0.d0
+    allocate(OmegaC3D(nl-1,node_size))                !NEW DISS
+    OmegaC3D(:,:)       = 0.d0
 
-  allocate(kspc3D(nl-1,node_size))                  !NEW DISS
-  kspc3D(:,:)         = 0.d0
+    allocate(kspc3D(nl-1,node_size))                  !NEW DISS
+    kspc3D(:,:)         = 0.d0
 
-  allocate(rhoSW3D(nl-1,node_size))                 !NEW DISS
-  rhoSW3D(:,:)        = 0.d0
+    allocate(rhoSW3D(nl-1,node_size))                 !NEW DISS
+    rhoSW3D(:,:)        = 0.d0
 
-  allocate(Nutlim_phy3D(nl-1,node_size))            !NEWOUT
-  Nutlim_phy3D(:,:)   = 0.d0
+  !allocate(Nutlim_phy3D(nl-1,node_size))            !NEWOUT
+  !Nutlim_phy3D(:,:)   = 0.d0
 
-  allocate(Nutlim_dia3D(nl-1,node_size))            !NEWOUT
-  Nutlim_dia3D(:,:)   = 0.d0
+  !allocate(Nutlim_dia3D(nl-1,node_size))            !NEWOUT
+  !Nutlim_dia3D(:,:)   = 0.d0
 
-  allocate(Nutlim_cocco3D(nl-1,node_size))          !NEWOUT
-  Nutlim_cocco3D(:,:) = 0.d0
+  !allocate(Nutlim_cocco3D(nl-1,node_size))          !NEWOUT
+  !Nutlim_cocco3D(:,:) = 0.d0
 
-  allocate(Tlim_arr3D(nl-1,node_size))              !NEWOUT
-  Tlim_arr3D(:,:)     = 0.d0
+  !allocate(Tlim_arr3D(nl-1,node_size))              !NEWOUT
+  !Tlim_arr3D(:,:)     = 0.d0
 
-  allocate(Tlim_cocco3D(nl-1,node_size))            !NEWOUT
-  Tlim_cocco3D(:,:)   = 0.d0
+  !allocate(Tlim_cocco3D(nl-1,node_size))            !NEWOUT
+  !Tlim_cocco3D(:,:)   = 0.d0
 
-  allocate(Llim_phy3D(nl-1,node_size))              !NEWOUT
-  Llim_phy3D(:,:)     = 0.d0
+  !allocate(Llim_phy3D(nl-1,node_size))              !NEWOUT
+  !Llim_phy3D(:,:)     = 0.d0
 
-  allocate(Llim_dia3D(nl-1,node_size))              !NEWOUT
-  Llim_dia3D(:,:)     = 0.d0
+  !allocate(Llim_dia3D(nl-1,node_size))              !NEWOUT
+  !Llim_dia3D(:,:)     = 0.d0
 
-  allocate(Llim_cocco3D(nl-1,node_size))            !NEWOUT
-  Llim_cocco3D(:,:)   = 0.d0
+  !allocate(Llim_cocco3D(nl-1,node_size))            !NEWOUT
+  !Llim_cocco3D(:,:)   = 0.d0
 
-  allocate(CO2lim_phy3D(nl-1,node_size))            !NEWOUT
-  CO2lim_phy3D(:,:)   = 0.d0
+  !allocate(CO2lim_phy3D(nl-1,node_size))            !NEWOUT
+  !CO2lim_phy3D(:,:)   = 0.d0
 
-  allocate(CO2lim_dia3D(nl-1,node_size))            !NEWOUT
-  CO2lim_dia3D(:,:)   = 0.d0
+  !allocate(CO2lim_dia3D(nl-1,node_size))            !NEWOUT
+  !CO2lim_dia3D(:,:)   = 0.d0
 
-  allocate(CO2lim_cocco3D(nl-1,node_size))          !NEWOUT
-  CO2lim_cocco3D(:,:) = 0.d0
+  !allocate(CO2lim_cocco3D(nl-1,node_size))          !NEWOUT
+  !CO2lim_cocco3D(:,:) = 0.d0
 
-  allocate(PR_phy3D(nl-1,node_size))                !NEWOUT
-  PR_phy3D(:,:)       = 0.d0
+  !allocate(PR_phy3D(nl-1,node_size))                !NEWOUT
+  !PR_phy3D(:,:)       = 0.d0
 
-  allocate(PR_dia3D(nl-1,node_size))                !NEWOUT
-  PR_dia3D(:,:)       = 0.d0
+  !allocate(PR_dia3D(nl-1,node_size))                !NEWOUT
+  !PR_dia3D(:,:)       = 0.d0
 
-  allocate(PR_cocco3D(nl-1,node_size))              !NEWOUT
-  PR_cocco3D(:,:)     = 0.d0
+  !allocate(PR_cocco3D(nl-1,node_size))              !NEWOUT
+  !PR_cocco3D(:,:)     = 0.d0
 
-  allocate(Cal_Tlim3D(nl-1,node_size))              !NEWOUT
-  Cal_Tlim3D(:,:)     = 0.d0
+  !allocate(Cal_Tlim3D(nl-1,node_size))              !NEWOUT
+  !Cal_Tlim3D(:,:)     = 0.d0
 
-  allocate(Cal_CO2lim3D(nl-1,node_size))            !NEWOUT
-  Cal_CO2lim3D(:,:)   = 0.d0
+  !allocate(Cal_CO2lim3D(nl-1,node_size))            !NEWOUT
+  !Cal_CO2lim3D(:,:)   = 0.d0
 
-  allocate(Cal_Nlim3D(nl-1,node_size))              !NEWOUT
-  Cal_Nlim3D(:,:)     = 0.d0
+  !allocate(Cal_Nlim3D(nl-1,node_size))              !NEWOUT
+  !Cal_Nlim3D(:,:)     = 0.d0
 
-  allocate(Cal_pure3D(nl-1,node_size))              !NEWOUT
-  Cal_pure3D(:,:)     = 0.d0
+  !allocate(Cal_pure3D(nl-1,node_size))              !NEWOUT
+  !Cal_pure3D(:,:)     = 0.d0
 
     PAR3D(:,:) = 0.d0
     DenitBen(:) = 0.d0
@@ -372,11 +372,9 @@ end if
 !   endif
   endif
 
-! if (use_coccos) then
-    tracer(:,:,31) = tiny             ! tracer 29 = CoccoN ! NEW
-    tracer(:,:,32) = tiny * Redfield  ! tracer 30 = CoccoC ! NEW
-    tracer(:,:,33) = tiny * 1.56d0    ! tracer 31 = CoccoChl  ! NEW
-!  endif
+    tr_arr(:,:,31) = tiny_chl/chl2N_max        ! tiny            ! tracer 29 = CoccoN ! NEW, changed from tracer to tr_arr
+    tr_arr(:,:,32) = tiny_chl/chl2N_max/NCmax  ! tiny * Redfield  ! tracer 30 = CoccoC ! NEW
+    tr_arr(:,:,33) = tiny_chl                  ! tiny * 1.56d0    ! tracer 31 = CoccoChl  ! NEW
 
 if (ciso) then
    tr_arr(:,:,27) = (1. + 0.001 * (2.3 - 0.06 * tr_arr(:,:,3))) * tr_arr(:,:,4) ! DIC_13, GLODAP2 > 500 m 
