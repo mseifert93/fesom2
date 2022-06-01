@@ -7,24 +7,24 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         , OmegaC_watercolumn                                           & ! NEW DISS calcite saturation state
         , kspc_watercolumn                                             & ! NEW DISS stoichiometric solubility product [mol^2/kg^2]
         , rhoSW_watercolumn                                            & ! NEW DISS in-situ density of seawater [kg/m3]
-        , Nutlim_phy                                                   & ! NEWOUT nutrient limitation of small phytoplankton
-        , Nutlim_dia                                                   & ! NEWOUT nutrient limitation of diatoms
-        , Nutlim_cocco                                                 & ! NEWOUT nutrient limitation of coccolithophores
-        , Tlim_arr                                                     & ! NEWOUT temperature limitation according to Arrhenius function
-        , Tlim_cocco                                                   & ! NEWOUT temperature limitation of coccolithophores
-        , Llim_phy                                                     & ! NEWOUT light limitation of small phytoplankton
-        , Llim_dia                                                     & ! NEWOUT light limitation of diatoms
-        , Llim_cocco                                                   & ! NEWOUT light limitation of coccolithophores
-        , CO2lim_phy                                                   & ! NEWOUT CO2 limitation of small phytoplankton
-        , CO2lim_dia                                                   & ! NEWOUT CO2 limitation of diatoms
-        , CO2lim_cocco                                                 & ! NEWOUT CO2 limitation of coccolithophores
-        , PR_phy                                                       & ! NEWOUT Photosynthesis rate of small phytoplankton
-        , PR_dia                                                       & ! NEWOUT Photosynthesis rate of diatoms
-        , PR_cocco                                                     & ! NEWOUT Photosynthesis rate of coccolithophores
-        , Cal_Tlim                                                     & ! NEWOUT Temperature dependence of calcification
-        , Cal_CO2lim                                                   & ! NEWOUT CO2 dependence of calcification
-        , Cal_Nlim                                                     & ! NEWOUT Nitrate dependence of calcification
-        , Cal_pure                                                     & ! NEWOUT PIC only dependent on PICPOCmax, CoccoC, T, N, CO2
+        !, Nutlim_phy                                                   & ! NEWOUT nutrient limitation of small phytoplankton
+        !, Nutlim_dia                                                   & ! NEWOUT nutrient limitation of diatoms
+        !, Nutlim_cocco                                                 & ! NEWOUT nutrient limitation of coccolithophores
+        !, Tlim_arr                                                     & ! NEWOUT temperature limitation according to Arrhenius function
+        !, Tlim_cocco                                                   & ! NEWOUT temperature limitation of coccolithophores
+        !, Llim_phy                                                     & ! NEWOUT light limitation of small phytoplankton
+        !, Llim_dia                                                     & ! NEWOUT light limitation of diatoms
+        !, Llim_cocco                                                   & ! NEWOUT light limitation of coccolithophores
+        !, CO2lim_phy                                                   & ! NEWOUT CO2 limitation of small phytoplankton
+        !, CO2lim_dia                                                   & ! NEWOUT CO2 limitation of diatoms
+        !, CO2lim_cocco                                                 & ! NEWOUT CO2 limitation of coccolithophores
+        !, PR_phy                                                       & ! NEWOUT Photosynthesis rate of small phytoplankton
+        !, PR_dia                                                       & ! NEWOUT Photosynthesis rate of diatoms
+        !, PR_cocco                                                     & ! NEWOUT Photosynthesis rate of coccolithophores
+        !, Cal_Tlim                                                     & ! NEWOUT Temperature dependence of calcification
+        !, Cal_CO2lim                                                   & ! NEWOUT CO2 dependence of calcification
+        !, Cal_Nlim                                                     & ! NEWOUT Nitrate dependence of calcification
+        !, Cal_pure                                                     & ! NEWOUT PIC only dependent on PICPOCmax, CoccoC, T, N, CO2
         , Loc_slp, SinkVel,zF,PAR, Lond, Latd, mesh)
 
     use REcoM_declarations
@@ -72,24 +72,24 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: OmegaC_watercolumn   ! NEW DISS
     Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: kspc_watercolumn     ! NEW DISS
     Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: rhoSW_watercolumn    ! NEW DISS
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Nutlim_phy           ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Nutlim_dia           ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Nutlim_cocco         ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Tlim_arr             ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Tlim_cocco           ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Llim_phy             ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Llim_dia             ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Llim_cocco           ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: CO2lim_phy           ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: CO2lim_dia           ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: CO2lim_cocco         ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: PR_phy               ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: PR_dia               ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: PR_cocco             ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Cal_Tlim             ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Cal_CO2lim           ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Cal_Nlim             ! NEWOUT
-    Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Cal_pure             ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Nutlim_phy           ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Nutlim_dia           ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Nutlim_cocco         ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Tlim_arr             ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Tlim_cocco           ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Llim_phy             ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Llim_dia             ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Llim_cocco           ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: CO2lim_phy           ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: CO2lim_dia           ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: CO2lim_cocco         ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: PR_phy               ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: PR_dia               ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: PR_cocco             ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Cal_Tlim             ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Cal_CO2lim           ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Cal_Nlim             ! NEWOUT
+    !Real(kind=8),dimension(mesh%nl-1),intent(inout)         :: Cal_pure             ! NEWOUT
 
     real(kind=8),dimension(mesh%nl)          ,intent(in)    :: zF                   !< [m] Depth of fluxes
     real(kind=8),dimension(mesh%nl-1),intent(inout)         :: PAR
@@ -106,19 +106,17 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     real(kind=8)                                            :: aux
     integer                                                 :: k,step,ii, idiags,n
 
-!if (use_coccos) then
-    Real(kind=8),                      intent(in)    :: Loc_slp              ! NEW MOCSY [Pa] sea-level pressure
-    Real(kind=8)                                     :: Patm_depth(1)        ! NEW MOCSY
-    Real(kind=8)                                     :: REcoM_T_depth(1)        ! NEW MOCSY temperature for the whole water column for mocsy minimum defined as -2
-    Real(kind=8)                                     :: REcoM_S_depth(1)        ! NEW MOCSY
-    Real(kind=8)                                     :: REcoM_DIC_depth(1)      ! NEW MOCSY
-    Real(kind=8)                                     :: REcoM_Alk_depth(1)      ! NEW MOCSY
-    Real(kind=8)                                     :: REcoM_Si_depth(1)       ! NEW MOCSY
-    Real(kind=8)                                     :: REcoM_Phos_depth(1)     ! NEW MOCSY
-    Real(kind=8),                      intent(in)    :: Latd(1)              ! latitude in degree
-    Real(kind=8),                      intent(in)    :: Lond(1)              ! NEW MOCSY longitude in degree 
-    Real(kind=8)                                     :: mocsy_step_per_day
-!end if 
+    Real(kind=8),                      intent(in)           :: Loc_slp              ! NEW MOCSY [Pa] sea-level pressure
+    Real(kind=8)                                            :: Patm_depth(1)        ! NEW MOCSY
+    Real(kind=8)                                            :: REcoM_T_depth(1)        ! NEW MOCSY temperature for the whole water column for mocsy minimum defined as -2
+    Real(kind=8)                                            :: REcoM_S_depth(1)        ! NEW MOCSY
+    Real(kind=8)                                            :: REcoM_DIC_depth(1)      ! NEW MOCSY
+    Real(kind=8)                                            :: REcoM_Alk_depth(1)      ! NEW MOCSY
+    Real(kind=8)                                            :: REcoM_Si_depth(1)       ! NEW MOCSY
+    Real(kind=8)                                            :: REcoM_Phos_depth(1)     ! NEW MOCSY
+    Real(kind=8),                      intent(in)           :: Latd(1)              ! latitude in degree
+    Real(kind=8),                      intent(in)           :: Lond(1)              ! NEW MOCSY longitude in degree 
+    Real(kind=8)                                            :: mocsy_step_per_day 
 
     real(kind=8)                                            :: & 
         DIN,     & !< Dissolved Inorganic Nitrogen 				[mmol/m3] 
@@ -137,11 +135,9 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         DiaC,    &
         DiaChl,  &
         DiaSi,   &
-!    if (use_coccos) then
-    CoccoN,  & ! NEW
-    CoccoC,  & ! NEW
-    CoccoChl,& ! NEW
-!    endif
+        CoccoN,  & ! NEW
+        CoccoC,  & ! NEW
+        CoccoChl,& ! NEW
         DetSi,   &
         Si,      &
         Fe,      &
@@ -178,7 +174,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     tiny_N_c = tiny_chl/chl2N_max_c    ! NEW
     tiny_C   = tiny_N  /NCmax          !< NCmax   = 0.2d0   [mmol N/mmol C] Maximum cell quota of nitrogen (N:C)
     tiny_C_d = tiny_N_d/NCmax_d        !< NCmax_d = 0.2d0
-    tiny_C_c = tiny_N_c/NCmax_c       ! NEW
+    tiny_C_c = tiny_N_c/NCmax_c        ! NEW
     tiny_Si  = tiny_C_d/SiCmax         !< SiCmax = 0.8d0
 
     recip_res_het = 1.d0/res_het       !< res_het = 0.01d0  [1/day] Respiration by heterotrophs and mortality (loss to detritus)
@@ -230,32 +226,37 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             endif
             DON    = max(tiny,state(k,idon)   		+ sms(k,idon  ))
             EOC    = max(tiny,state(k,idoc)   		+ sms(k,idoc  ))
-            DiaN   = max(tiny_N,state(k,idian)  	+ sms(k,idian ))
-            DiaC   = max(tiny_C,state(k,idiac)  	+ sms(k,idiac ))
+            DiaN   = max(tiny_N_d,state(k,idian)  	+ sms(k,idian ))   ! NEW: changed tiny_N to tiny_N_d
+            DiaC   = max(tiny_C_d,state(k,idiac)  	+ sms(k,idiac ))   ! NEW: changed tiny_C to tiny_C_d
             DiaChl = max(tiny_chl,state(k,idchl)  	+ sms(k,idchl ))
             DiaSi  = max(tiny_si,state(k,idiasi)      	+ sms(k,idiasi)) 
             DetSi  = max(tiny,state(k,idetsi) 		+ sms(k,idetsi)) 
             Si     = max(tiny,state(k,isi)    		+ sms(k,isi   ))
-!if (use_coccos) then
-            CoccoN = max(tiny,state(k,icocn)            + sms(k,icocn  )) ! NEW
-            CoccoC = max(tiny,state(k,icocc)            + sms(k,icocc  )) ! NEW
-            CoccoChl = max(tiny,state(k,icchl)          + sms(k,icchl)) ! NEW
-!end if 
+            CoccoN = max(tiny_N_c,state(k,icocn)        + sms(k,icocn )) ! NEW
+            CoccoC = max(tiny_C_c,state(k,icocc)        + sms(k,icocc )) ! NEW
+            CoccoChl = max(tiny_chl,state(k,icchl)      + sms(k,icchl )) ! NEW
             Fe     = max(tiny,state(k,ife)    		+ sms(k,ife   ))
             O2     = max(tiny,state(k,ioxy)             + sms(k,ioxy  ))
             FreeFe = zero
 
-!if (use_coccos) then
+            !if((CoccoC>100)) then
+            !   print*,'init CoccoC: ', CoccoC
+            !endif
+
+            !if((DiaC>100)) then
+            !   print*,'init DiaC: ', DiaC
+            !endif
+
 ! For Mocsy
-    REcoM_T_depth = max(2.d0, Temp(k))   ! NEW MOCSY minimum set to 2 degC: K1/K2 Lueker valid between 2degC-35degC and 19-43psu
-    REcoM_T_depth = min(REcoM_T_depth, 40.d0)! NEW MOCSY maximum set to 40 degC: K1/K2 Lueker valid between 2degC-35degC and 19-43psu
-    REcoM_S_depth = max(21.d0, Sali_depth(k))! NEW MOCSY minimum set to 21: K1/K2 Lueker valid between 2degC-35degC and 19-43psu, else causes trouble in regions with S between 19 and 21 and ice conc above 97%                      
-    REcoM_S_depth    = min(REcoM_S_depth, 43.d0)  ! NEW MOCSY maximum set to 43: K1/K2 Lueker valid between 2degC-35degC and 19-43psu, else causes trouble   
-    REcoM_DIC_depth  = max(tiny*1e-3,state(k,idic)*1e-3   + sms(k,idic  )*1e-3)      ! NEW MOCSY
-    REcoM_Alk_depth  = max(tiny*1e-3,state(k,ialk)*1e-3   + sms(k,ialk  )*1e-3)      ! NEW MOCSY
-    REcoM_Si_depth   = max(tiny*1e-3,state(k,isi)*1e-3    + sms(k,isi   )*1e-3)      ! NEW MOCSY
-    REcoM_Phos_depth = max(tiny*1e-3,state(k,idin)*1e-3   + sms(k,idin  )*1e-3) /16  ! NEW MOCSY convert N to P with Redfield
-!endif
+            REcoM_T_depth    = max(2.d0, Temp(k))         ! NEW MOCSY minimum set to 2 degC: K1/K2 Lueker valid between 2degC-35degC and 19-43psu
+            REcoM_T_depth    = min(REcoM_T_depth, 40.d0)  ! NEW MOCSY maximum set to 40 degC: K1/K2 Lueker valid between 2degC-35degC and 19-43psu
+            REcoM_S_depth    = max(21.d0, Sali_depth(k))  ! NEW MOCSY minimum set to 21: K1/K2 Lueker valid between 2degC-35degC and 19-43psu, else causes trouble in regions with S between 19 and 21 and ice conc above 97%                      
+            REcoM_S_depth    = min(REcoM_S_depth, 43.d0)  ! NEW MOCSY maximum set to 43: K1/K2 Lueker valid between 2degC-35degC and 19-43psu, else causes trouble   
+            REcoM_DIC_depth  = max(tiny*1e-3,state(k,idic)*1e-3   + sms(k,idic  )*1e-3)      ! NEW MOCSY
+            REcoM_Alk_depth  = max(tiny*1e-3,state(k,ialk)*1e-3   + sms(k,ialk  )*1e-3)      ! NEW MOCSY
+            REcoM_Si_depth   = max(tiny*1e-3,state(k,isi)*1e-3    + sms(k,isi   )*1e-3)      ! NEW MOCSY
+            REcoM_Phos_depth = max(tiny*1e-3,state(k,idin)*1e-3   + sms(k,idin  )*1e-3) /16  ! NEW MOCSY convert N to P with Redfield
+
             PhyCalc= max(tiny,state(k,iphycal)		+ sms(k,iphycal))
             DetCalc= max(tiny,state(k,idetcal)		+ sms(k,idetcal))
 
@@ -275,13 +276,13 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             CHL2C_plast_dia 	=  Chl2C_dia * (quota_dia/(quota_dia - NCmin_d))
             qSiC           	=  DiaSi / DiaC
             qSiN           	=  DiaSi / DiaN
-!if (use_coccos) then
-    quota_cocco    = CoccoN / CoccoC           ! NEW
-    recipQuota_cocco = real(one)/quota_cocco   ! NEW
-    Chl2C_cocco    = CoccoChl / CoccoC         ! NEW
-    Chl2N_cocco    = CoccoChl / CoccoN         ! NEW
-    CHL2C_plast_cocco = Chl2C_cocco * (quota_cocco/(quota_cocco - NCmin_c)) ! NEW
-!end if 
+
+            quota_cocco       = CoccoN / CoccoC           ! NEW
+            recipQuota_cocco  = real(one)/quota_cocco     ! NEW
+            Chl2C_cocco       = CoccoChl / CoccoC         ! NEW
+            Chl2N_cocco       = CoccoChl / CoccoN         ! NEW
+            CHL2C_plast_cocco = Chl2C_cocco * (quota_cocco/(quota_cocco - NCmin_c)) ! NEW
+ 
             recipQZoo      	=  HetC / HetN
             recip_hetN_plus 	= 1. / (HetN + tiny_het) ! MB's addition for more stable zoo respiration
 
@@ -352,8 +353,8 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     reminSiT = max(0.023d0 * 2.6d0**((Temp(k)-10.)/10.),reminSi)
 !    reminSiT = reminSi
 
-    Tlim_arr(k)    = arrFunc                                       ! NEWOUT
-    Tlim_cocco(k)  = CoccoTFunc                                    ! NEWOUT
+    !Tlim_arr(k)    = arrFunc                                       ! NEWOUT
+    !Tlim_cocco(k)  = CoccoTFunc                                    ! NEWOUT
 
 !-------------------------------------------------------------------------------
 ! Light                                                                                                   ! NEW MOCSY
@@ -388,9 +389,9 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 ! Calculate the carbonate system for the very first time step of the first year of the run
     !if (mocsy_restart==.false. .and. recom_istep==1) then    ! r_restart is defined in gen_modules_clock in fesom_cpl.
     if (mstep==1) then
-!       call vars_sprac(ph_depth, pco2_depth, fco2_depth, co2_depth, hco3_depth, co3_depth, OmegaA_depth, OmegaC_depth, kspc_depth, BetaD_depth, rhoSW_depth, p_depth, tempis_depth, & ! NEW MOCSY
-!        REcoM_T_depth, REcoM_S_depth, REcoM_Alk_depth, REcoM_DIC_depth, REcoM_Si_depth, REcoM_Phos_depth, Patm_depth, zF(k), Latd, Nmocsy, & ! NEW MOCSY
-!            optCON='mol/m3', optT='Tpot   ', optP='m ', optB='u74', optK1K2='l  ', optKf='dg', optGAS='Pinsitu', optS='Sprc') ! NEW MOCSY
+       call vars_sprac(ph_depth, pco2_depth, fco2_depth, co2_depth, hco3_depth, co3_depth, OmegaA_depth, OmegaC_depth, kspc_depth, BetaD_depth, rhoSW_depth, p_depth, tempis_depth, & ! NEW MOCSY
+                       REcoM_T_depth, REcoM_S_depth, REcoM_Alk_depth, REcoM_DIC_depth, REcoM_Si_depth, REcoM_Phos_depth, Patm_depth, zF(k), Latd, Nmocsy,                           & ! NEW MOCSY
+                       optCON='mol/m3', optT='Tpot   ', optP='m ', optB='u74', optK1K2='l  ', optKf='dg', optGAS='Pinsitu', optS='Sprc')                                              ! NEW MOCSY
        CO2_watercolumn(k)    = co2_depth(1)
        pH_watercolumn(k)     = ph_depth(1)
        pCO2_watercolumn(k)   = pco2_depth(1)
@@ -402,14 +403,14 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     endif 
 
 ! Calculate carbonate system every 7 days for depths < 1%PAR, and every 30 days for the depths below.
-    mocsy_step_per_day = dt ! define this in namelist.recom OG
+    mocsy_step_per_day = 1/dt_b   ! NEW ms: time steps per day in recom -> is that correct? Not necessary to define in namelist?     !dt ! define this in namelist.recom OG
     logfile_outfreq_7  = mocsy_step_per_day*7                    ! mocsy_step_per_day seems to be defined in the fesom namelist.
     logfile_outfreq_30 = mocsy_step_per_day*30
 
     if (PARave > 0.01*SurfSR .and. mod(mstep,logfile_outfreq_7)==0) then
-!       call vars_sprac(ph_depth, pco2_depth, fco2_depth, co2_depth, hco3_depth, co3_depth, OmegaA_depth, OmegaC_depth, kspc_depth, BetaD_depth, rhoSW_depth, p_depth, tempis_depth, & ! NEW MOCSY
-!                            REcoM_T_depth, REcoM_S_depth, REcoM_Alk_depth, REcoM_DIC_depth, REcoM_Si_depth, REcoM_Phos_depth, Patm_depth, zF(k), Latd, Nmocsy,                      & ! NEW MOCSY
-!                            optCON='mol/m3', optT='Tpot   ', optP='m ', optB='u74', optK1K2='l  ', optKf='dg', optGAS='Pinsitu', optS='Sprc')                                         ! NEW MOCSY
+       call vars_sprac(ph_depth, pco2_depth, fco2_depth, co2_depth, hco3_depth, co3_depth, OmegaA_depth, OmegaC_depth, kspc_depth, BetaD_depth, rhoSW_depth, p_depth, tempis_depth, & ! NEW MOCSY
+                       REcoM_T_depth, REcoM_S_depth, REcoM_Alk_depth, REcoM_DIC_depth, REcoM_Si_depth, REcoM_Phos_depth, Patm_depth, zF(k), Latd, Nmocsy,                           & ! NEW MOCSY
+                       optCON='mol/m3', optT='Tpot   ', optP='m ', optB='u74', optK1K2='l  ', optKf='dg', optGAS='Pinsitu', optS='Sprc')                                              ! NEW MOCSY
        CO2_watercolumn(k)    = co2_depth(1)
        pH_watercolumn(k)     = ph_depth(1)
        pCO2_watercolumn(k)   = pco2_depth(1)
@@ -419,9 +420,9 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
        kspc_watercolumn(k)   = kspc_depth(1)   ! NEW DISS
        rhoSW_watercolumn(k)  = rhoSW_depth(1)  ! NEW DISS
     elseif (PARave < 0.01*SurfSR .and. mod(mstep,logfile_outfreq_30)==0) then
-!       call vars_sprac(ph_depth, pco2_depth, fco2_depth, co2_depth, hco3_depth, co3_depth, OmegaA_depth, OmegaC_depth, kspc_depth, BetaD_depth, rhoSW_depth, p_depth, tempis_depth, & ! NEW MOCSY
-!                           REcoM_T_depth, REcoM_S_depth, REcoM_Alk_depth, REcoM_DIC_depth, REcoM_Si_depth, REcoM_Phos_depth, Patm_depth, zF(k), Latd, Nmocsy,                       & ! NEW MOCSY
-!                           optCON='mol/m3', optT='Tpot   ', optP='m ', optB='u74', optK1K2='l  ', optKf='dg', optGAS='Pinsitu', optS='Sprc')                                          ! NEW MOCSY
+       call vars_sprac(ph_depth, pco2_depth, fco2_depth, co2_depth, hco3_depth, co3_depth, OmegaA_depth, OmegaC_depth, kspc_depth, BetaD_depth, rhoSW_depth, p_depth, tempis_depth, & ! NEW MOCSY
+                       REcoM_T_depth, REcoM_S_depth, REcoM_Alk_depth, REcoM_DIC_depth, REcoM_Si_depth, REcoM_Phos_depth, Patm_depth, zF(k), Latd, Nmocsy,                           & ! NEW MOCSY
+                       optCON='mol/m3', optT='Tpot   ', optP='m ', optB='u74', optK1K2='l  ', optKf='dg', optGAS='Pinsitu', optS='Sprc')                                              ! NEW MOCSY
        CO2_watercolumn(k)    = co2_depth(1)
        pH_watercolumn(k)     = ph_depth(1)
        pCO2_watercolumn(k)   = pco2_depth(1)
@@ -437,56 +438,20 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !-------------------------------------------------------------------------------
 ! Convert pH to proton concentration
    h_depth(1) = 10.**(-ph_depth(1))
-   !if(recom_mype==1) write(*,*), 'pH =',pH_depth(1)
-   !if(recom_mype==1) write(*,*), 'H converted from pH =',h_depth(1)
-   !if(recom_mype==1) write(*,*), 'pCO2 =',pco2_depth(1)
-
-! Conversion factor between [mol/m3] (model) and [umol/kg] (function): (1000 * 1000) / 1024
-   Cunits = 976.5625
-   ! Conversion not needed for [H], because in model and function derived from pH and therefore in [mol/L]
-
-! Multiple driver interaction: calculation of d in the CO2 function  ! NEW inter
-   d_CT_CL_phy = 1.023e+07 + m_CT_phy * (Temp(k) - T0_CT) + m_CL_phy * (PARave - L0_CL)
-   d_CT_CL_dia = 2.640e+06 + m_CT_dia * (Temp(k) - T0_CT) + m_CL_dia * (PARave - L0_CL)
-   d_CT_CL_coc = 9.450e+06 + m_CT_coc * (Temp(k) - T0_CT) + m_CL_coc * (PARave - L0_CL)
+! Conversion factor Cunits not needed for [H], because in model and function derived from pH and therefore in [mol/L]
 
 ! Small phytoplankton
-   if (inter_CT_CL) then ! NEW inter
-    PhyCO2 = 1.162e+00 * HCO3_watercolumn(k) * Cunits / (4.888e+01 + HCO3_watercolumn(k) * Cunits) - exp(-2.255e-01 * CO2_watercolumn(k) * Cunits) - d_CT_CL_phy * 10.**(-pH_watercolumn(k))
-   else
-    PhyCO2 = 1.162e+00 * HCO3_watercolumn(k) * Cunits / (4.888e+01 + HCO3_watercolumn(k) * Cunits) - exp(-2.255e-01 * CO2_watercolumn(k) * Cunits) - 1.023e+07 * 10.**(-pH_watercolumn(k))
-    !PhyCO2 = 1.278e+00 * HCO3_watercolumn(k) * Cunits / (5.377e+01 + HCO3_watercolumn(k) * Cunits) - exp(-2.481e-01 * CO2_watercolumn(k) * Cunits) - 1.125e+07 * 10.**(-pH_watercolumn(k)) ! lowSens
-   endif
-    !PhyCO2 = min(PhyCO2,real(one))
-    PhyCO2 = min(PhyCO2,3.0)      ! April 2022: limitation to 3
-    !if(recom_mype==1) write(*,*), 'PhyCO2 =',PhyCO2 
-    CO2lim_phy(k)   = PhyCO2      ! NEWOUT
+   PhyCO2 = a_co2_phy * HCO3_watercolumn(k) * Cunits / (b_co2_phy + HCO3_watercolumn(k) * Cunits) - exp(-c_co2_phy * CO2_watercolumn(k) * Cunits) - d_co2_phy * 10.**(-pH_watercolumn(k))
+   PhyCO2 = min(PhyCO2,3.d0)      ! April 2022: limitation to 3
 
 ! Diatoms
-   if (inter_CT_CL) then ! NEW inter
-    DiaCO2 = 1.040e+00 * HCO3_watercolumn(k) * Cunits / (2.890e+01 + HCO3_watercolumn(k) * Cunits) - exp(-8.778e-01 * CO2_watercolumn(k) * Cunits) - d_CT_CL_dia * 10.**(-pH_watercolumn(k))
-   else
-    DiaCO2 = 1.040e+00 * HCO3_watercolumn(k) * Cunits / (2.890e+01 + HCO3_watercolumn(k) * Cunits) - exp(-8.778e-01 * CO2_watercolumn(k) * Cunits) - 2.640e+06 * 10.**(-pH_watercolumn(k))
-    !DiaCO2 = 1.144e+00 * HCO3_watercolumn(k) * Cunits / (3.179e+01 + HCO3_watercolumn(k) * Cunits) - exp(-9.656e-01 * CO2_watercolumn(k) * Cunits) - 2.904e+06 * 10.**(-pH_watercolumn(k)) ! lowSens
-   endif
-    !DiaCO2 = min(DiaCO2,real(one))
-    DiaCO2 = min(DiaCO2,3.0)      ! April 2022: limitation to 3
-    !if(recom_mype==1) write(*,*), 'DiaCO2 =',DiaCO2
-    CO2lim_dia(k)   = DiaCO2      ! NEWOUT
+   DiaCO2 = a_co2_dia * HCO3_watercolumn(k) * Cunits / (b_co2_dia + HCO3_watercolumn(k) * Cunits) - exp(-c_co2_dia * CO2_watercolumn(k) * Cunits) - d_co2_dia * 10.**(-pH_watercolumn(k))
+   DiaCO2 = min(DiaCO2,3.d0)      ! April 2022: limitation to 3
 
 ! Coccolithophores
-   if (inter_CT_CL) then ! NEW inter
-    CoccoCO2 = 1.109e+00 * HCO3_watercolumn(k) * Cunits / (3.767e+01 + HCO3_watercolumn(k) * Cunits) - exp(-3.912e-01 * CO2_watercolumn(k) * Cunits) - d_CT_CL_coc * 10.**(-pH_watercolumn(k))
-   else
-    CoccoCO2 = 1.109e+00 * HCO3_watercolumn(k) * Cunits / (3.767e+01 + HCO3_watercolumn(k) * Cunits) - exp(-3.912e-01 * CO2_watercolumn(k) * Cunits) - 9.450e+06 * 10.**(-pH_watercolumn(k))
-    !CoccoCO2 = 1.220e+00 * HCO3_watercolumn(k) * Cunits / (4.144e+01 + HCO3_watercolumn(k) * Cunits) - exp(-4.303e-01 * CO2_watercolumn(k) * Cunits) - 1.040e+07 * 10.**(-pH_watercolumn(k)) ! lowSens
-   endif
-    !CoccoCO2 = min(CoccoCO2,real(one))
-    CoccoCO2 = min(CoccoCO2,3.0)  ! April 2022: limitation to 3
-    !if(recom_mype==1) write(*,*), 'CoccoCO2 =',CoccoCO2
-    CO2lim_cocco(k) = CoccoCO2    ! NEWOUT
-
-    !if(recom_mype==1) write(*,*), 'CoccoCO2 =',CoccoCO2
+   CoccoCO2 = a_co2_cocco * HCO3_watercolumn(k) * Cunits / (b_co2_cocco + HCO3_watercolumn(k) * Cunits) - exp(-c_co2_cocco * CO2_watercolumn(k) * Cunits) - d_co2_cocco * 10.**(-pH_watercolumn(k))
+   CoccoCO2 = min(CoccoCO2,3.d0)  ! April 2022: limitation to 3
+   
 
 !------------------------------------------------------------------------------
 ! Calcite dissolution dependent on OmegaC !NEW DISS
@@ -496,12 +461,6 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     Ca                 = (0.02128d0/40.078d0) * Sali_depth(k)/1.80655d0 ! Calcium ion concentration [mol/kg], function from varsolver.f90
     CO3_sat            = (kspc_watercolumn(k) / Ca) * rhoSW_watercolumn(k) ! Saturated carbonate ion concentration, converted to [mol/m3]
     calc_diss          = calc_diss_omegac * max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))**(calc_diss_exp) ! Dissolution rate scaled by carbonate ratio, after Aumont et al. 2015
-    !if(recom_mype==1) write(*,*), 'Max without exponent = ',max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))
-    !if(recom_mype==1) write(*,*), 'Max with exponent as integer = ',max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))**(1)
-    !if(recom_mype==1) write(*,*), 'Max with exponent variable = ',max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))**(calc_diss_exp)
-    !if(recom_mype==1) write(*,*), 'Max with less parentheses = ',max(zero,1-(CO3_watercolumn(k)/CO3_sat))**(calc_diss_exp)
-    !CO3_watercolumn(k) = CO3_watercolumn(k) + calc_diss * DetCalc * dt  ! Add newly dissolved carbonate iones to pool inbetween mocsy timesteps to account for them in diss function
-    !calc_diss      = calc_diss_omegac * max(zero,1-OmegaC_watercolumn(k))**(1) ! Dissolution rate scaled by the calcite saturation state OmegaC
    else
     calc_diss      = calc_diss_rate * SinkVel(k,ivdet) /20.d0 ! Dissolution rate of CaCO3 scaled by the sinking velocity at the current depth
    endif
@@ -539,31 +498,75 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     feLimitFac  	= Fe/(k_Fe + Fe)                       ! Use Michaelis–Menten kinetics
     qlimitFac   	= min(qlimitFac,feLimitFac)            ! Liebig law of the minimum
 
-    Nutlim_phy(k) = qlimitFac                                     ! NEWOUT
-
     pMax          	= P_cm * qlimitFac * arrFunc           ! Maximum value of C-specific rate of photosynthesis
     
 !_______________________________________________________________________
 !< Diatoms
     qlimitFac     	= recom_limiter(NMinSlope,NCmin_d,quota_dia)
+    if((CoccoC>100)) then
+       print*,'qlimitFac dias 1: ',qlimitFac
+       print*,'NMinSlope: ',NMinSlope
+       print*,'NCmin_d: ',NCmin_d
+       print*,'quota_dia: ',quota_dia
+    endif
     qlimitFacTmp  	= recom_limiter(SiMinSlope,SiCmin,qSiC)
+    if((CoccoC>100)) then
+       print*,'qlimitFacTmp: ',qlimitFacTmp
+    endif
     qlimitFac     	= min(qLimitFac,qlimitFacTmp)
+    if((CoccoC>100)) then
+       print*,'qlimitFac dias 2: ',qlimitFac
+    endif
     feLimitFac  	= Fe/(k_Fe_d + Fe)
+    if((CoccoC>100)) then
+       print*,'feLimitFac dias: ',feLimitFac
+    endif
     qlimitFac   	= min(qlimitFac,feLimitFac)
-
-    Nutlim_dia(k) = qlimitFac                                     ! NEWOUT
+    if((CoccoC>100)) then
+       print*,'qlimitFac dias 3: ',qlimitFac
+    endif
 
     pMax_dia      	= P_cm_d * qlimitFac * arrFunc
+
+
+   if((CoccoC>100)) then                                                ! NEW nur zum debuggen                                                                                                                                                                                 
+       print*,'ERROR: strange CoccoC, print pMax_dia elements !'
+       print*,'P_cm_d: ', P_cm_d
+       print*,'qlimitFac: ', qlimitFac
+       print*,'arrFunc: ', arrFunc
+    endif
 
 !_______________________________________________________________________
 !< Coccolithophores (NEW!!!)
 
     qlimitFac     = recom_limiter(NMinSlope,NCmin_c,quota_cocco)  ! NEW
-      feLimitFac  = Fe/(k_Fe_c + Fe)                              ! NEW
-      qlimitFac   = min(qlimitFac,feLimitFac)                     ! NEW
-    Nutlim_cocco(k)=qlimitFac                                     ! NEWOUT
+    if((CoccoC>100)) then                                                ! NEW nur zum debuggen
+       print*,'qlimitFac coccos 1: ', qlimitFac
+       print*,'NMinSlope: ',NMinSlope
+       print*,'NCmin_c: ',NCmin_c
+       print*,'quota_cocco: ',quota_cocco
+    endif
+    
+    feLimitFac  = Fe/(k_Fe_c + Fe)                                ! NEW
+    if((CoccoC>100)) then
+       print*,'feLimitFac coccos: ', feLimitFac
+    endif
+   
+    qlimitFac   = min(qlimitFac,feLimitFac)                       ! NEW
+    if((CoccoC>100)) then
+       print*,'qlimitFac coccos 2: ',qlimitFac
+    endif
 
     pMax_cocco    = P_cm_c * qlimitFac * CoccoTFunc               ! NEW (and here also the T dependency is changed)
+
+   
+    if((CoccoC>100)) then                                                ! NEW nur zum debuggen
+       print*,'ERROR: strange CoccoC, print pMax_cocco elements !'
+       print*,'P_cm_c: ', P_cm_c
+       print*,'qlimitFac: ', qlimitFac
+       print*,'CoccoTFunc: ', CoccoTFunc
+    endif
+
 
 !_______________________________________________________________________
 !< Light
@@ -593,7 +596,6 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     if ( pMax .lt. tiny .OR. PARave /= PARave                  &
          .OR. CHL2C /= CHL2C) then
         Cphot       = zero
-      Llim_phy(k) = zero                                               ! NEWOUT
     else
      if (CO2lim) then
         Cphot     = pMax*( real(one) &
@@ -602,18 +604,15 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         Cphot       = pMax*( real(one) &
                      - exp(-alfa * Chl2C * PARave / pMax))
       endif
-      Llim_phy(k) = real(one) - exp(-alfa * Chl2C * PARave / pMax)     ! NEWOUT
     end if
     if ( Cphot .lt. tiny) Cphot = zero
 
-    PR_phy(k)     = Cphot                                              ! NEWOUT
     
 !------------------------------------------------------------------------------
 !< Diatom photosynthesis rate
     if ( pMax_dia .lt. tiny .OR. PARave /= PARave               &
          .OR. CHL2C_dia /= CHL2C_dia) then
         Cphot_dia   = zero
-      Llim_dia(k) = zero                                               ! NEWOUT
     else
       if (CO2lim) then
         Cphot_dia = pMax_dia * (real(one) &
@@ -622,11 +621,9 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         Cphot_dia   = pMax_dia * (real(one) &
                      - exp(-alfa_d * Chl2C_dia * PARave / pMax_dia))
       endif
-        Llim_dia(k) = real(one)-exp(-alfa_d*Chl2C_dia*PARave/pMax_dia)   ! NEWOUT
     end if
     if (Cphot_dia .lt. tiny) Cphot_dia = zero
 
-    PR_dia(k)     = Cphot_dia                                          ! NEWOUT
 
     if (ciso) then
 !<       Photosynthesis rates involving 13|14C should be smaller than
@@ -646,7 +643,6 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     if ( pMax_cocco .lt. tiny .OR. Parave /= Parave             &      ! NEW
          .OR. CHL2C_cocco /= CHL2C_cocco) then                         ! NEW
        Cphot_cocco = zero                                              ! NEW
-       Llim_cocco(k)=zero                                              ! NEWOUT
     else                                                               ! NEW
        if (CO2lim) then
          Cphot_cocco = pMax_cocco * (real(one) &                       ! NEW
@@ -655,11 +651,16 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
          Cphot_cocco = pMax_cocco * (real(one) &                       ! NEW
                  - exp( -alfa_c * Chl2C_cocco * PARave / pMax_cocco))  ! NEW
        endif
-       Llim_cocco(k)=real(one)-exp(-alfa_c*Chl2C_cocco*PARave/pMax_cocco)! NEWOUT
     end if                                                             ! NEW
     if (Cphot_cocco .lt. tiny) Cphot_cocco = zero                      ! NEW
-
-    PR_cocco(k)    = Cphot_cocco                                       ! NEW
+    
+    if((CoccoC>100)) then                                                ! NEW nur zum debuggen
+       print*,'ERROR: strange CoccoC, print Cphot elements !'
+       print*,'pMax_cocco: ', pMax_cocco
+       print*,'alfa_c: ', alfa_c
+       print*,'Chl2C_cocco: ', Chl2C_cocco
+       print*,'PARave: ',PARave
+    endif
 
 !-------------------------------------------------------------------------------- 
 !< chlorophyll degradation
@@ -689,13 +690,13 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         end if
 
 !    Coccolithophores chla loss (NEW!!!)
-        if (pMax_cocco .lt. tiny .OR. PARave /= Parave           &     ! NEW
-                 .OR. CHL2C_plast_cocco /= CHL2C_plast_cocco) then     ! NEW
-           KOchl_cocco = deg_Chl_c*0.1d0                               ! NEW
-        else                                                           ! NEW
-           KOchl_cocco = deg_Chl_c * ( 1 -                       &     ! NEW
+        if (pMax_cocco .lt. tiny .OR. PARave /= Parave           &        ! NEW
+                 .OR. CHL2C_plast_cocco /= CHL2C_plast_cocco) then        ! NEW
+           KOchl_cocco = deg_Chl_c*0.1d0                                  ! NEW
+        else                                                              ! NEW
+           KOchl_cocco = deg_Chl_c * ( 1 -                       &        ! NEW
                 exp( -alfa_c * CHL2C_plast_cocco * PARave / pMax_cocco )) ! NEW
-           KOchl_cocco = max((deg_Chl_c*0.1d0), KOchl_cocco)           ! NEW
+           KOchl_cocco = max((deg_Chl_c*0.1d0), KOchl_cocco)              ! NEW
         end if
 
 
@@ -794,7 +795,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     end if                                                             ! NEW
 
 !-------------------------------------------------------------------------------
-!< Phytoplankton respiraion rate
+!< Phytoplankton respiration rate
 !< res_phy: Maintenance respiration rate constant [day−1 ]
 !< biosynth: The cost of biosynthesis of N [mmol C mmol N−1 ]
     phyRespRate     = res_phy * limitFacN + biosynth * N_assim
@@ -1117,30 +1118,23 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 ! Terms required for the formation and dissolution of CaCO3
     if (Temp(k) < 10.6) then                                  ! VERY NEW (PICPOC definition after Krumhardt et al. 2017, 2019; Temp(k) because we need degC here)
       PICPOCtemp = 0.104d0 * Temp(k) - 0.108d0
-       else
+    else
       PICPOCtemp = 1
     end if
     PICPOCtemp   = max(tiny,PICPOCtemp)
-    Cal_Tlim(k)  = PICPOCtemp                                 ! NEWOUT
 
-    PICPOCCO2     = 1.102e+00 * HCO3_watercolumn(k) * Cunits / (4.238e+01 + HCO3_watercolumn(k) * Cunits) - exp(-7.079e-01 * CO2_watercolumn(k) * Cunits) - 1.343e+07 * 10.**(-pH_watercolumn(k))
-    !PICPOCCO2     = 1.212e+00 * HCO3_watercolumn(k) * Cunits / (4.662e+01 + HCO3_watercolumn(k) * Cunits) - exp(-7.787e-01 * CO2_watercolumn(k) * Cunits) - 1.477e+07 * 10.**(-pH_watercolumn(k)) ! lowSens
-    !PICPOCCO2     = min(PICPOCCO2,real(one))
-    PICPOCCO2     = min(PICPOCCO2,3.0)                                       ! April 2022: limitation to 3
-    !if(recom_mype==1) write(*,*), 'PICPOCCO2 =',PICPOCCO2
-    Cal_CO2lim(k) = PICPOCCO2                                                ! NEWOUT
+    PICPOCCO2     = a_co2_calc * HCO3_watercolumn(k) * Cunits / (b_co2_calc + HCO3_watercolumn(k) * Cunits) - exp(-c_co2_calc * CO2_watercolumn(k) * Cunits) - d_co2_calc * 10.**(-pH_watercolumn(k))
+    PICPOCCO2     = min(PICPOCCO2,3.d0)                                       ! April 2022: limitation to 3
 
     PICPOCN     = -0.31 * (DIN/(DIN + k_din_c)) + 1.31
     PICPOCN     = max(tiny,PICPOCN)
-    Cal_Nlim(k) = PICPOCN                                                    ! NEWOUT
     
     if (CO2lim) then
       calcification = 1.d0 * Cphot_cocco * CoccoC * PICPOCtemp * PICPOCN * PICPOCCO2  ! VERY NEW
     else
       calcification = 1.d0 * Cphot_cocco * CoccoC * PICPOCtemp * PICPOCN
     endif
-    Cal_pure(k)   = calcification                                            ! NEWOUT
-
+   
 
 !< calc_prod_ratio: Calcite production ratio, dimensionless
 !    calcification = calc_prod_ratio * Cphot * PhyC   ! Z in equations    ! OG
@@ -1165,15 +1159,12 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !                                         * recipQuota/(PhyC + tiny) &
 !                                         * PhyCalc
 
-  if(REcoM_Second_Zoo)  then
-     calc_loss_gra  =  grazingFlux_Cocco   &                                 ! NEW changed to Coccos
-                     * recipQuota_Cocco/(CoccoC + tiny)    * PhyCalc         ! NEW changed to Coccos
-     calc_loss_gra2 = grazingFlux_Cocco2           &                         ! NEW changed to Coccos
-                     * recipQuota_Cocco/(CoccoC + tiny)    * PhyCalc         ! NEW changed to Coccos
-   else
-    calc_loss_gra = grazingFlux_Cocco           &                            ! NEW changed to Coccos
-                    * recipQuota_Cocco/(CoccoC + tiny)    * PhyCalc          ! NEW changed to Coccos
-  endif  
+    if (REcoM_Second_Zoo) then
+       calc_loss_gra  =  grazingFlux_Cocco * recipQuota_Cocco/(CoccoC + tiny) * PhyCalc         ! NEW changed to Coccos
+       calc_loss_gra2 = grazingFlux_Cocco2 * recipQuota_Cocco/(CoccoC + tiny) * PhyCalc         ! NEW changed to Coccos
+    else
+       calc_loss_gra  = grazingFlux_Cocco * recipQuota_Cocco/(CoccoC + tiny)  * PhyCalc         ! NEW changed to Coccos
+    endif  
 
  
     if (ciso) then
@@ -1223,8 +1214,8 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             + phyRespRate                   * PhyC       & ! --> Small pyhtoplankton respiration 
             - Cphot_Dia                     * DiaC       & ! --> Diatom photosynthesis 
             + phyRespRate_Dia               * DiaC       & ! --> Diatom respiration
-            - Cphot_Cocco                   * CoccoC  &          ! NEW
-            + phyRespRate_Cocco             * CoccoC  &          ! NEW
+            - Cphot_Cocco                   * CoccoC     &          ! NEW
+            + phyRespRate_Cocco             * CoccoC     &          ! NEW
             + rho_C1 * arrFunc              * EOC        & ! --> Remineralization of DOC
             + HetRespFlux                                & ! --> Zooplankton respiration                     
             + Zoo2RespFlux                               &                    
@@ -1235,7 +1226,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - calcification                              & ! --> Calcification
                                                         ) * dt_b + sms(k,idic)
     else
-        sms(k,idic)      = (                       &
+        sms(k,idic)      = (                          &
             - Cphot                         * PhyC    &
             + phyRespRate                   * PhyC    &
             - Cphot_Dia                     * DiaC    &
@@ -1250,22 +1241,27 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - calcification                           &
                                                       ) * dt_b + sms(k,idic)
     endif
-!  if((Latd(1)<-45.0) .and. ((state(k,idic)+sms(k,idic))>2500)) then
-!     !co2flux(1)=0.0  
-!      print*,'ERROR: strange dic !'
-!      print*,'state(k,idic): ', state(k,idic)
-!      print*,'sms Cphot: ', -Cphot*PhyC
-!      print*,'sms resp: ', phyRespRate*PhyC
-!      print*,'sms Cphot dia: ', -Cphot_Dia*DiaC
-!      print*,'sms resp dia: ', phyRespRate_Dia * DiaC
-!      print*,'sms eoc: ', rho_C1* arrFunc *EOC
-!      print*,'sms het resp: ', HetRespFlux
-!      print*, 'sms co2: ',  dflux(1) * recipdzF(k) * max( 2-k, 0 )
-!      print*, 'sms calcdiss: ', calc_diss * DetCalc
-!      print*, 'sms calc_loss: ', calc_loss_gra * calc_diss_guts
-!      print*, 'sms calcification: ', -calcification
-!      stop
-!    endif
+    if((Latd(1)<-45.0) .and. ((state(k,idic)+sms(k,idic))>2500)) then
+      !co2flux(1)=0.0  
+       print*,'ERROR: strange dic !'
+       print*,'state(k,idic): ', state(k,idic)
+       print*,'sms Cphot: ', Cphot*PhyC
+       print*,'sms resp: ', phyRespRate*PhyC
+       print*,'sms Cphot dia: ', Cphot_Dia*DiaC
+       print*,'sms resp dia: ', phyRespRate_Dia * DiaC
+       print*,'sms Cphot cocco: ', Cphot_cocco*CoccoC
+       print*,'sms resp cocco: ', phyRespRate_Cocco * CoccoC
+       print*,'sms PhyC: ', PhyC
+       print*,'sms DiaC: ', DiaC
+       print*,'sms CoccoC: ', CoccoC
+       print*,'sms eoc: ', rho_C1* arrFunc *EOC
+       print*,'sms het resp: ', HetRespFlux
+       !!!!!print*, 'sms co2: ',  dflux(1) * recipdzF(k) * max( 2-k, 0 )
+       print*, 'sms calcdiss: ', calc_diss * DetCalc
+       print*, 'sms calc_loss: ', calc_loss_gra * calc_diss_guts
+       print*, 'sms calcification: ', calcification
+       !stop
+    endif
 
 !____________________________________________________________
 !< Alkalinity (Assumes that N:P follows a constant Redfield ratio
@@ -1758,6 +1754,22 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - grazingFlux_dia * recipQuota_dia       &
      	                                           ) * dt_b + sms(k,idiac)
     endif
+
+
+   if((CoccoC>100)) then                                                ! NEW nur zum debuggen     
+       print*,'ERROR: strange CoccoC !'
+       print*,'state(k,idiac): ', state(k,idiac)
+       print*,'sms DiaC: ', DiaC
+       print*,'sms Cphot dia: ', Cphot_dia*DiaC
+       print*,'sms lossC_d: ', lossC_d
+       print*,'sms limitFacN_dia: ', limitFacN_dia
+       print*,'sms phyRespRate_dia: ', phyRespRate_dia
+       print*,'sms grazingFlux_dia: ', grazingFlux_dia
+       print*,'sms grazingFlux_dia2: ', grazingFlux_dia2
+       print*,'sms recipQuota_dia: ', recipQuota_dia
+   !    stop
+    endif
+
 !____________________________________________________________
 !< Diatom Chl
 
@@ -1838,6 +1850,20 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       - grazingFlux_cocco * recipQuota_cocco   &                        ! NEW
                                              ) * dt + sms(k,icocc)      ! NEW
    endif
+
+   if((CoccoC>100)) then                                                ! NEW nur zum debuggen
+       print*,'ERROR: strange CoccoC !'
+       print*,'state(k,icocc): ', state(k,icocc)
+       print*,'sms CoccoC: ', CoccoC
+       print*,'sms Cphot cocco: ', Cphot_cocco*CoccoC
+       print*,'sms lossC_c: ', lossC_c
+       print*,'sms limitFacN_cocco: ', limitFacN_cocco
+       print*,'sms phyRespRate_cocco: ', phyRespRate_cocco
+       print*,'sms grazingFlux_cocco: ', grazingFlux_cocco
+       print*,'sms grazingFlux_cocco2: ', grazingFlux_Cocco2
+       print*,'sms recipQuota_cocco: ', recipQuota_cocco
+       !stop
+    endif
 
 !-------------------------------------------------------------------------------
 ! Coccolithophore Chl (NEW!!!)
@@ -2263,9 +2289,9 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
      	+ Cphot_dia               * DiaC  &
      	) * recipbiostep
 
-       Diags3Dloc(k,22) = Diags3Dloc(k,22) + (   &                       ! NEW                                                                                                   
-       + Cphot_cocco             * CoccoC  &
-      ) * recipbiostep
+        Diags3Dloc(k,22) = Diags3Dloc(k,22) + (   &                       ! NEW                                                                                                   
+        + Cphot_cocco             * CoccoC  &
+        ) * recipbiostep
 
 !*** Net N-assimilation [mmol N/(m3 * day)]
 	Diags3Dloc(k,5) = Diags3Dloc(k,5) + (   &
@@ -2293,7 +2319,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         ) * recipbiostep
 
         Diags3Dloc(k,24) = Diags3Dloc(k,24) + ( &                         ! NEW
-        + N_assim_cocco            * CoccoC &                             ! NEW
+        + KOchl_cocco &                                                   ! NEW
         ) * recipbiostep                                                  ! NEW
 
 ! diagnostics, combined from Onur and Cara
