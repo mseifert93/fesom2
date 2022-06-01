@@ -253,13 +253,16 @@ type(t_mesh),             target, save :: mesh
             !___compute fluxes to the ocean: heat, freshwater, momentum_________
             if (flag_debug .and. mype==0)  print *, achar(27)//'[34m'//' --> call oce_fluxes_mom...'//achar(27)//'[0m'
             call oce_fluxes_mom(mesh) ! momentum only
+            if (flag_debug .and. n==1)  print *, achar(27)//'[34m'//'     --> call oce_fluxes         '//achar(27)//'[0m'   ! NEW: added print statement
             call oce_fluxes(mesh)
+            if (flag_debug .and. n==1)  print *, achar(27)//'[34m'//'     --> call before_oce_step         '//achar(27)//'[0m'   ! NEW: added print statement
         end if
         call before_oce_step(mesh) ! prepare the things if required
+        if (flag_debug .and. n==1)  print *, achar(27)//'[34m'//'     --> call recom         '//achar(27)//'[0m'   ! NEW: added print statement
 #if defined (__recom)
         if (use_REcoM) then
            call recom(mesh)
-!           if (mype==0 .and. n==1)  print *, achar(27)//'[46;1m'//'     --> call RECOM         '//achar(27)//'[0m'
+           if (flag_debug .and. n==1)  print *, achar(27)//'[34m'//'     --> called recom         '//achar(27)//'[0m'   ! NEW: added print statement
 !           call compute_recom_diagnostics(1, mesh)
         end if
 #endif
