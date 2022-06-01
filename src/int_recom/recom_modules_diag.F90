@@ -35,6 +35,7 @@ module recom_diag
   real(kind=WP),  save,  target                 :: valDetC
   real(kind=WP),  save,  target                 :: valHetC
   real(kind=WP),  save,  target                 :: valDiaC
+  real(kind=WP),  save,  target                 :: valCoccoC       ! NEW
   real(kind=WP),  save,  target                 :: valPhyCalc
   real(kind=WP),  save,  target                 :: valDetCalc
   real(kind=WP),  save,  target                 :: valDSi
@@ -122,7 +123,14 @@ subroutine compute_carbon_diag(mode,mesh)
            write(*,*) 'total integral of DiaC at timestep :', mstep, valDiaC
         end if
 
-       !PhyCalc
+        !CoccoC
+        call integrate_nod(tr_arr(:,:,32), valCoccoC, mesh)                           ! NEW
+        total_carbon=total_carbon+valCoccoC                                           ! NEW
+        if (mype==0 .and. mod(mstep,recom_logfile_outfreq)==0) then                   ! NEW
+           write(*,*) 'total integral of CoccoC at timestep :', mstep, valCoccoC      ! NEW
+        end if                                                                        ! NEW
+
+        !PhyCalc
         call integrate_nod(tr_arr(:,:,22), valPhyCalc, mesh)
         total_carbon=total_carbon+valPhyCalc
         if (mype==0 .and. mod(mstep,recom_logfile_outfreq)==0) then
@@ -194,7 +202,7 @@ subroutine write_recom_diag(mode, mesh)
   integer                            :: status, ncid, j, k
   character(2000)                    :: filename
   integer                            :: recID, tID, tcID, tsID, tsdelID
-  integer                            :: valDICID, valDOCID, valPhyCID, valDetCID, valHetCID, valDiaCID, valPhyCalcID, valDetCalcID
+  integer                            :: valDICID, valDOCID, valPhyCID, valDetCID, valHetCID, valDiaCID, valCoccoCID, valPhyCalcID, valDetCalcID    ! NEW: added valCoccoCID
   integer                            :: valDSiID, valDiaSiID, valDetSiID, valDetz2SiID, valBenSiID
   integer                            :: rec_count=0
   character(2000)                    :: att_text
@@ -252,6 +260,7 @@ subroutine write_recom_diag(mode, mesh)
      status = nf_def_var(ncid, 'total_DetC', NF_DOUBLE, 1, recID, valDetCID)
      status = nf_def_var(ncid, 'total_HetC', NF_DOUBLE, 1, recID, valHetCID)
      status = nf_def_var(ncid, 'total_DiaC', NF_DOUBLE, 1, recID, valDiaCID)
+     status = nf_def_var(ncid, 'total_CoccoC', NF_DOUBLE, 1, recID, valCoccoCID)      ! NEW
      status = nf_def_var(ncid, 'total_PhyCalc', NF_DOUBLE, 1, recID, valPhyCalcID)
      status = nf_def_var(ncid, 'total_DetCalc', NF_DOUBLE, 1, recID, valDetCalcID)
 
@@ -294,6 +303,7 @@ if (do_output) then
   status = nf_inq_varid(ncid, 'total_DetC', valDetCID)
   status = nf_inq_varid(ncid, 'total_HetC', valHetCID)
   status = nf_inq_varid(ncid, 'total_DiaC', valDiaCID)
+  status = nf_inq_varid(ncid, 'total_CoccoC', valCoccoCID)       ! NEW
   status = nf_inq_varid(ncid, 'total_PhyCalc', valPhyCalcID)
   status = nf_inq_varid(ncid, 'total_DetCalc', valDetCalcID)
 
@@ -329,6 +339,7 @@ if (do_output) then
   status = nf_put_vara_double(ncid, valDetCID, rec_count, 1, valDetC, 1)
   status = nf_put_vara_double(ncid, valHetCID, rec_count, 1, valHetC, 1)
   status = nf_put_vara_double(ncid, valDiaCID, rec_count, 1, valDiaC, 1)
+  status = nf_put_vara_double(ncid, valCoccoCID, rec_count, 1, valCoccoC, 1)       ! NEW
   status = nf_put_vara_double(ncid, valPhyCalcID, rec_count, 1, valPhyCalc, 1)
   status = nf_put_vara_double(ncid, valDetCalcID, rec_count, 1, valDetCalc, 1)
 
