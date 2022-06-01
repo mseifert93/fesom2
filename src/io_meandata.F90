@@ -431,7 +431,43 @@ CASE ('temp      ')
 CASE ('salt      ')
     call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),  'salt',      'salinity',    'psu',    tr_arr(:,:,2),             io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
 CASE ('PAR       ')
-    call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),  'PAR', 'PAR', 'W/m2',      PAR3D(:,:),             io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+    call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),  'PAR',       'PAR',         'W/m2',   PAR3D(:,:),                io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('CO2       ')
+    if (use_REcoM) then
+    call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),  'CO2', 'Aqueous CO2 concentration', 'mol/m3',     CO23D(:,:),           io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+    end if
+CASE ('pH        ')
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'pH',  'pH',  'total scale',                      pH3D(:,:),            io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   end if
+CASE ('pCO2      ')
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'pCO2','CO2 partial pressure', 'uatm',            pCO23D(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   end if
+CASE ('HCO3      ')
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'HCO3','Bicarbonate ion concentration', 'mol/m3', HCO33D(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   end if
+CASE ('CO3       ')
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'CO3', 'Carbonate ion concentration', 'mol/m3',   CO33D(:,:),           io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   end if
+CASE ('OmegaC    ')
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'OmegaC','calcite saturation state', 'NN',        OmegaC3D(:,:),        io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   end if
+CASE ('kspc      ')
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'kspc', 'calcite solubility product', 'mol^2/kg^2',kspc3D(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   end if
+CASE ('rhoSW     ')
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'rhoSW','in-situ density of seawater', 'mol/m3',  rhoSW3D(:,:),         io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   end if
+
+
+
 CASE ('otracers  ')
     do j=3, num_tracers
     write (id_string, "(I4.4)") tracer_id(j)
@@ -507,6 +543,12 @@ CASE ('otracers  ')
          call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),  'idetz2si', 'idetz2si', '[mmol/m3]', tr_arr(:,:,j), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
       else if (tracer_id(j)==1028) then
          call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),  'idetz2calc', 'idetz2calc', '[mmol/m3]', tr_arr(:,:,j), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+      else if (tracer_id(j)==1029) then
+         call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),  'CoccoN', 'CoccoN', '[mmol/m3]', tr_arr(:,:,j), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)         ! NEW
+      else if (tracer_id(j)==1030) then
+         call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),  'CoccoC', 'CoccoC', '[mmol/m3]', tr_arr(:,:,j), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)         ! NEW
+      else if (tracer_id(j)==1031) then
+         call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),  'CoccoChl', 'CoccoChl', '[mg/m3]', tr_arr(:,:,j), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)       ! NEW
       else
          call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),  'tra_'//id_string, 'passive tracer ID='//id_string, 'n/a', tr_arr(:,:,j), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
       end if
