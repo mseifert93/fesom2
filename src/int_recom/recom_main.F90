@@ -63,24 +63,24 @@ subroutine recom(mesh)
   real(kind=8),  allocatable :: kspc_watercolumn(:)                               ! NEW DISS
   real(kind=8),  allocatable :: rhoSW_watercolumn(:)                              ! NEW DISS
 
-  real(kind=8),  allocatable :: Nutlim_phy(:)                               ! NEWOUT
-  real(kind=8),  allocatable :: Nutlim_dia(:)                               ! NEWOUT
-  real(kind=8),  allocatable :: Nutlim_cocco(:)                             ! NEWOUT
-  real(kind=8),  allocatable :: Tlim_arr(:)                                 ! NEWOUT
-  real(kind=8),  allocatable :: Tlim_cocco(:)                               ! NEWOUT
-  real(kind=8),  allocatable :: Llim_phy(:)                                 ! NEWOUT
-  real(kind=8),  allocatable :: Llim_dia(:)                                 ! NEWOUT
-  real(kind=8),  allocatable :: Llim_cocco(:)                               ! NEWOUT
-  real(kind=8),  allocatable :: CO2lim_phy(:)                               ! NEWOUT
-  real(kind=8),  allocatable :: CO2lim_dia(:)                               ! NEWOUT
-  real(kind=8),  allocatable :: CO2lim_cocco(:)                             ! NEWOUT
-  real(kind=8),  allocatable :: PR_phy(:)                                   ! NEWOUT
-  real(kind=8),  allocatable :: PR_dia(:)                                   ! NEWOUT
-  real(kind=8),  allocatable :: PR_cocco(:)                                 ! NEWOUT
-  real(kind=8),  allocatable :: Cal_Tlim(:)                                 ! NEWOUT
-  real(kind=8),  allocatable :: Cal_CO2lim(:)                               ! NEWOUT
-  real(kind=8),  allocatable :: Cal_Nlim(:)                                 ! NEWOUT
-  real(kind=8),  allocatable :: Cal_pure(:)                                 ! NEWOUT
+  !real(kind=8),  allocatable :: Nutlim_phy(:)                               ! NEWOUT
+  !real(kind=8),  allocatable :: Nutlim_dia(:)                               ! NEWOUT
+  !real(kind=8),  allocatable :: Nutlim_cocco(:)                             ! NEWOUT
+  !real(kind=8),  allocatable :: Tlim_arr(:)                                 ! NEWOUT
+  !real(kind=8),  allocatable :: Tlim_cocco(:)                               ! NEWOUT
+  !real(kind=8),  allocatable :: Llim_phy(:)                                 ! NEWOUT
+  !real(kind=8),  allocatable :: Llim_dia(:)                                 ! NEWOUT
+  !real(kind=8),  allocatable :: Llim_cocco(:)                               ! NEWOUT
+  !real(kind=8),  allocatable :: CO2lim_phy(:)                               ! NEWOUT
+  !real(kind=8),  allocatable :: CO2lim_dia(:)                               ! NEWOUT
+  !real(kind=8),  allocatable :: CO2lim_cocco(:)                             ! NEWOUT
+  !real(kind=8),  allocatable :: PR_phy(:)                                   ! NEWOUT
+  !real(kind=8),  allocatable :: PR_dia(:)                                   ! NEWOUT
+  !real(kind=8),  allocatable :: PR_cocco(:)                                 ! NEWOUT
+  !real(kind=8),  allocatable :: Cal_Tlim(:)                                 ! NEWOUT
+  !real(kind=8),  allocatable :: Cal_CO2lim(:)                               ! NEWOUT
+  !real(kind=8),  allocatable :: Cal_Nlim(:)                                 ! NEWOUT
+  !real(kind=8),  allocatable :: Cal_pure(:)                                 ! NEWOUT
 
   character(len=2)           :: tr_num_name
 #include "../associate_mesh.h"
@@ -88,11 +88,11 @@ subroutine recom(mesh)
   allocate(Temp(nl-1), Sali_depth(nl-1), zr(nl-1) , PAR(nl-1))
   allocate(CO2_watercolumn(nl-1), pH_watercolumn(nl-1), pCO2_watercolumn(nl-1) , HCO3_watercolumn(nl-1))
   allocate(CO3_watercolumn(nl-1), OmegaC_watercolumn(nl-1), kspc_watercolumn(nl-1) , rhoSW_watercolumn(nl-1))
-  allocate(Nutlim_phy(nl-1), Nutlim_dia(nl-1), Nutlim_cocco(nl-1), Tlim_arr(nl-1), Tlim_cocco(nl-1))
-  allocate(Llim_phy(nl-1), Llim_dia(nl-1), Llim_cocco(nl-1))
-  allocate(CO2lim_phy(nl-1), CO2lim_dia(nl-1), CO2lim_cocco(nl-1))
-  allocate(PR_phy(nl-1), PR_dia(nl-1), PR_cocco(nl-1))
-  allocate(Cal_Tlim(nl-1), Cal_CO2lim(nl-1), Cal_Nlim(nl-1), Cal_pure(nl-1))
+  !allocate(Nutlim_phy(nl-1), Nutlim_dia(nl-1), Nutlim_cocco(nl-1), Tlim_arr(nl-1), Tlim_cocco(nl-1))
+  !allocate(Llim_phy(nl-1), Llim_dia(nl-1), Llim_cocco(nl-1))
+  !allocate(CO2lim_phy(nl-1), CO2lim_dia(nl-1), CO2lim_cocco(nl-1))
+  !allocate(PR_phy(nl-1), PR_dia(nl-1), PR_cocco(nl-1))
+  !allocate(Cal_Tlim(nl-1), Cal_CO2lim(nl-1), Cal_Nlim(nl-1), Cal_pure(nl-1))
   allocate(C(nl-1,bgc_num))
 
 
@@ -110,11 +110,14 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> Atm_input'/
 if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> bio_fluxes'//achar(27)//'[0m'
 
   call bio_fluxes(mesh)       !<  alkalinity restoring/ virtual flux is possible
+  
+  if (mype==0 .and. mstep==1) write(*,*), "call bio_fluxes is ready"   ! NEW: added print statement
 
 ! ======================================================================================
 !********************************* LOOP STARTS *****************************************			
 
   do n=1, myDim_nod2D  ! needs exchange_nod in the end
+!  if (mype==0 .and. mstep==1) write(*,*), "Loop ", n, "of ",myDim_nod2D       ! NEW: added print statement
 !     if (ulevels_nod2D(n)>1) cycle 
 !            nzmin = ulevels_nod2D(n)
 
@@ -159,6 +162,8 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> bio_fluxes'
      Sali_depth(1:nzmax)= tr_arr(1:nzmax, n, 2)                                    ! NEW MOCSY
 
      ! CO2 for the whole watercolumn                                               ! NEW MOCSY
+     !if (mype==0 .and. mstep==1) write(*,*), "starting to assign CO2 diagnostics"   ! NEW: added print statement 
+    
      CO2_watercolumn(1:nzmax)    = CO23D(1:nzmax, n)                               ! NEW MOCSY
      pH_watercolumn(1:nzmax)     = pH3D(1:nzmax, n)                                ! NEW MOCSY
      pCO2_watercolumn(1:nzmax)   = pCO23D(1:nzmax, n)                              ! NEW MOCSY
@@ -167,29 +172,38 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> bio_fluxes'
      OmegaC_watercolumn(1:nzmax) = OmegaC3D(1:nzmax, n)                            ! NEW DISS
      kspc_watercolumn(1:nzmax)   = kspc3D(1:nzmax, n)                              ! NEW DISS
      rhoSW_watercolumn(1:nzmax)  = rhoSW3D(1:nzmax, n)                             ! NEW DISS
+     
+     !if (mype==0 .and. mstep==1) write(*,*), "successful assignment of CO2 diagnostics"   ! NEW: added print statement  
+    
 
      ! Additional output to analyse limitations                                 ! NEWOUT
-     Nutlim_phy(1:nzmax)         = Nutlim_phy3D(1:nzmax, n)                        ! NEWOUT
-     Nutlim_dia(1:nzmax)         = Nutlim_dia3D(1:nzmax, n)                        ! NEWOUT
-     Nutlim_cocco(1:nzmax)       = Nutlim_cocco3D(1:nzmax, n)                      ! NEWOUT
-     Tlim_arr(1:nzmax)           = Tlim_arr3D(1:nzmax, n)                          ! NEWOUT
-     Tlim_cocco(1:nzmax)         = Tlim_cocco3D(1:nzmax, n)                        ! NEWOUT
-     Llim_phy(1:nzmax)           = Llim_phy3D(1:nzmax, n)                          ! NEWOUT
-     Llim_dia(1:nzmax)           = Llim_dia3D(1:nzmax, n)                          ! NEWOUT
-     Llim_cocco(1:nzmax)         = Llim_cocco3D(1:nzmax, n)                        ! NEWOUT
-     CO2lim_phy(1:nzmax)         = CO2lim_phy3D(1:nzmax, n)                        ! NEWOUT
-     CO2lim_dia(1:nzmax)         = CO2lim_dia3D(1:nzmax, n)                        ! NEWOUT
-     CO2lim_cocco(1:nzmax)       = CO2lim_cocco3D(1:nzmax, n)                      ! NEWOUT
-     PR_phy(1:nzmax)             = PR_phy3D(1:nzmax, n)                            ! NEWOUT
-     PR_dia(1:nzmax)             = PR_dia3D(1:nzmax, n)                            ! NEWOUT
-     PR_cocco(1:nzmax)           = PR_cocco3D(1:nzmax, n)                          ! NEWOUT
-     Cal_Tlim(1:nzmax)           = Cal_Tlim3D(1:nzmax, n)                          ! NEWOUT
-     Cal_CO2lim(1:nzmax)         = Cal_CO2lim3D(1:nzmax, n)                        ! NEWOUT
-     Cal_Nlim(1:nzmax)           = Cal_Nlim3D(1:nzmax, n)                          ! NEWOUT
-     Cal_pure(1:nzmax)           = Cal_pure3D(1:nzmax, n)                          ! NEWOUT
+     !Nutlim_phy(1:nzmax)         = Nutlim_phy3D(1:nzmax, n)                        ! NEWOUT
+     !Nutlim_dia(1:nzmax)         = Nutlim_dia3D(1:nzmax, n)                        ! NEWOUT
+     !Nutlim_cocco(1:nzmax)       = Nutlim_cocco3D(1:nzmax, n)                      ! NEWOUT
+     !Tlim_arr(1:nzmax)           = Tlim_arr3D(1:nzmax, n)                          ! NEWOUT
+     !Tlim_cocco(1:nzmax)         = Tlim_cocco3D(1:nzmax, n)                        ! NEWOUT
+     !Llim_phy(1:nzmax)           = Llim_phy3D(1:nzmax, n)                          ! NEWOUT
+     !Llim_dia(1:nzmax)           = Llim_dia3D(1:nzmax, n)                          ! NEWOUT
+     !Llim_cocco(1:nzmax)         = Llim_cocco3D(1:nzmax, n)                        ! NEWOUT
+     !CO2lim_phy(1:nzmax)         = CO2lim_phy3D(1:nzmax, n)                        ! NEWOUT
+     !CO2lim_dia(1:nzmax)         = CO2lim_dia3D(1:nzmax, n)                        ! NEWOUT
+     !CO2lim_cocco(1:nzmax)       = CO2lim_cocco3D(1:nzmax, n)                      ! NEWOUT
+     !PR_phy(1:nzmax)             = PR_phy3D(1:nzmax, n)                            ! NEWOUT
+     !PR_dia(1:nzmax)             = PR_dia3D(1:nzmax, n)                            ! NEWOUT
+     !PR_cocco(1:nzmax)           = PR_cocco3D(1:nzmax, n)                          ! NEWOUT
+     !Cal_Tlim(1:nzmax)           = Cal_Tlim3D(1:nzmax, n)                          ! NEWOUT
+     !Cal_CO2lim(1:nzmax)         = Cal_CO2lim3D(1:nzmax, n)                        ! NEWOUT
+     !Cal_Nlim(1:nzmax)           = Cal_Nlim3D(1:nzmax, n)                          ! NEWOUT
+     !Cal_pure(1:nzmax)           = Cal_pure3D(1:nzmax, n)                          ! NEWOUT
+
 
      !!---- Biogeochemical tracers
+     !if (mype==0 .and. mstep==1) write(*,*), "bgc_num = ",bgc_num               ! NEW: added print statement
+     !if (mype==0 .and. mstep==1) write(*,*), "num_tracers =  ",num_tracers      ! NEW: added print statement            
+     
      C(1:nzmax,1:bgc_num) = tr_arr(1:nzmax, n, 3:num_tracers)             
+     
+     !if (mype==0 .and. mstep==1) write(*,*), "successful assignment of tracer"      ! NEW: added print statement
 
      !!---- Depth of the nodes in the water column 
      zr(1:nzmax) = Z_3d_n(1:nzmax, n)                          
@@ -201,7 +215,7 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> bio_fluxes'
      FeDust = GloFeDust(n) * (1 - a_ice(n)) * dust_sol    
      NDust = GloNDust(n)  * (1 - a_ice(n))
 
-     allocate(Diags3Dloc(nzmax,8))
+     allocate(Diags3Dloc(nzmax,28))         ! NEW changed from 8 to 28
      Diags3Dloc(:,:) = 0.d0
 
 if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_Forcing'//achar(27)//'[0m'
@@ -219,27 +233,28 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_Forci
            , OmegaC_watercolumn                                  & ! NEW DISS OmegaC for the whole watercolumn
            , kspc_watercolumn                                    & ! NEW DISS stoichiometric solubility product for calcite [mol^2/kg^2]
            , rhoSW_watercolumn                                   & ! NEW DISS in-situ density of seawater [mol/m^3]
-           , Nutlim_phy                                          & ! NEWOUT nutrient limitation of small phytoplankton
-           , Nutlim_dia                                          & ! NEWOUT nutrient limitation of diatoms
-           , Nutlim_cocco                                        & ! NEWOUT nutrient limitiation of coccolithophores
-           , Tlim_arr                                            & ! NEWOUT temperature limitation according to the Arrhenius function
-           , Tlim_cocco                                          & ! NEWOUT temperature limitation of coccolithophores
-           , Llim_phy                                            & ! NEWOUT light limitation of small phytoplankton
-           , Llim_dia                                            & ! NEWOUT light limitation of diatoms
-           , Llim_cocco                                          & ! NEWOUT light limitation of coccolithophores
-           , CO2lim_phy                                          & ! NEWOUT CO2 limitation of small phytoplankton
-           , CO2lim_dia                                          & ! NEWOUT CO2 limitation of diatoms
-           , CO2lim_cocco                                        & ! NEWOUT CO2 limitation of coccolithophores
-           , PR_phy                                              & ! NEWOUT Photosynthesis rate of small phytoplankton
-           , PR_dia                                              & ! NEWOUT Photosynthesis rate of diatoms
-           , PR_cocco                                            & ! NEWOUT Photosynthesis rate of coccolithophores
-           , Cal_Tlim                                            & ! NEWOUT Temperature dependence of calcification
-           , Cal_CO2lim                                          & ! NEWOUT CO2 dependence of calcification
-           , Cal_Nlim                                            & ! NEWOUT Nitrate dependence of calcification
-           , Cal_pure                                            & ! NEWOUT PIC only dependent on PICPOCmax,  CoccoC, T, N, CO2
+          ! , Nutlim_phy                                          & ! NEWOUT nutrient limitation of small phytoplankton
+          ! , Nutlim_dia                                          & ! NEWOUT nutrient limitation of diatoms
+          ! , Nutlim_cocco                                        & ! NEWOUT nutrient limitiation of coccolithophores
+          ! , Tlim_arr                                            & ! NEWOUT temperature limitation according to the Arrhenius function
+          ! , Tlim_cocco                                          & ! NEWOUT temperature limitation of coccolithophores
+          ! , Llim_phy                                            & ! NEWOUT light limitation of small phytoplankton
+          ! , Llim_dia                                            & ! NEWOUT light limitation of diatoms
+          ! , Llim_cocco                                          & ! NEWOUT light limitation of coccolithophores
+          ! , CO2lim_phy                                          & ! NEWOUT CO2 limitation of small phytoplankton
+          ! , CO2lim_dia                                          & ! NEWOUT CO2 limitation of diatoms
+          ! , CO2lim_cocco                                        & ! NEWOUT CO2 limitation of coccolithophores
+          ! , PR_phy                                              & ! NEWOUT Photosynthesis rate of small phytoplankton
+          ! , PR_dia                                              & ! NEWOUT Photosynthesis rate of diatoms
+          ! , PR_cocco                                            & ! NEWOUT Photosynthesis rate of coccolithophores
+          ! , Cal_Tlim                                            & ! NEWOUT Temperature dependence of calcification
+          ! , Cal_CO2lim                                          & ! NEWOUT CO2 dependence of calcification
+          ! , Cal_Nlim                                            & ! NEWOUT Nitrate dependence of calcification
+          ! , Cal_pure                                            & ! NEWOUT PIC only dependent on PICPOCmax,  CoccoC, T, N, CO2
            , PAR, mesh)
 
      tr_arr(1:nzmax, n, 3:num_tracers)       = C(1:nzmax, 1:bgc_num)
+
 
      !!---- Local variables that have been changed during the time-step are stored so they can be saved
      Benthos(n,1:benthos_num)     = LocBenthos(1:benthos_num)                                ! Updating Benthos values
@@ -265,21 +280,35 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_Forci
      GlodecayBenthos(n, 1:benthos_num) = decayBenthos(1:benthos_num)/SecondsPerDay ! convert from [mmol/m2/d] to [mmol/m2/s]  
 
      PAR3D(1:nzmax,n)             = PAR(1:nzmax) !     PAR3D(inds(1:nn))   = PAR(1:nn)
+     
+     CO23D(1:nzmax,n)             = CO2_watercolumn(1:nzmax)       ! NEW ms
+     pH3D(1:nzmax,n)              = pH_watercolumn(1:nzmax)        ! NEW ms 
+     pCO23D(1:nzmax,n)            = pCO2_watercolumn(1:nzmax)      ! NEW ms 
+     HCO33D(1:nzmax,n)            = HCO3_watercolumn(1:nzmax)      ! NEW ms 
+     CO33D(1:nzmax,n)             = CO3_watercolumn(1:nzmax)       ! NEW ms 
+     OmegaC3D(1:nzmax,n)          = OmegaC_watercolumn(1:nzmax)    ! NEW ms 
+     kspc3D(1:nzmax,n)            = kspc_watercolumn(1:nzmax)      ! NEW ms 
+     rhoSW3D(1:nzmax,n)           = rhoSW_watercolumn(1:nzmax)     ! NEW ms 
    
      do idiags = 1,diags3d_num
        Diags3D(1:nzmax,n,idiags)  = Diags3Dloc(1:nzmax,idiags) ! 1=NPPnano, 2=NPPdia
      end do
 
      deallocate(Diags3Dloc)
+     
 
   end do
 
 ! ======================================================================================
 !************************** EXCHANGE NODAL INFORMATION *********************************			
 
+  if (mype==0 .and. mstep==1) write(*,*), "Exchange of nodal information on tracers starts"       ! NEW: added print statement
+
   do tr_num=3, bgc_num+2 
     call exchange_nod(tr_arr(:,:,tr_num))
   end do
+
+  if (mype==0 .and. mstep==1) write(*,*), "Exchange of nodal information on tracers was successful"       ! NEW: added print statement
 
   do n=1, benthos_num
     call exchange_nod(Benthos(:,n))
@@ -309,8 +338,17 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_Forci
   call exchange_nod(GloHplus)	
   call exchange_nod(AtmFeInput)	
   call exchange_nod(AtmNInput)	
-!  call exchange_nod(DenitBen)	
-  call exchange_nod(PAR3D)	
+!  call exchange_nod(DenitBen)
+  call exchange_nod(PAR3D)
+
+  call exchange_nod(CO23D)       ! NEW ms
+  call exchange_nod(pH3D)        ! NEW ms
+  call exchange_nod(pCO23D)      ! NEW ms
+  call exchange_nod(HCO33D)      ! NEW ms
+  call exchange_nod(CO33D)       ! NEW ms
+  call exchange_nod(OmegaC3D)    ! NEW ms
+  call exchange_nod(kspc3D)      ! NEW ms
+  call exchange_nod(rhoSW3D)	 ! NEW ms
 !  do n=1, 2
 !     call exchange_nod(Diags3D(:,:,n))	
 !  end do
@@ -367,6 +405,7 @@ subroutine bio_fluxes(mesh)
 !  end if
 
   ! Alkalinity restoring to climatology
+  if (.not. restore_alkalinity .and. mype==0 .and. mstep==1) write(*,*), "restore_alkalinity is OFF"   ! NEW: added print statement (copied from Claudia's code)
   if (.not. restore_alkalinity) return
   do n=1, myDim_nod2D+eDim_nod2D
      relax_alk(n)=surf_relax_Alk*(Alk_surf(n)-tr_arr(1,n,2+ialk)) ! 1 temp, 2 salt
@@ -384,7 +423,7 @@ subroutine bio_fluxes(mesh)
 !     call integrate_nod(virtual_alk, net)
 !     virtual_alk=virtual_alk-net/ocean_area
 !  end if
-
+  if (mype==0 .and. mstep==1) write(*,*), "call integrate_nod"   ! NEW: added print statement
 
   ! 3. restoring to Alkalinity climatology
   call integrate_nod(relax_alk, net, mesh)
