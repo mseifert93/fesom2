@@ -46,8 +46,8 @@ module recom_config
   logical                :: recom_binary_write   = .false.  ! Determines if tracervalue snapshots are saved. For fine grids it may crash the model to set this to true
 
   logical                :: recom_binary_init    = .false.  ! Restart from binary
-  Integer                :: bgc_num               = 22      ! NEW increased the number from 28 to 34 (added coccos and respiration)
-  Integer                :: diags3d_num           = 2       ! Number of diagnostic 3d tracers to be saved ! NEW: changed from 20 to 28
+  Integer                :: bgc_num               = 31      ! NEW increased the number from 28 to 34 (added coccos and respiration)
+  Integer                :: diags3d_num           = 28      ! Number of diagnostic 3d tracers to be saved ! NEW: changed from 20 to 28
   Real(kind=8)           :: VDet                  = 20.d0   ! Sinking velocity, constant through the water column and positive downwards
   Real(kind=8)           :: VDet_zoo2             = 200.d0   ! Sinking velocity, constant through the water column 
   Real(kind=8)           :: VPhy                  = 0.d0    !!! If the number of sinking velocities are different from 3, code needs to be changed !!!
@@ -66,7 +66,7 @@ module recom_config
   Logical                :: Graz_pref_new    = .true.    ! If it is true Fasham et 1990, otherwise original recom variable preference
   Logical                :: OmegaC_diss           = .true.     ! NEW DISS Use mocsy calcite omega to compute calcite dissolution
   Logical                :: CO2lim                = .true.     ! NEW Use CO2 dependence of growth and calcification
-  Logical                :: inter_CT_CL           = .true.     ! NEW inter use interaction between CO2 and both, temperature and light
+  !Logical                :: inter_CT_CL           = .true.     ! NEW inter use interaction between CO2 and both, temperature and light
   Logical                :: Diags                 = .true.    !!!!!!!!!!!!!!!!!!!!!!Change in recom.F90 Diagnostics -> Diags
   Logical                :: constant_CO2          = .true.
   Logical                :: UseFeDust             = .true.               ! Turns dust input of iron off when set to.false.
@@ -99,7 +99,7 @@ module recom_config
                        REcoM_Grazing_Variable_Preference, REcoM_Second_Zoo,      Grazing_detritus,        &
                        zoo2_fecal_loss,                   zoo2_initial_field,    het_resp_noredfield,     &
                        diatom_mucus,                      Graz_pref_new,                &
-                       OmegaC_diss,                       CO2lim,                inter_CT_CL,             & ! NEW DISS added OmegaC_diss, NEW added CO2lim, NEW inter added inter_CT_CL
+                       OmegaC_diss,                       CO2lim,                                         & ! NEW DISS added OmegaC_diss, NEW added CO2lim
                        Diags      ,                       constant_CO2,            &
                        UseFeDust,                         UseDustClim,           UseDustClimAlbani,       &
                        use_Fe2N,                          use_photodamage,       HetRespFlux_plus,        &
@@ -186,15 +186,15 @@ module recom_config
                        Chl2N_max, Chl2N_max_d, Chl2N_max_c, res_phy, res_phy_d, res_phy_c, biosynth, biosynthSi
 !!------------------------------------------------------------------------------
 !! *** Driver interaction *** ! NEW inter
-  Real(kind=8)                 :: m_CT_coc       = -404796.60     ! Multiple driver effect between CO2 and temperature (changes d in CO2 function)
-  Real(kind=8)                 :: m_CT_dia       = -39137.83
-  Real(kind=8)                 :: m_CT_phy       = 241308.50
-  Real(kind=8)                 :: m_CL_coc       = 19542.44       ! Multiple driver effect between CO2 and light (changes d in CO2 function)
-  Real(kind=8)                 :: m_CL_dia       = 114095.60
-  Real(kind=8)                 :: m_CL_phy       = -117444.20
-  Real(kind=8)                 :: T0_CT          = 14.0           ! T0 for interaction (in degC)
-  Real(kind=8)                 :: L0_CL          = 11.30          ! L0 for interaction (in W m-2)
-  namelist /painteraction/ m_CT_coc, m_CT_dia, m_CT_phy, m_CL_coc, m_CL_dia, m_CL_phy, T0_CT, L0_CL     ! everything completely NEW inter
+!  Real(kind=8)                 :: m_CT_coc       = -404796.60     ! Multiple driver effect between CO2 and temperature (changes d in CO2 function)
+!  Real(kind=8)                 :: m_CT_dia       = -39137.83
+!  Real(kind=8)                 :: m_CT_phy       = 241308.50
+!  Real(kind=8)                 :: m_CL_coc       = 19542.44       ! Multiple driver effect between CO2 and light (changes d in CO2 function)
+!  Real(kind=8)                 :: m_CL_dia       = 114095.60
+!  Real(kind=8)                 :: m_CL_phy       = -117444.20
+!  Real(kind=8)                 :: T0_CT          = 14.0           ! T0 for interaction (in degC)
+!  Real(kind=8)                 :: L0_CL          = 11.30          ! L0 for interaction (in W m-2)
+!  namelist /painteraction/ m_CT_coc, m_CT_dia, m_CT_phy, m_CL_coc, m_CL_dia, m_CL_phy, T0_CT, L0_CL     ! everything completely NEW inter
 !!------------------------------------------------------------------------------
 !! *** Iron chemistry ***
   Real(kind=8)                 :: totalligand     = 1.d0        ! [mumol/m3] order 1. Total free ligand
@@ -303,11 +303,35 @@ module recom_config
   Real(kind=8)                 :: lossC_z       = 0.15d0
   namelist /paheterotrophs/ lossN_z, lossC_z
 !!------------------------------------------------------------------------------
-! Second Zooplankton                                                                                                                                                                                        
+!! *** Second Zooplankton ***
                           
   Real(kind=8)                 :: lossN_z2       = 0.02d0
   Real(kind=8)                 :: lossC_z2       = 0.02d0
   namelist /paseczooloss/ lossN_z2, lossC_z2
+!!------------------------------------------------------------------------------                                                                                                                                                                                               
+!! *** Parameters for CO2 limitation ***                       ! NEW
+
+  Real(kind=8)                 :: Cunits         = 976.5625    ! Conversion factor between [mol/m3] (model) and [umol/kg] (function): (1000 * 1000) / 1024
+  Real(kind=8)                 :: a_co2_phy      = 1.162e+00   ! [unitless]
+  Real(kind=8)                 :: a_co2_dia      = 1.040e+00   ! [unitless] 
+  Real(kind=8)                 :: a_co2_cocco    = 1.109e+00   ! [unitless] 
+  Real(kind=8)                 :: a_co2_calc     = 1.102e+00   ! [unitless] 
+  Real(kind=8)                 :: b_co2_phy      = 4.888e+01   ! [mol/kg] 
+  Real(kind=8)                 :: b_co2_dia      = 2.890e+01   ! [mol/kg]
+  Real(kind=8)                 :: b_co2_cocco    = 3.767e+01   ! [mol/kg]
+  Real(kind=8)                 :: b_co2_calc     = 4.238e+01   ! [mol/kg]
+  Real(kind=8)                 :: c_co2_phy      = 2.255e-01   ! [kg/mol]
+  Real(kind=8)                 :: c_co2_dia      = 8.778e-01   ! [kg/mol]  
+  Real(kind=8)                 :: c_co2_cocco    = 3.912e-01   ! [kg/mol]  
+  Real(kind=8)                 :: c_co2_calc     = 7.079e-01   ! [kg/mol]  
+  Real(kind=8)                 :: d_co2_phy      = 1.023e+07   ! [kg/mol]  
+  Real(kind=8)                 :: d_co2_dia      = 2.640e+06   ! [kg/mol]  
+  Real(kind=8)                 :: d_co2_cocco    = 9.450e+06   ! [kg/mol]  
+  Real(kind=8)                 :: d_co2_calc     = 1.343e+07   ! [kg/mol]  
+  namelist /paco2lim/ Cunits, a_co2_phy, a_co2_dia, a_co2_cocco, a_co2_calc, &
+                      b_co2_phy, b_co2_dia, b_co2_cocco, b_co2_calc, &
+                      c_co2_phy, c_co2_dia, c_co2_cocco, c_co2_calc, &
+                      d_co2_phy, d_co2_dia, d_co2_cocco, d_co2_calc
 !!------------------------------------------------------------------------------
 !! *** Iron ***
 !! only Fe2C or Fe2N is used, but I am not allowed to introduce an if-statement here
@@ -376,10 +400,9 @@ Module REcoM_declarations
 !-------------------------------------------------------------------------------
 ! CO2 dependence of rates ! NEW CO2
   Real(kind=8)  :: h_depth(1)             ! pH from mocsy is converted to proton concentration
-  Real(kind=8)  :: Cunits                 ! For unit conversion from mol/m3 to umol/kg
-  Real(kind=8)  :: d_CT_CL_phy            ! NEW inter For the interaction term between CO2 and both temperature and light
-  Real(kind=8)  :: d_CT_CL_dia
-  Real(kind=8)  :: d_CT_CL_coc
+  !Real(kind=8)  :: d_CT_CL_phy            ! NEW inter For the interaction term between CO2 and both temperature and light
+  !Real(kind=8)  :: d_CT_CL_dia
+  !Real(kind=8)  :: d_CT_CL_coc
   Real(kind=8)  :: CoccoCO2
   Real(kind=8)  :: DiaCO2
   Real(kind=8)  :: PhyCO2
@@ -423,7 +446,7 @@ Module REcoM_declarations
   Real(kind=8)  :: V_cm                   ! scaling factor for temperature dependent maximum of C-specific N-uptake
   Real(kind=8)  :: limitFacN,limitFacN_dia,limitFacN_cocco ! Factor that regulates N-assimilation. Calc from function recom_limiter (NEW changed term)
   Real(kind=8)  :: limitFacSi
-  Real(kind=8)  :: N_assim, N_assim_dia, N_assim_cocco   ! [mmol N/(mmol C * day)] C specific N utilization rate (NEW changed term)
+  Real(kind=8)  :: N_assim, N_assim_Dia, N_assim_Cocco   ! [mmol N/(mmol C * day)] C specific N utilization rate (NEW changed term)
   Real(kind=8)  :: Si_assim
 !-------------------------------------------------------------------------------
 ! Chlorophyll
@@ -545,24 +568,24 @@ Module REcoM_GloVar
   Real(kind=8),allocatable,dimension(:,:)   :: kspc3D           ! NEW DISS: [mol^2/kg^2] stoichiometric solubility product of calcite
   Real(kind=8),allocatable,dimension(:,:)   :: rhoSW3D          ! NEW DISS: [mol/m3] in-situ density of seawater
 
-  Real(kind=8),allocatable,dimension(:,:)   :: Nutlim_phy3D     ! NEWOUT: nutrient limitation of small phytoplankton
-  Real(kind=8),allocatable,dimension(:,:)   :: Nutlim_dia3D     ! NEWOUT: nutrient limitation of diatoms
-  Real(kind=8),allocatable,dimension(:,:)   :: Nutlim_cocco3D   ! NEWOUT: nutrient limitation of coccolithophores
-  Real(kind=8),allocatable,dimension(:,:)   :: Tlim_arr3D       ! NEWOUT: temperature limitation according to Arrhenius function
-  Real(kind=8),allocatable,dimension(:,:)   :: Tlim_cocco3D     ! NEWOUT: temperature limitation of coccolithophores
-  Real(kind=8),allocatable,dimension(:,:)   :: Llim_phy3D       ! NEWOUT: light limitation of small phytoplankton
-  Real(kind=8),allocatable,dimension(:,:)   :: Llim_dia3D       ! NEWOUT: light limitation of diatoms
-  Real(kind=8),allocatable,dimension(:,:)   :: Llim_cocco3D     ! NEWOUT: light limitation of coccolithophores
-  Real(kind=8),allocatable,dimension(:,:)   :: CO2lim_phy3D     ! NEWOUT: CO2 limitation of small phytoplankton
-  Real(kind=8),allocatable,dimension(:,:)   :: CO2lim_dia3D     ! NEWOUT: CO2 limitation of diatoms
-  Real(kind=8),allocatable,dimension(:,:)   :: CO2lim_cocco3D   ! NEWOUT: CO2 limitation of coccolithophores
-  Real(kind=8),allocatable,dimension(:,:)   :: PR_phy3D         ! NEWOUT: Photosynthesis rate of small phytoplankton
-  Real(kind=8),allocatable,dimension(:,:)   :: PR_dia3D         ! NEWOUT: Photosynthesis rate of diatoms
-  Real(kind=8),allocatable,dimension(:,:)   :: PR_cocco3D       ! NEWOUT: Photosynthesis rate of coccolithophores
-  Real(kind=8),allocatable,dimension(:,:)   :: Cal_Tlim3D       ! NEWOUT: Temperature dependence of calcification
-  Real(kind=8),allocatable,dimension(:,:)   :: Cal_CO2lim3D     ! NEWOUT: CO2 dependence of calcification
-  Real(kind=8),allocatable,dimension(:,:)   :: Cal_Nlim3D       ! NEWOUT: Nitrate dependence of calcification
-  Real(kind=8),allocatable,dimension(:,:)   :: Cal_pure3D       ! NEWOUT: PIC only dependent on PICPOCmax, CoccoC, T, N, CO2
+  !Real(kind=8),allocatable,dimension(:,:)   :: Nutlim_phy3D     ! NEWOUT: nutrient limitation of small phytoplankton
+  !Real(kind=8),allocatable,dimension(:,:)   :: Nutlim_dia3D     ! NEWOUT: nutrient limitation of diatoms
+  !Real(kind=8),allocatable,dimension(:,:)   :: Nutlim_cocco3D   ! NEWOUT: nutrient limitation of coccolithophores
+  !Real(kind=8),allocatable,dimension(:,:)   :: Tlim_arr3D       ! NEWOUT: temperature limitation according to Arrhenius function
+  !Real(kind=8),allocatable,dimension(:,:)   :: Tlim_cocco3D     ! NEWOUT: temperature limitation of coccolithophores
+  !Real(kind=8),allocatable,dimension(:,:)   :: Llim_phy3D       ! NEWOUT: light limitation of small phytoplankton
+  !Real(kind=8),allocatable,dimension(:,:)   :: Llim_dia3D       ! NEWOUT: light limitation of diatoms
+  !Real(kind=8),allocatable,dimension(:,:)   :: Llim_cocco3D     ! NEWOUT: light limitation of coccolithophores
+  !Real(kind=8),allocatable,dimension(:,:)   :: CO2lim_phy3D     ! NEWOUT: CO2 limitation of small phytoplankton
+  !Real(kind=8),allocatable,dimension(:,:)   :: CO2lim_dia3D     ! NEWOUT: CO2 limitation of diatoms
+  !Real(kind=8),allocatable,dimension(:,:)   :: CO2lim_cocco3D   ! NEWOUT: CO2 limitation of coccolithophores
+  !Real(kind=8),allocatable,dimension(:,:)   :: PR_phy3D         ! NEWOUT: Photosynthesis rate of small phytoplankton
+  !Real(kind=8),allocatable,dimension(:,:)   :: PR_dia3D         ! NEWOUT: Photosynthesis rate of diatoms
+  !Real(kind=8),allocatable,dimension(:,:)   :: PR_cocco3D       ! NEWOUT: Photosynthesis rate of coccolithophores
+  !Real(kind=8),allocatable,dimension(:,:)   :: Cal_Tlim3D       ! NEWOUT: Temperature dependence of calcification
+  !Real(kind=8),allocatable,dimension(:,:)   :: Cal_CO2lim3D     ! NEWOUT: CO2 dependence of calcification
+  !Real(kind=8),allocatable,dimension(:,:)   :: Cal_Nlim3D       ! NEWOUT: Nitrate dependence of calcification
+  !Real(kind=8),allocatable,dimension(:,:)   :: Cal_pure3D       ! NEWOUT: PIC only dependent on PICPOCmax, CoccoC, T, N, CO2
 
   Real(kind=8),allocatable,dimension(:)   :: GlodPCO2surf       ! [mmol/m2/day] ocean-atmosphere  
   Real(kind=8),allocatable,dimension(:,:) :: GlodecayBenthos  ! [1/day] Decay rate of detritus in the benthic layer saved for oce_ale_tracer.F90
@@ -650,7 +673,7 @@ Module REcoM_locVar
   Real(kind=8) :: NDust                     ! [mmol/m2/s]
   Real(kind=8) :: Loc_ice_conc(1)           ! Used to calculate flux of DIC in REcoM 0 -> 1
   Real(kind=8) :: LocAtmCO2(1)              ! [uatm]
-  Real(kind=8) :: LocDiags2D(12)            ! NEW (changed it from 8 to 12)
+  Real(kind=8) :: LocDiags2D(8)             ! NEW (changed it from 8 to 12)
 !  Real(kind=8) :: LocDenit
   Real(kind=8) :: LocRiverDIN, LocRiverDON, LocRiverDOC, LocRiverDSi, LocRiverDIC, LocRiverAlk
 !  if (REcoM_Second_Zoo) then
