@@ -939,7 +939,7 @@ use ver_sinking_recom_benthos_interface
                tracer_id(tr_num)==1030 .or. &  !icocc   ! NEW
                tracer_id(tr_num)==1031 ) then  !icchl   ! NEW
 
-            Vben = VDia
+            Vben = VCocco   ! NEW ms: changed from VDia to VCocco
 	    if (allow_var_sinking) Vben = Vdet_a * abs(zbar_3d_n(:,n)) + VCocco
       
 ! Constant vertical sinking for the second detritus class
@@ -988,14 +988,14 @@ use ver_sinking_recom_benthos_interface
                 tracer_id(tr_num)==1008 .or. &  !idetc
                 tracer_id(tr_num)==1014 .or. &  !idiac
                 tracer_id(tr_num)==1026 .or. &  !idetz2c
-                tracer_id(tr_num)==1029 ) then  !icocn   ! NEW
+                tracer_id(tr_num)==1030 ) then  !icocc   ! NEW ! NEW ms: changed from icocn to icocc (29 to 30)
                 Benthos(n,2)= Benthos(n,2) + add_benthos_2d(n)
             endif
 
             ! Si
             if( tracer_id(tr_num)==1016 .or. &  !idiasi
                 tracer_id(tr_num)==1017 .or. &  !idetsi
-                tracer_id(tr_num)==1020 .or. &  !iphycal ! NEW
+                !tracer_id(tr_num)==1020 .or. &  !iphycal ! NEW ! NEW ms: commented out (calc and not si)
                 tracer_id(tr_num)==1027 ) then  !idetz2si
 
                 Benthos(n,3)= Benthos(n,3) + add_benthos_2d(n)
@@ -1003,6 +1003,7 @@ use ver_sinking_recom_benthos_interface
 
             ! Cal
             if( tracer_id(tr_num)==1021 .or. &  !idetcal
+                tracer_id(tr_num)==1020 .or. &  !iphycal ! NEW ms: added this line
                 tracer_id(tr_num)==1028 ) then  !idetz2cal
                 Benthos(n,4)= Benthos(n,4) + add_benthos_2d(n) 
             endif
