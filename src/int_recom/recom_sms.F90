@@ -239,10 +239,18 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             O2     = max(tiny,state(k,ioxy)             + sms(k,ioxy  ))
             FreeFe = zero
 
-            !if((CoccoC>100)) then
-            !   print*,'init CoccoC: ', CoccoC
+            if((CoccoC>100)) then
+            !if((state(k,icocc )>100)) then
+               print*,'      mstep: ', mstep
+               !print*,'init CoccoC: ', CoccoC
+               !print*,'init tiny_C_c: ', tiny_C_c
+               !print*,'init sms(k,icocc ): ', sms(k,icocc )
+               !print*,'init state(k,icocc ): ',state(k,icocc)
             !endif
-
+            !if((mstep>5)) then
+              !call par_ex
+              !stop            
+            end if
             !if((DiaC>100)) then
             !   print*,'init DiaC: ', DiaC
             !endif
@@ -503,70 +511,68 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !_______________________________________________________________________
 !< Diatoms
     qlimitFac     	= recom_limiter(NMinSlope,NCmin_d,quota_dia)
-    if((CoccoC>100)) then
-       print*,'qlimitFac dias 1: ',qlimitFac
-       print*,'NMinSlope: ',NMinSlope
-       print*,'NCmin_d: ',NCmin_d
-       print*,'quota_dia: ',quota_dia
-    endif
+!    if((CoccoC>100)) then
+!       print*,'qlimitFac dias 1: ',qlimitFac
+!       print*,'NMinSlope: ',NMinSlope
+!       print*,'NCmin_d: ',NCmin_d
+!       print*,'quota_dia: ',quota_dia
+!    endif
     qlimitFacTmp  	= recom_limiter(SiMinSlope,SiCmin,qSiC)
-    if((CoccoC>100)) then
-       print*,'qlimitFacTmp: ',qlimitFacTmp
-    endif
+!    if((CoccoC>100)) then
+!       print*,'qlimitFacTmp: ',qlimitFacTmp
+!    endif
     qlimitFac     	= min(qLimitFac,qlimitFacTmp)
-    if((CoccoC>100)) then
-       print*,'qlimitFac dias 2: ',qlimitFac
-    endif
+!    if((CoccoC>100)) then
+!       print*,'qlimitFac dias 2: ',qlimitFac
+!    endif
     feLimitFac  	= Fe/(k_Fe_d + Fe)
-    if((CoccoC>100)) then
-       print*,'feLimitFac dias: ',feLimitFac
-    endif
+!    if((CoccoC>100)) then
+!       print*,'feLimitFac dias: ',feLimitFac
+!    endif
     qlimitFac   	= min(qlimitFac,feLimitFac)
-    if((CoccoC>100)) then
-       print*,'qlimitFac dias 3: ',qlimitFac
-    endif
+!    if((CoccoC>100)) then
+!       print*,'qlimitFac dias 3: ',qlimitFac
+!    endif
 
     pMax_dia      	= P_cm_d * qlimitFac * arrFunc
 
 
-   if((CoccoC>100)) then                                                ! NEW nur zum debuggen                                                                                                                                                                                 
-       print*,'ERROR: strange CoccoC, print pMax_dia elements !'
-       print*,'P_cm_d: ', P_cm_d
-       print*,'qlimitFac: ', qlimitFac
-       print*,'arrFunc: ', arrFunc
-    endif
+!   if((CoccoC>100)) then                                                ! NEW nur zum debuggen                                                                                                                                                                                 
+!       print*,'ERROR: strange CoccoC, print pMax_dia elements !'
+!       print*,'P_cm_d: ', P_cm_d
+!       print*,'qlimitFac: ', qlimitFac
+!       print*,'arrFunc: ', arrFunc
+!    endif
 
 !_______________________________________________________________________
 !< Coccolithophores (NEW!!!)
 
     qlimitFac     = recom_limiter(NMinSlope,NCmin_c,quota_cocco)  ! NEW
-    if((CoccoC>100)) then                                                ! NEW nur zum debuggen
-       print*,'qlimitFac coccos 1: ', qlimitFac
-       print*,'NMinSlope: ',NMinSlope
-       print*,'NCmin_c: ',NCmin_c
-       print*,'quota_cocco: ',quota_cocco
-    endif
+!    if((CoccoC>100)) then                                                ! NEW nur zum debuggen
+!       print*,'qlimitFac coccos 1: ', qlimitFac
+!       print*,'NMinSlope: ',NMinSlope
+!       print*,'NCmin_c: ',NCmin_c
+!       print*,'quota_cocco: ',quota_cocco
+!    endif
     
     feLimitFac  = Fe/(k_Fe_c + Fe)                                ! NEW
-    if((CoccoC>100)) then
-       print*,'feLimitFac coccos: ', feLimitFac
-    endif
+!    if((CoccoC>100)) then
+!       print*,'feLimitFac coccos: ', feLimitFac
+!    endif
    
     qlimitFac   = min(qlimitFac,feLimitFac)                       ! NEW
-    if((CoccoC>100)) then
-       print*,'qlimitFac coccos 2: ',qlimitFac
-    endif
+!    if((CoccoC>100)) then
+!       print*,'qlimitFac coccos 2: ',qlimitFac
+!    endif
 
     pMax_cocco    = P_cm_c * qlimitFac * CoccoTFunc               ! NEW (and here also the T dependency is changed)
-
    
-    if((CoccoC>100)) then                                                ! NEW nur zum debuggen
-       print*,'ERROR: strange CoccoC, print pMax_cocco elements !'
-       print*,'P_cm_c: ', P_cm_c
-       print*,'qlimitFac: ', qlimitFac
-       print*,'CoccoTFunc: ', CoccoTFunc
-    endif
-
+!    if((CoccoC>100)) then                                                ! NEW nur zum debuggen
+!       print*,'ERROR: strange CoccoC, print pMax_cocco elements !'
+!       print*,'P_cm_c: ', P_cm_c
+!       print*,'qlimitFac: ', qlimitFac
+!       print*,'CoccoTFunc: ', CoccoTFunc
+!    endif
 
 !_______________________________________________________________________
 !< Light
@@ -654,13 +660,13 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     end if                                                             ! NEW
     if (Cphot_cocco .lt. tiny) Cphot_cocco = zero                      ! NEW
     
-    if((CoccoC>100)) then                                                ! NEW nur zum debuggen
-       print*,'ERROR: strange CoccoC, print Cphot elements !'
-       print*,'pMax_cocco: ', pMax_cocco
-       print*,'alfa_c: ', alfa_c
-       print*,'Chl2C_cocco: ', Chl2C_cocco
-       print*,'PARave: ',PARave
-    endif
+!    if((CoccoC>100)) then                                                ! NEW nur zum debuggen
+!       print*,'ERROR: strange CoccoC, print Cphot elements !'
+!       print*,'pMax_cocco: ', pMax_cocco
+!       print*,'alfa_c: ', alfa_c
+!       print*,'Chl2C_cocco: ', Chl2C_cocco
+!       print*,'PARave: ',PARave
+!    endif
 
 !-------------------------------------------------------------------------------- 
 !< chlorophyll degradation
@@ -1243,24 +1249,24 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     endif
     if((Latd(1)<-45.0) .and. ((state(k,idic)+sms(k,idic))>2500)) then
       !co2flux(1)=0.0  
-       print*,'ERROR: strange dic !'
-       print*,'state(k,idic): ', state(k,idic)
-       print*,'sms Cphot: ', Cphot*PhyC
-       print*,'sms resp: ', phyRespRate*PhyC
-       print*,'sms Cphot dia: ', Cphot_Dia*DiaC
-       print*,'sms resp dia: ', phyRespRate_Dia * DiaC
-       print*,'sms Cphot cocco: ', Cphot_cocco*CoccoC
-       print*,'sms resp cocco: ', phyRespRate_Cocco * CoccoC
-       print*,'sms PhyC: ', PhyC
-       print*,'sms DiaC: ', DiaC
-       print*,'sms CoccoC: ', CoccoC
-       print*,'sms eoc: ', rho_C1* arrFunc *EOC
-       print*,'sms het resp: ', HetRespFlux
-       !!!!!print*, 'sms co2: ',  dflux(1) * recipdzF(k) * max( 2-k, 0 )
-       print*, 'sms calcdiss: ', calc_diss * DetCalc
-       print*, 'sms calc_loss: ', calc_loss_gra * calc_diss_guts
-       print*, 'sms calcification: ', calcification
-       !stop
+!       print*,'ERROR: strange dic !'
+!       print*,'state(k,idic): ', state(k,idic)
+!       print*,'sms Cphot: ', Cphot*PhyC
+!       print*,'sms resp: ', phyRespRate*PhyC
+!       print*,'sms Cphot dia: ', Cphot_Dia*DiaC
+!       print*,'sms resp dia: ', phyRespRate_Dia * DiaC
+!       print*,'sms Cphot cocco: ', Cphot_cocco*CoccoC
+!       print*,'sms resp cocco: ', phyRespRate_Cocco * CoccoC
+!       print*,'sms PhyC: ', PhyC
+!       print*,'sms DiaC: ', DiaC
+!       print*,'sms CoccoC: ', CoccoC
+!       print*,'sms eoc: ', rho_C1* arrFunc *EOC
+!       print*,'sms het resp: ', HetRespFlux
+!       !!!!!print*, 'sms co2: ',  dflux(1) * recipdzF(k) * max( 2-k, 0 )
+!       print*, 'sms calcdiss: ', calc_diss * DetCalc
+!       print*, 'sms calc_loss: ', calc_loss_gra * calc_diss_guts
+!       print*, 'sms calcification: ', calcification
+!       !stop
     endif
 
 !____________________________________________________________
@@ -1756,19 +1762,19 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     endif
 
 
-   if((CoccoC>100)) then                                                ! NEW nur zum debuggen     
-       print*,'ERROR: strange CoccoC !'
-       print*,'state(k,idiac): ', state(k,idiac)
-       print*,'sms DiaC: ', DiaC
-       print*,'sms Cphot dia: ', Cphot_dia*DiaC
-       print*,'sms lossC_d: ', lossC_d
-       print*,'sms limitFacN_dia: ', limitFacN_dia
-       print*,'sms phyRespRate_dia: ', phyRespRate_dia
-       print*,'sms grazingFlux_dia: ', grazingFlux_dia
-       print*,'sms grazingFlux_dia2: ', grazingFlux_dia2
-       print*,'sms recipQuota_dia: ', recipQuota_dia
+!   if((CoccoC>100)) then                                                ! NEW nur zum debuggen     
+!       print*,'ERROR: strange CoccoC !'
+!       print*,'state(k,idiac): ', state(k,idiac)
+!       print*,'sms DiaC: ', DiaC
+!       print*,'sms Cphot dia: ', Cphot_dia*DiaC
+!       print*,'sms lossC_d: ', lossC_d
+!       print*,'sms limitFacN_dia: ', limitFacN_dia
+!       print*,'sms phyRespRate_dia: ', phyRespRate_dia
+!       print*,'sms grazingFlux_dia: ', grazingFlux_dia
+!       print*,'sms grazingFlux_dia2: ', grazingFlux_dia2
+!       print*,'sms recipQuota_dia: ', recipQuota_dia
    !    stop
-    endif
+!    endif
 
 !____________________________________________________________
 !< Diatom Chl
@@ -1821,14 +1827,14 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       - aggregationRate               * CoccoN &                        ! NEW
       - grazingFlux_Cocco                      &                        ! NEW
       - grazingFlux_Cocco2                     &                        ! NEW
-                                             ) * dt + sms(k,icocn)      ! NEW
+                                             ) * dt_b + sms(k,icocn)      ! NEW
    else                                                                 ! NEW
     sms(k,icocn)      = (                      &                        ! NEW
       + N_assim_cocco                 * CoccoC &                        ! NEW
       - lossN_c * limitFacN_cocco     * CoccoN &                        ! NEW
       - aggregationRate               * CoccoN &                        ! NEW
       - grazingFlux_Cocco                      &                        ! NEW
-                                                 ) * dt + sms(k,icocn)  ! NEW
+                                                 ) * dt_b + sms(k,icocn)  ! NEW
    endif                                                                ! NEW
 !-------------------------------------------------------------------------------
 ! Coccolithophore C (NEW!!!)
@@ -1840,7 +1846,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       - aggregationRate               * CoccoC &                        ! NEW
       - grazingFlux_cocco * recipQuota_cocco   &                        ! NEW
       - grazingFlux_Cocco2* recipQuota_cocco   &                        ! NEW
-                                             ) * dt + sms(k,icocc)      ! NEW
+                                             ) * dt_b + sms(k,icocc)      ! NEW
    else                                                                 ! NEW
     sms(k,icocc)      = (                      &                        ! NEW
       + Cphot_cocco                   * CoccoC &                        ! NEW
@@ -1848,11 +1854,15 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       - phyRespRate_cocco             * CoccoC &                        ! NEW
       - aggregationRate               * CoccoC &                        ! NEW
       - grazingFlux_cocco * recipQuota_cocco   &                        ! NEW
-                                             ) * dt + sms(k,icocc)      ! NEW
+                                             ) * dt_b + sms(k,icocc)      ! NEW
    endif
 
-   if((CoccoC>100)) then                                                ! NEW nur zum debuggen
+   !if((CoccoC>100)) then                                                ! NEW nur zum debuggen
+   if(sms(k,icocc)>100) then   
        print*,'ERROR: strange CoccoC !'
+       print*,'k= ', k
+       print*,'dt= ', dt
+       print*,'dt_b= ', dt_b
        print*,'state(k,icocc): ', state(k,icocc)
        print*,'sms CoccoC: ', CoccoC
        print*,'sms Cphot cocco: ', Cphot_cocco*CoccoC
@@ -1862,7 +1872,10 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
        print*,'sms grazingFlux_cocco: ', grazingFlux_cocco
        print*,'sms grazingFlux_cocco2: ', grazingFlux_Cocco2
        print*,'sms recipQuota_cocco: ', recipQuota_cocco
-       !stop
+
+       print*,'sms recipQuota_cocco: ', recipQuota_cocco
+       call par_ex
+       stop
     endif
 
 !-------------------------------------------------------------------------------
@@ -1874,14 +1887,14 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       - aggregationRate                * CoccoChl &                     ! NEW
       - grazingFlux_cocco * Chl2N_cocco           &                     ! NEW
       - grazingFlux_Cocco2* Chl2N_cocco           &                     ! NEW
-                                             ) * dt + sms(k,icchl)      ! NEW
+                                             ) * dt_b + sms(k,icchl)      ! NEW
    else                                                                 ! NEW
     sms(k,icchl)      = (                         &                     ! NEW
       + chlSynth_cocco                 * CoccoC   &                     ! NEW
       - KOchl_cocco                    * CoccoChl &                     ! NEW
       - aggregationRate                * CoccoChl &                     ! NEW
       - grazingFlux_cocco * Chl2N_cocco           &                     ! NEW
-                                             ) * dt + sms(k,icchl)      ! NEW
+                                             ) * dt_b + sms(k,icchl)      ! NEW
    endif 
 !-------------------------------------------------------------------------------
 ! Detritus Si
