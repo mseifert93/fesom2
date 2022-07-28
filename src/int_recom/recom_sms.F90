@@ -232,9 +232,15 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             DiaSi  = max(tiny_si,state(k,idiasi)      	+ sms(k,idiasi)) 
             DetSi  = max(tiny,state(k,idetsi) 		+ sms(k,idetsi)) 
             Si     = max(tiny,state(k,isi)    		+ sms(k,isi   ))
-            CoccoN = max(tiny_N_c,state(k,icocn)        + sms(k,icocn )) ! NEW
-            CoccoC = max(tiny_C_c,state(k,icocc)        + sms(k,icocc )) ! NEW
-            CoccoChl = max(tiny_chl,state(k,icchl)      + sms(k,icchl )) ! NEW
+            if (use_coccos) then                                            ! NEW switch
+               CoccoN = max(tiny_N_c,state(k,icocn)        + sms(k,icocn )) ! NEW
+               CoccoC = max(tiny_C_c,state(k,icocc)        + sms(k,icocc )) ! NEW
+               CoccoChl = max(tiny_chl,state(k,icchl)      + sms(k,icchl )) ! NEW
+            else
+               CoccoN   = 0.d0
+               CoccoC   = 0.d0
+               CoccoChl = 0.d0
+            endif
             Fe     = max(tiny,state(k,ife)    		+ sms(k,ife   ))
             O2     = max(tiny,state(k,ioxy)             + sms(k,ioxy  ))
             FreeFe = zero
@@ -285,11 +291,19 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             qSiC           	=  DiaSi / DiaC
             qSiN           	=  DiaSi / DiaN
 
-            quota_cocco       = CoccoN / CoccoC           ! NEW
-            recipQuota_cocco  = real(one)/quota_cocco     ! NEW
-            Chl2C_cocco       = CoccoChl / CoccoC         ! NEW
-            Chl2N_cocco       = CoccoChl / CoccoN         ! NEW
-            CHL2C_plast_cocco = Chl2C_cocco * (quota_cocco/(quota_cocco - NCmin_c)) ! NEW
+            if (use_coccos) then       ! NEW switch
+               quota_cocco       = CoccoN / CoccoC           ! NEW
+               recipQuota_cocco  = real(one)/quota_cocco     ! NEW
+               Chl2C_cocco       = CoccoChl / CoccoC         ! NEW
+               Chl2N_cocco       = CoccoChl / CoccoN         ! NEW
+               CHL2C_plast_cocco = Chl2C_cocco * (quota_cocco/(quota_cocco - NCmin_c)) ! NEW
+            else
+               quota_cocco       = 0.d0
+               recipQuota_cocco  = 0.d0
+               Chl2C_cocco       = 0.d0
+               Chl2N_cocco       = 0.d0
+               CHL2C_plast_cocco = 0.d0
+            endif
  
             recipQZoo      	=  HetC / HetN
             recip_hetN_plus 	= 1. / (HetN + tiny_het) ! MB's addition for more stable zoo respiration
@@ -511,68 +525,26 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !_______________________________________________________________________
 !< Diatoms
     qlimitFac     	= recom_limiter(NMinSlope,NCmin_d,quota_dia)
-!    if((CoccoC>100)) then
-!       print*,'qlimitFac dias 1: ',qlimitFac
-!       print*,'NMinSlope: ',NMinSlope
-!       print*,'NCmin_d: ',NCmin_d
-!       print*,'quota_dia: ',quota_dia
-!    endif
     qlimitFacTmp  	= recom_limiter(SiMinSlope,SiCmin,qSiC)
-!    if((CoccoC>100)) then
-!       print*,'qlimitFacTmp: ',qlimitFacTmp
-!    endif
     qlimitFac     	= min(qLimitFac,qlimitFacTmp)
-!    if((CoccoC>100)) then
-!       print*,'qlimitFac dias 2: ',qlimitFac
-!    endif
     feLimitFac  	= Fe/(k_Fe_d + Fe)
-!    if((CoccoC>100)) then
-!       print*,'feLimitFac dias: ',feLimitFac
-!    endif
     qlimitFac   	= min(qlimitFac,feLimitFac)
-!    if((CoccoC>100)) then
-!       print*,'qlimitFac dias 3: ',qlimitFac
-!    endif
 
     pMax_dia      	= P_cm_d * qlimitFac * arrFunc
 
-
-!   if((CoccoC>100)) then                                                ! NEW nur zum debuggen                                                                                                                                                                                 
-!       print*,'ERROR: strange CoccoC, print pMax_dia elements !'
-!       print*,'P_cm_d: ', P_cm_d
-!       print*,'qlimitFac: ', qlimitFac
-!       print*,'arrFunc: ', arrFunc
-!    endif
-
 !_______________________________________________________________________
 !< Coccolithophores (NEW!!!)
+    if (use_coccos) then    ! NEW switch
+       qlimitFac     = recom_limiter(NMinSlope,NCmin_c,quota_cocco)  ! NEW
+       feLimitFac    = Fe/(k_Fe_c + Fe)                              ! NEW
+       qlimitFac     = min(qlimitFac,feLimitFac)                     ! NEW
 
-    qlimitFac     = recom_limiter(NMinSlope,NCmin_c,quota_cocco)  ! NEW
-!    if((CoccoC>100)) then                                                ! NEW nur zum debuggen
-!       print*,'qlimitFac coccos 1: ', qlimitFac
-!       print*,'NMinSlope: ',NMinSlope
-!       print*,'NCmin_c: ',NCmin_c
-!       print*,'quota_cocco: ',quota_cocco
-!    endif
-    
-    feLimitFac  = Fe/(k_Fe_c + Fe)                                ! NEW
-!    if((CoccoC>100)) then
-!       print*,'feLimitFac coccos: ', feLimitFac
-!    endif
-   
-    qlimitFac   = min(qlimitFac,feLimitFac)                       ! NEW
-!    if((CoccoC>100)) then
-!       print*,'qlimitFac coccos 2: ',qlimitFac
-!    endif
-
-    pMax_cocco    = P_cm_c * qlimitFac * CoccoTFunc               ! NEW (and here also the T dependency is changed)
-   
-!    if((CoccoC>100)) then                                                ! NEW nur zum debuggen
-!       print*,'ERROR: strange CoccoC, print pMax_cocco elements !'
-!       print*,'P_cm_c: ', P_cm_c
-!       print*,'qlimitFac: ', qlimitFac
-!       print*,'CoccoTFunc: ', CoccoTFunc
-!    endif
+       pMax_cocco    = P_cm_c * qlimitFac * CoccoTFunc               ! NEW (and here also the T dependency is changed)
+    else
+       qlimitFac     = 0.d0
+       feLimitFac    = 0.d0
+       pMax_cocco    = 0.d0
+    endif
 
 !_______________________________________________________________________
 !< Light
@@ -646,27 +618,24 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !--------------------------------------------------------------------------------
 ! Coccolithophore photosynthesis rate (NEW!!!)
 
-    if ( pMax_cocco .lt. tiny .OR. Parave /= Parave             &      ! NEW
-         .OR. CHL2C_cocco /= CHL2C_cocco) then                         ! NEW
-       Cphot_cocco = zero                                              ! NEW
-    else                                                               ! NEW
-       if (CO2lim) then
-         Cphot_cocco = pMax_cocco * (real(one) &                       ! NEW
-                 - exp( -alfa_c * Chl2C_cocco * PARave / pMax_cocco)) * CoccoCO2  ! NEW NEW CO2 added the CO2 dependence
-       else
-         Cphot_cocco = pMax_cocco * (real(one) &                       ! NEW
-                 - exp( -alfa_c * Chl2C_cocco * PARave / pMax_cocco))  ! NEW
-       endif
-    end if                                                             ! NEW
-    if (Cphot_cocco .lt. tiny) Cphot_cocco = zero                      ! NEW
+    if (use_coccos) then    ! NEW switch
+       if ( pMax_cocco .lt. tiny .OR. Parave /= Parave             &      ! NEW
+            .OR. CHL2C_cocco /= CHL2C_cocco) then                         ! NEW
+          Cphot_cocco = zero                                              ! NEW
+       else                                                               ! NEW
+          if (CO2lim) then
+             Cphot_cocco = pMax_cocco * (real(one) &                       ! NEW
+                  - exp( -alfa_c * Chl2C_cocco * PARave / pMax_cocco)) * CoccoCO2  ! NEW NEW CO2 added the CO2 dependence
+          else
+             Cphot_cocco = pMax_cocco * (real(one) &                       ! NEW
+                  - exp( -alfa_c * Chl2C_cocco * PARave / pMax_cocco))  ! NEW
+          endif
+       end if                                                             ! NEW
+       if (Cphot_cocco .lt. tiny) Cphot_cocco = zero                      ! NEW
+    else
+       Cphot_cocco = 0.d0
+    endif
     
-!    if((CoccoC>100)) then                                                ! NEW nur zum debuggen
-!       print*,'ERROR: strange CoccoC, print Cphot elements !'
-!       print*,'pMax_cocco: ', pMax_cocco
-!       print*,'alfa_c: ', alfa_c
-!       print*,'Chl2C_cocco: ', Chl2C_cocco
-!       print*,'PARave: ',PARave
-!    endif
 
 !-------------------------------------------------------------------------------- 
 !< chlorophyll degradation
@@ -696,14 +665,18 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         end if
 
 !    Coccolithophores chla loss (NEW!!!)
-        if (pMax_cocco .lt. tiny .OR. PARave /= Parave           &        ! NEW
-                 .OR. CHL2C_plast_cocco /= CHL2C_plast_cocco) then        ! NEW
-           KOchl_cocco = deg_Chl_c*0.1d0                                  ! NEW
-        else                                                              ! NEW
-           KOchl_cocco = deg_Chl_c * ( 1 -                       &        ! NEW
-                exp( -alfa_c * CHL2C_plast_cocco * PARave / pMax_cocco )) ! NEW
-           KOchl_cocco = max((deg_Chl_c*0.1d0), KOchl_cocco)              ! NEW
-        end if
+        if (use_coccos) then     ! NEW switch
+           if (pMax_cocco .lt. tiny .OR. PARave /= Parave           &        ! NEW
+                    .OR. CHL2C_plast_cocco /= CHL2C_plast_cocco) then        ! NEW
+              KOchl_cocco = deg_Chl_c*0.1d0                                  ! NEW
+           else                                                              ! NEW
+              KOchl_cocco = deg_Chl_c * ( 1 -                       &        ! NEW
+                   exp( -alfa_c * CHL2C_plast_cocco * PARave / pMax_cocco )) ! NEW
+              KOchl_cocco = max((deg_Chl_c*0.1d0), KOchl_cocco)              ! NEW
+           end if
+        else
+           KOchl_cocco = 0.d0
+        endif
 
 
         if (KOchl /= KOchl) then
@@ -761,14 +734,20 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     N_assim_dia    = V_cm * pMax_dia * NCUptakeRatio_d &
                       * limitFacN_dia * DIN/(DIN + k_din_d)
 
-    V_cm           = V_cm_fact_c                                       ! NEW
-    limitFacN_cocco= recom_limiter(NMaxSlope,quota_cocco,NCmax_c)      ! NEW
-    N_assim_cocco  = V_cm * pMax_cocco * NCUptakeRatio_c &             ! NEW
-                      * limitFacN_cocco * DIN/(DIN + k_din_c)          ! NEW
+    if (use_coccos) then
+       V_cm           = V_cm_fact_c                                       ! NEW
+       limitFacN_cocco= recom_limiter(NMaxSlope,quota_cocco,NCmax_c)      ! NEW
+       N_assim_cocco  = V_cm * pMax_cocco * NCUptakeRatio_c &             ! NEW
+                         * limitFacN_cocco * DIN/(DIN + k_din_c)          ! NEW
+    else
+       V_cm           = 0.d0
+       limitFacN_cocco= 0.d0
+       N_assim_cocco  = 0.d0
+    endif
 
     limitFacSi     = recom_limiter(SiMaxSlope,qSiC,SiCmax)  &
                       * limitFacN_dia
-    Si_assim       = V_cm * P_cm_d * arrFunc * SiCUptakeRatio &
+    Si_assim       = V_cm_fact_d * P_cm_d * arrFunc * SiCUptakeRatio &    ! NEW changed V_cm to V_cm_fact_d because V_cm has now been related to coccos before
                       * limitFacSi * Si/(Si + k_si)
 
 !-------------------------------------------------------------------------------
@@ -794,11 +773,15 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             Cphot_dia /(alfa_d * Chl2C_dia * PARave))
     end if
     ChlSynth_cocco    = zero                                           ! NEW
-    if (PARave .ge. tiny .AND. PARave .eq. PARave) then                ! NEW
-       ChlSynth_cocco = N_assim_cocco                    &             ! NEW
-          * Chl2N_max_c * min(real(one),                 &             ! NEW
-            Cphot_cocco /(alfa_c * Chl2C_cocco * PARave))              ! NEW
-    end if                                                             ! NEW
+    if (use_coccos) then     ! NEW switch
+       if (PARave .ge. tiny .AND. PARave .eq. PARave) then                ! NEW
+          ChlSynth_cocco = N_assim_cocco                    &             ! NEW
+               * Chl2N_max_c * min(real(one),                 &             ! NEW
+               Cphot_cocco /(alfa_c * Chl2C_cocco * PARave))              ! NEW
+       end if                                                             ! NEW
+    else
+       ChlSynth_cocco = 0.d0
+    endif
 
 !-------------------------------------------------------------------------------
 !< Phytoplankton respiration rate
@@ -807,8 +790,12 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     phyRespRate     = res_phy * limitFacN + biosynth * N_assim
     phyRespRate_dia = res_phy_d * limitFacN_dia +        &
         biosynth * N_assim_dia + biosynthSi * Si_assim
-    phyRespRate_cocco = res_phy_c * limitFacN_cocco +        &         ! NEW
-            biosynth * N_assim_cocco                                   ! NEW
+    if (use_coccos) then       ! NEW switch
+       phyRespRate_cocco = res_phy_c * limitFacN_cocco +        &         ! NEW
+               biosynth * N_assim_cocco                                   ! NEW
+    else
+       phyRespRate_cocco = 0.d0
+    endif
     if (ciso) then
 !       we assume that
 !       phyRespRate_13,14     = phyRespRate
@@ -832,7 +819,11 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !                varpzDia    = pzDia   * DiaN /(pzPhy*PhyN + pzDia*DiaN + PzDet*DetN + pzDetZ2*DetZ2N)
 !                varpzDet    = pzDet   * DetN /(pzPhy*PhyN + pzDia*DiaN + PzDet*DetN + pzDetZ2*DetZ2N)
 !                varpzDetZ2  = pzDetZ2 * DetN /(pzPhy*PhyN + pzDia*DiaN + PzDet*DetN + pzDetZ2*DetZ2N)
-                aux         = pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN + PzDet*DetN + pzDetZ2*DetZ2N ! NEW added Cocco
+                if (use_coccos) then     ! NEW switch
+                   aux      = pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN + PzDet*DetN + pzDetZ2*DetZ2N ! NEW added Cocco
+                else
+                   aux      = pzPhy*PhyN + pzDia*DiaN + PzDet*DetN + pzDetZ2*DetZ2N
+                endif
                 varpzPhy    = pzPhy   * PhyN /aux
                 varpzDia    = pzDia   * DiaN /aux
                 varpzCocco  = pzCocco * CoccoN /aux ! NEW
@@ -841,7 +832,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             else
                 DiaNsq      = DiaN**2
                 PhyNsq      = PhyN**2
-                CoccoNsq      = CoccoN**2                                     ! NEW
+                CoccoNsq    = CoccoN**2                                       ! NEW
                 DetNsq      = DetN**2
                 DetZ2Nsq    = DetZ2N**2
 !                PhyNsq      = PhyN * PhyN
@@ -849,7 +840,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !                DiaNsq      = DiaN * DiaN
                 varpzDia    = pzDia * DiaNsq /(sDiaNsq + DiaNsq)
 !                CoccoNsq      = CoccoN * CoccoN                              ! NEW
-                varpzCocco    = pzCocco * CoccoNsq /(sCoccoNsq + CoccoNsq)    ! NEW
+                varpzCocco  = pzCocco * CoccoNsq /(sCoccoNsq + CoccoNsq)      ! NEW
 !                DetNsq      = DetN * DetN
                 varpzDet    = pzDet * DetNsq /(sDetNsq + DetNsq)
 !                DetZ2Nsq    = DetZ2N * DetZ2N
@@ -866,8 +857,13 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         else
 
             if (Graz_pref_new) then
-                varpzPhy      = pzPhy * PhyN /(pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN)        ! NEW added Coccos
-                varpzDia      = pzDia * DiaN /(pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN)        ! NEW added Coccos
+                if (use_coccos) then      ! NEW switch
+                   varpzPhy   = pzPhy * PhyN /(pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN)        ! NEW added Coccos
+                   varpzDia   = pzDia * DiaN /(pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN)        ! NEW added Coccos
+                else
+                   varpzPhy   = pzPhy * PhyN /(pzPhy*PhyN + pzDia*DiaN)
+                   varpzDia   = pzDia * DiaN /(pzPhy*PhyN + pzDia*DiaN)
+                endif
                 varpzCocco    = pzCocco * CoccoN /(pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN)    ! NEW
             else
                 DiaNsq        = DiaN  * DiaN
@@ -892,7 +888,11 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     end if
 
     if (Grazing_detritus) then
-       food              = fPhyN + fDiaN + fCoccoN + fDetN + fDetZ2N      ! NEW added Coccos
+       if (use_coccos) then     ! NEW switch
+          food           = fPhyN + fDiaN + fCoccoN + fDetN + fDetZ2N      ! NEW added Coccos
+       else
+          food           = fPhyN + fDiaN + fDetN + fDetZ2N
+       endif
        foodsq            = food * food
        grazingFlux       = (Graz_max * foodsq)/(epsilonr + foodsq) * HetN * arrFunc
        grazingFlux_phy   = grazingFlux * fphyN / food
@@ -901,7 +901,11 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
        grazingFlux_Det   = grazingFlux * fDetN / food
        grazingFlux_DetZ2 = grazingFlux * fDetZ2N / food
     else
-       food              = fPhyN + fDiaN + fCoccoN                        ! NEW added Coccos
+       if (use_coccos) then    ! NEW switch
+          food           = fPhyN + fDiaN + fCoccoN                        ! NEW added Coccos
+       else
+          food           = fPhyN + fDiaN
+       endif
        foodsq            = food * food
        grazingFlux       = (Graz_max * foodsq)/(epsilonr + foodsq) * HetN * arrFunc
        grazingFlux_phy   = grazingFlux * fphyN / food
@@ -922,7 +926,11 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !             varpzHet       = pzHet    * HetN   /(pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN + pzDet2 * DetN + pzDetZ22 * DetZ2N)  
 !             varpzDet2      = pzDet2   * DetN   /(pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN + pzDet2 * DetN + pzDetZ22 * DetZ2N)
 !             varpzDetZ22    = pzDetZ22 * DetZ2N /(pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN + pzDet2 * DetN + pzDetZ22 * DetZ2N)
-             aux            = pzPhy2 * PhyN + PzDia2 * DiaN + pzCocco2 * CoccoN + pzHet * HetN + pzDet2 * DetN + pzDetZ22 * DetZ2N       ! NEW added Coccos
+             if (use_coccos) then       ! NEW switch
+                aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzCocco2 * CoccoN + pzHet * HetN + pzDet2 * DetN + pzDetZ22 * DetZ2N       ! NEW added Coccos
+             else
+                aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN + pzDet2 * DetN + pzDetZ22 * DetZ2N
+             endif
              varpzDia2      = pzDia2   * DiaN   /aux
              varpzPhy2      = pzPhy2   * PhyN   /aux
              varpzCocco2    = pzCocco2 * CoccoN /aux      ! NEW added Coccos
@@ -957,7 +965,11 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !             varpzDia2      = pzDia2 * DiaN /(pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN)
 !             varpzPhy2      = pzPhy2 * PhyN /(pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN)
 !             varpzHet       = pzHet * HetN /(pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN)
-             aux            = pzPhy2 * PhyN + PzDia2 * DiaN + pzCocco2 * CoccoN + pzHet * HetN         ! NEW added Coccos
+             if (use_coccos) then    ! NEW switch
+                aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzCocco2 * CoccoN + pzHet * HetN         ! NEW added Coccos
+             else
+                aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN
+             endif
              varpzDia2      = pzDia2 * DiaN /aux
              varpzPhy2      = pzPhy2 * PhyN /aux
              varpzCocco2    = pzCocco2 * CoccoN /aux     ! NEW 
@@ -993,7 +1005,11 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     end if
 
     if (Grazing_detritus) then
-       food2             = fPhyN2 + fDiaN2 + fCoccoN2 + fHetN + fDetN2 + fDetZ2N2    ! NEW added Coccos
+       if (use_coccos) then    ! NEW switch
+          food2          = fPhyN2 + fDiaN2 + fCoccoN2 + fHetN + fDetN2 + fDetZ2N2    ! NEW added Coccos
+       else
+          food2          = fPhyN2 + fDiaN2 + fHetN + fDetN2 + fDetZ2N2
+       endif
        foodsq2           = food2 * food2
        grazingFlux2     = (Graz_max2 * foodsq2)/(epsilon2 + foodsq2) * Zoo2N * arrFuncZoo2
        grazingFlux_phy2  = grazingFlux2 * fphyN2 / food2
@@ -1003,14 +1019,26 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
        grazingFlux_Det2  = grazingFlux2 * fDetN2 / food2
        grazingFlux_DetZ22  = grazingFlux2 * fDetZ2N2 / food2
 
-       grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
-                         + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2) &
-                         + (grazingFlux_het2 * recipQZoo * grazEff2)      &
-                         + (grazingFlux_Cocco2 * recipQuota_Cocco * grazEff2) &      ! NEW
-                         + (grazingFlux_Det2 * recipDet * grazEff2)       &
-                         + (grazingFlux_DetZ22 *recipDet2 * grazEff2)    
+       if (use_coccos) then    ! NEW switch
+          grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
+               + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2) &
+               + (grazingFlux_het2 * recipQZoo * grazEff2)      &
+               + (grazingFlux_Cocco2 * recipQuota_Cocco * grazEff2) &      ! NEW
+               + (grazingFlux_Det2 * recipDet * grazEff2)       &
+               + (grazingFlux_DetZ22 *recipDet2 * grazEff2)    
+       else
+          grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
+               + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2) &
+               + (grazingFlux_het2 * recipQZoo * grazEff2) &
+               + (grazingFlux_Det2 * recipDet * grazEff2) &
+               + (grazingFlux_DetZ22 * recipDet2 * grazEff2)
+       endif
     else
-       food2             = fPhyN2 + fDiaN2 + fCoccoN2 + fHetN                        ! NEW
+       if (use_coccos) then    ! NEW switch
+          food2          = fPhyN2 + fDiaN2 + fCoccoN2 + fHetN                        ! NEW
+       else
+          food2          = fPhyN2 + fDiaN2 + fHetN
+       endif
        foodsq2           = food2 * food2
        grazingFlux2      = (Graz_max2 * foodsq2)/(epsilon2 + foodsq2) * Zoo2N * arrFuncZoo2
        grazingFlux_phy2  = grazingFlux2 * fphyN2 / food2
@@ -1018,10 +1046,16 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
        grazingFlux_Cocco2 = grazingFlux2 * fCoccoN2 / food2                          ! NEW
        grazingFlux_het2  = grazingFlux2 * fHetN / food2
 
-       grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
-                          + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2) &
-                          + (grazingFlux_Cocco2 * recipQuota_Cocco * grazEff2) &      ! NEW
-                          + (grazingFlux_het2 * recipQZoo * grazEff2)
+       if (use_coccos) then   ! NEW switch
+          grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
+               + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2) &
+               + (grazingFlux_Cocco2 * recipQuota_Cocco * grazEff2) &      ! NEW
+               + (grazingFlux_het2 * recipQZoo * grazEff2)
+       else
+          grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
+               + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2) &
+               + (grazingFlux_het2 * recipQzoo * grazEff2)
+       endif
     end if
     end if
 
@@ -1099,7 +1133,11 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !       else
 !          aggregationrate = agg_PD * DetN                   + agg_PP * PhyN + agg_PP * (1 - qlimitFac) * DiaN
 !       endif
-       aggregationrate = agg_PD * DetN + agg_PP * PhyN + agg_PP * CoccoN & + agg_PP * (1 - qlimitFac) * DiaN               ! NEW added Coccos
+       if (use_coccos) then     ! NEW switch
+          aggregationrate = agg_PD * DetN + agg_PP * PhyN + agg_PP * CoccoN & + agg_PP * (1 - qlimitFac) * DiaN               ! NEW added Coccos
+       else
+          aggregationrate = agg_PD * DetN + agg_PP * PhyN + agg_PP * (1 - qlimitFac) * DiaN
+       endif
        if (REcoM_Second_Zoo) aggregationrate = aggregationrate + agg_PD * DetZ2N
 
 
@@ -1110,7 +1148,11 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !       else
 !          aggregationrate = agg_PD * DetN                   + agg_PP * PhyN + agg_PP * DiaN
 !       endif
-       aggregationrate = agg_PD * DetN + agg_PP * PhyN + agg_PP * CoccoN + agg_PP * DiaN                  ! NEW added Coccos
+       if (use_coccos) then      ! NEW switch
+          aggregationrate = agg_PD * DetN + agg_PP * PhyN + agg_PP * CoccoN + agg_PP * DiaN                  ! NEW added Coccos
+       else
+          aggregationrate = agg_PD * DetN + agg_PP * PhyN + agg_PP * DiaN
+       endif
        if (REcoM_Second_Zoo) aggregationrate = aggregationrate + agg_PD * DetZ2N
 
     endif
@@ -1122,23 +1164,27 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !-------------------------------------------------------------------------------
 
 ! Terms required for the formation and dissolution of CaCO3
-    if (Temp(k) < 10.6) then                                  ! VERY NEW (PICPOC definition after Krumhardt et al. 2017, 2019; Temp(k) because we need degC here)
-      PICPOCtemp = 0.104d0 * Temp(k) - 0.108d0
-    else
-      PICPOCtemp = 1
-    end if
-    PICPOCtemp   = max(tiny,PICPOCtemp)
+    if (use_coccos) then                                         ! NEW switch: without this, calcification is performed by a fraction of small phytoplankton
+       if (Temp(k) < 10.6) then                                  ! VERY NEW (PICPOC definition after Krumhardt et al. 2017, 2019; Temp(k) because we need degC here)
+          PICPOCtemp = 0.104d0 * Temp(k) - 0.108d0
+       else
+          PICPOCtemp = 1
+       end if
+       PICPOCtemp   = max(tiny,PICPOCtemp)
 
-    PICPOCCO2     = a_co2_calc * HCO3_watercolumn(k) * Cunits / (b_co2_calc + HCO3_watercolumn(k) * Cunits) - exp(-c_co2_calc * CO2_watercolumn(k) * Cunits) - d_co2_calc * 10.**(-pH_watercolumn(k))
-    PICPOCCO2     = min(PICPOCCO2,3.d0)                                       ! April 2022: limitation to 3
+       PICPOCCO2     = a_co2_calc * HCO3_watercolumn(k) * Cunits / (b_co2_calc + HCO3_watercolumn(k) * Cunits) - exp(-c_co2_calc * CO2_watercolumn(k) * Cunits) - d_co2_calc * 10.**(-pH_watercolumn(k))
+       PICPOCCO2     = min(PICPOCCO2,3.d0)                                       ! April 2022: limitation to 3
 
-    PICPOCN     = -0.31 * (DIN/(DIN + k_din_c)) + 1.31
-    PICPOCN     = max(tiny,PICPOCN)
+       PICPOCN     = -0.31 * (DIN/(DIN + k_din_c)) + 1.31
+       PICPOCN     = max(tiny,PICPOCN)
     
-    if (CO2lim) then
-      calcification = 1.d0 * Cphot_cocco * CoccoC * PICPOCtemp * PICPOCN * PICPOCCO2  ! VERY NEW
+       if (CO2lim) then
+          calcification = 1.d0 * Cphot_cocco * CoccoC * PICPOCtemp * PICPOCN * PICPOCCO2  ! VERY NEW
+       else
+          calcification = 1.d0 * Cphot_cocco * CoccoC * PICPOCtemp * PICPOCN
+       endif
     else
-      calcification = 1.d0 * Cphot_cocco * CoccoC * PICPOCtemp * PICPOCN
+       calcification = calc_prod_ratio * Cphot * PhyC
     endif
    
 
@@ -1165,12 +1211,22 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !                                         * recipQuota/(PhyC + tiny) &
 !                                         * PhyCalc
 
-    if (REcoM_Second_Zoo) then
-       calc_loss_gra  =  grazingFlux_Cocco * recipQuota_Cocco/(CoccoC + tiny) * PhyCalc         ! NEW changed to Coccos
-       calc_loss_gra2 = grazingFlux_Cocco2 * recipQuota_Cocco/(CoccoC + tiny) * PhyCalc         ! NEW changed to Coccos
+    if (use_coccos) then                                                                           ! NEW switch
+       if (REcoM_Second_Zoo) then
+          calc_loss_gra  = grazingFlux_Cocco * recipQuota_Cocco/(CoccoC + tiny) * PhyCalc          ! NEW changed to Coccos
+          calc_loss_gra2 = grazingFlux_Cocco2 * recipQuota_Cocco/(CoccoC + tiny) * PhyCalc         ! NEW changed to Coccos
+       else
+          calc_loss_gra  = grazingFlux_Cocco * recipQuota_Cocco/(CoccoC + tiny)  * PhyCalc         ! NEW changed to Coccos
+       endif
     else
-       calc_loss_gra  = grazingFlux_Cocco * recipQuota_Cocco/(CoccoC + tiny)  * PhyCalc         ! NEW changed to Coccos
-    endif  
+       if (REcoM_Second_Zoo) then
+          calc_loss_gra  = grazingFlux_phy * recipQuota/(PhyC + tiny) * PhyCalc
+          calc_loss_gra2 = grazingFlux_phy2 * recipQuota/(PhyC + tiny) * PhyCalc
+       else
+          calc_loss_gra = grazingFlux_phy * recipQuota/(PhyC + tiny) * PhyCalc
+       endif
+    endif
+          
 
  
     if (ciso) then
@@ -1187,6 +1243,22 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !-------------------------------------------------------------------------------
 ! Sources minus sinks are calculated
 !-------------------------------------------------------------------------------
+
+    if (use_coccos) then              ! NEW
+       CoccoC             = CoccoC
+       CoccoN             = CoccoN
+       CoccoChl           = CoccoChl
+       grazingFlux_Cocco  = grazingFlux_Cocco
+       grazingFlux_Cocco2 = grazingFlux_Cocco2
+       KOchl_cocco        = KOchl_cocco
+    else
+       CoccoC             = 0.d0
+       CoccoN             = 0.d0
+       CoccoChl           = 0.d0
+       grazingFlux_Cocco  = 0.d0
+       grazingFlux_Cocco2 = 0.d0
+       KOchl_cocco        = 0.d0
+    endif
 
 !____________________________________________________________
 !< DIN 
@@ -1761,21 +1833,6 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
      	                                           ) * dt_b + sms(k,idiac)
     endif
 
-
-!   if((CoccoC>100)) then                                                ! NEW nur zum debuggen     
-!       print*,'ERROR: strange CoccoC !'
-!       print*,'state(k,idiac): ', state(k,idiac)
-!       print*,'sms DiaC: ', DiaC
-!       print*,'sms Cphot dia: ', Cphot_dia*DiaC
-!       print*,'sms lossC_d: ', lossC_d
-!       print*,'sms limitFacN_dia: ', limitFacN_dia
-!       print*,'sms phyRespRate_dia: ', phyRespRate_dia
-!       print*,'sms grazingFlux_dia: ', grazingFlux_dia
-!       print*,'sms grazingFlux_dia2: ', grazingFlux_dia2
-!       print*,'sms recipQuota_dia: ', recipQuota_dia
-   !    stop
-!    endif
-
 !____________________________________________________________
 !< Diatom Chl
 
@@ -2040,41 +2097,67 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !< Small phytoplankton calcite
 
 !#ifdef REcoM_calcification
-    if (REcoM_Second_Zoo) then
-        sms(k,iphycal)    = (             &
-            + calcification               & ! -- Calcification
-            - lossC_c * limitFacN_cocco * phyCalc &                             ! NEW
-            - phyRespRate_cocco         * phyCalc &                             ! NEW
-            !- lossC * limitFacN * phyCalc & ! -- Excretion loss
-            !- phyRespRate       * phyCalc & ! -- Respiration
-            - calc_loss_agg               & ! -- Aggregation loss
-            - calc_loss_gra               & ! -- Grazing loss
-            - calc_loss_gra2              &
+    if (use_coccos) then                                                           ! NEW switch
+       if (REcoM_Second_Zoo) then
+          sms(k,iphycal)    = (             &
+               + calcification                       & ! -- Calcification
+               - lossC_c * limitFacN_cocco * phyCalc & ! -- Excretion loss         ! NEW
+               - phyRespRate_cocco         * phyCalc & ! -- Respiration            ! NEW
+               - calc_loss_agg                       & ! -- Aggregation loss
+               - calc_loss_gra                       & ! -- Grazing loss
+               - calc_loss_gra2                      &
                                                   ) * dt_b + sms(k,iphycal)
+       else
+          sms(k,iphycal)    = (             &
+               + calcification                       &
+               - lossC_c * limitFacN_cocco * phyCalc &                             ! NEW
+               - phyRespRate_cocco         * phyCalc &                             ! NEW
+               - calc_loss_agg                       &
+               - calc_loss_gra                       &
+                                                  ) * dt_b + sms(k,iphycal)
+       endif
     else
-        sms(k,iphycal)    = (             &
-            + calcification               &
-            - lossC_c * limitFacN_cocco * phyCalc &                             ! NEW
-            - phyRespRate_cocco         * phyCalc &                             ! NEW
-            !- lossC * limitFacN * phyCalc &
-            !- phyRespRate       * phyCalc &
-            - calc_loss_agg               &
-            - calc_loss_gra               &
+       if (REcoM_Second_Zoo) then
+          sms(k,iphycal)    = (             &
+               + calcification               & ! -- Calcification  
+               - lossC * limitFacN * phyCalc & ! -- Excretion loss  
+               - phyRespRate       * phyCalc & ! -- Respiration 
+               - calc_loss_agg               & ! -- Aggregation loss 
+               - calc_loss_gra               & ! -- Grazing loss
+               - calc_loss_gra2              &
                                                   ) * dt_b + sms(k,iphycal)
+       else
+          sms(k,iphycal)    = (             &
+               + calcification               &
+               - lossC * limitFacN * phyCalc & 
+               - phyRespRate       * phyCalc &
+               - calc_loss_agg               &
+               - calc_loss_gra               &
+                                                  ) * dt_b + sms(k,iphycal)
+       endif
     endif
 
 !-------------------------------------------------------------------------------
 ! Detritus calcite
-    sms(k,idetcal)   = (               &
-      + lossC_c * limitFacN_cocco * phyCalc &                            ! VERY NEW (changed from phy to cocco)
-      + phyRespRate_cocco         * phyCalc &                            ! VERY NEW (changed from phy to cocco)
-      !+ lossC * limitFacN * phyCalc    &
-      !+ phyRespRate       * phyCalc    &
-      + calc_loss_agg                  &
-      + calc_loss_gra                  &
-      - calc_loss_gra * calc_diss_guts &
-      - calc_diss     * DetCalc        &
+    if (use_coccos) then                                                 ! NEW switch
+       sms(k,idetcal)   = (               &
+            + lossC_c * limitFacN_cocco * phyCalc &                      ! VERY NEW (changed from phy to cocco)
+            + phyRespRate_cocco         * phyCalc &                      ! VERY NEW (changed from phy to cocco)
+            + calc_loss_agg                       &
+            + calc_loss_gra                       &
+            - calc_loss_gra * calc_diss_guts      &
+            - calc_diss     * DetCalc             &
                                            ) * dt_b + sms(k,idetcal)
+    else
+       sms(k,idetcal)   = (               &
+            + lossC * limitFacN * phyCalc    &
+            + phyRespRate       * phyCalc    &
+            + calc_loss_agg                  &
+            + calc_loss_gra                  &
+            - calc_loss_gra * calc_diss_guts &
+            - calc_diss     * DetCalc        &
+                                           ) * dt_b + sms(k,idetcal)
+    endif
 !#endif
 !-------------------------------------------------------------------------------
 ! Oxygen
