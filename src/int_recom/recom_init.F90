@@ -173,7 +173,7 @@ end if
     co2      = 0.d0                                      ! NEW
 
     if (Diags) then
-        allocate(diags2D(node_size,8))                  ! NEW (changed size from 8 to 12) ! Changed in back to 8 because I haven't added Cocco NPP,... yet
+        allocate(diags2D(node_size,12))                  ! NEW (changed size from 8 to 12)
         diags2D(:,:)      = 0.d0
         allocate(diags3D(nl-1,node_size,diags3d_num))
         diags3D(:,:,:)      = 0.d0
@@ -372,9 +372,15 @@ end if
 !   endif
   endif
 
-    tr_arr(:,:,31) = tiny_chl/chl2N_max        ! tiny            ! tracer 29 = CoccoN ! NEW, changed from tracer to tr_arr
-    tr_arr(:,:,32) = tiny_chl/chl2N_max/NCmax  ! tiny * Redfield  ! tracer 30 = CoccoC ! NEW
-    tr_arr(:,:,33) = tiny_chl                  ! tiny * 1.56d0    ! tracer 31 = CoccoChl  ! NEW
+    if (use_coccos) then    ! NEW switch
+       tr_arr(:,:,31) = tiny_chl/chl2N_max        ! tiny            ! tracer 29 = CoccoN ! NEW, changed from tracer to tr_arr
+       tr_arr(:,:,32) = tiny_chl/chl2N_max/NCmax  ! tiny * Redfield  ! tracer 30 = CoccoC ! NEW
+       tr_arr(:,:,33) = tiny_chl                  ! tiny * 1.56d0    ! tracer 31 = CoccoChl  ! NEW
+    else
+       tr_arr(:,:,31) = 0.d0
+       tr_arr(:,:,32) = 0.d0
+       tr_arr(:,:,33) = 0.d0
+    endif
 
 if (ciso) then
    tr_arr(:,:,27) = (1. + 0.001 * (2.3 - 0.06 * tr_arr(:,:,3))) * tr_arr(:,:,4) ! DIC_13, GLODAP2 > 500 m 
