@@ -422,6 +422,26 @@ CASE ('GNAd     ')
     if (use_REcoM) then
     call def_stream(nod2D,  myDim_nod2D,   'GNAd','Gross N-assimilation diatoms','mmolN/(m2*d)', diags2D(:,8), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
     end if
+
+CASE ('NPPc     ')
+    if (use_REcoM) then
+    call def_stream(nod2D,  myDim_nod2D,   'NPPc','Mean NPP coccolithophores','mmolC/(m2*d)', diags2D(:,9), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)     ! NEW
+    end if
+
+CASE ('GPPc     ')
+    if (use_REcoM) then
+    call def_stream(nod2D,  myDim_nod2D,   'GPPc','Mean GPP coccolithophores','mmolC/(m2*d)', diags2D(:,10), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)    ! NEW
+    end if
+
+CASE ('NNAc     ')
+    if (use_REcoM) then
+    call def_stream(nod2D,  myDim_nod2D,   'NNAc','Net N-assimilation coccolithophores','mmolN/(m2*d)', diags2D(:,11), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)   ! NEW
+    endif
+
+CASE ('GNAc     ')
+    if (use_REcoM) then
+    call def_stream(nod2D,  myDim_nod2D,   'GNAc','Gross N-assimilation coccolithophores','mmolN/(m2*d)', diags2D(:,12), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh) ! NEW
+    endif
 #endif
 !___________________________________________________________________________________________________________________________________    
 !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>   3D streams   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
