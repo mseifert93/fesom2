@@ -64,6 +64,7 @@ module recom_config
   Logical                :: het_resp_noredfield    = .true.    ! Decides respiratation of copepods              
   Logical                :: diatom_mucus    = .true.    ! Effect of nutrient limitation on the aggregation
   Logical                :: Graz_pref_new    = .true.    ! If it is true Fasham et 1990, otherwise original recom variable preference
+  Logical                :: use_coccos            = .true.     ! NEW to have a version without coccos; needs to be used together with a special namelist (e.g. GR coccos = 0)
   Logical                :: OmegaC_diss           = .true.     ! NEW DISS Use mocsy calcite omega to compute calcite dissolution
   Logical                :: CO2lim                = .true.     ! NEW Use CO2 dependence of growth and calcification
   !Logical                :: inter_CT_CL           = .true.     ! NEW inter use interaction between CO2 and both, temperature and light
@@ -98,7 +99,7 @@ module recom_config
                        allow_var_sinking,                 biostep,               REcoM_Geider_limiter,    &
                        REcoM_Grazing_Variable_Preference, REcoM_Second_Zoo,      Grazing_detritus,        &
                        zoo2_fecal_loss,                   zoo2_initial_field,    het_resp_noredfield,     &
-                       diatom_mucus,                      Graz_pref_new,                &
+                       diatom_mucus,                      Graz_pref_new,         use_coccos,              & ! NEW added use_coccos
                        OmegaC_diss,                       CO2lim,                                         & ! NEW DISS added OmegaC_diss, NEW added CO2lim
                        Diags      ,                       constant_CO2,            &
                        UseFeDust,                         UseDustClim,           UseDustClimAlbani,       &
@@ -673,7 +674,7 @@ Module REcoM_locVar
   Real(kind=8) :: NDust                     ! [mmol/m2/s]
   Real(kind=8) :: Loc_ice_conc(1)           ! Used to calculate flux of DIC in REcoM 0 -> 1
   Real(kind=8) :: LocAtmCO2(1)              ! [uatm]
-  Real(kind=8) :: LocDiags2D(8)             ! NEW (changed it from 8 to 12)
+  Real(kind=8) :: LocDiags2D(12)            ! NEW (changed it from 8 to 12)
 !  Real(kind=8) :: LocDenit
   Real(kind=8) :: LocRiverDIN, LocRiverDON, LocRiverDOC, LocRiverDSi, LocRiverDIC, LocRiverAlk
 !  if (REcoM_Second_Zoo) then
