@@ -259,7 +259,7 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_Forci
      !!---- Local variables that have been changed during the time-step are stored so they can be saved
      Benthos(n,1:benthos_num)     = LocBenthos(1:benthos_num)                                ! Updating Benthos values
 
-     Diags2D(n,1:8)               = LocDiags2D(1:8)                                ! Updating diagnostics
+     Diags2D(n,1:12)              = LocDiags2D(1:12)                                ! Updating diagnostics ! NEW: changed from 8 to 12
      GloPCO2surf(n)               = pco2surf(1)
      GlodPCO2surf(n)              = dpco2surf(1)
 
@@ -314,7 +314,7 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_Forci
     call exchange_nod(Benthos(:,n))
   end do
   
-  do n=1, 8
+  do n=1, 12                                  ! NEW: changed from 8 to 12
     call exchange_nod(Diags2D(:,n))	
   end do
 
