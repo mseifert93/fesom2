@@ -322,6 +322,13 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_sms'/
      state(1:nn,icocn)  = 0.d0
      state(1:nn,icocc)  = 0.d0
   endif
+  if (REcoM_Third_Zoo) then   ! NEW 3Zoo
+     state(1:nn,imiczoon)  = max(tiny,state(1:nn,imiczoon))
+     state(1:nn,imiczooc)  = max(tiny,state(1:nn,imiczooc))
+  else
+     state(1:nn,imiczoon)  = 0.d0
+     state(1:nn,imiczooc)  = 0.d0
+  endif
 
 !  addtiny(1:nn,5) = (state(1:nn,isi)           - aux(1:nn,isi))
 !  addtiny(1:nn,6) = (state(1:nn,idetsi)        - aux(1:nn,idetsi))
