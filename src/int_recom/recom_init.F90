@@ -382,6 +382,16 @@ end if
        tr_arr(:,:,33) = 0.d0
     endif
 
+    if (REcoM_Third_Zoo) then                     ! NEW 3Zoo
+       tr_arr(:,:,34) = tiny                      ! tracer 32 = Zoo3N
+       tr_arr(:,:,35) = tiny * Redfield           ! tracer 33 = Zoo3C
+    else
+       tr_arr(:,:,34) = 0.d0
+       tr_arr(:,:,35) = 0.d0
+    endif
+
+   ! NEW: Attention with the flags use_coccos and use_third_zoo: they only work without cisco!!
+
 if (ciso) then
    tr_arr(:,:,27) = (1. + 0.001 * (2.3 - 0.06 * tr_arr(:,:,3))) * tr_arr(:,:,4) ! DIC_13, GLODAP2 > 500 m 
    tr_arr(:,:,28) = (1. - 0.001 * (70. + tr_arr(:,:,20))) * tr_arr(:,:,4)       ! DIC_14, Broecker et al. (1995)
