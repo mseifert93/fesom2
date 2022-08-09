@@ -347,8 +347,8 @@ real :: net
         tracer_id(tr_num) == 1018 .or.    &   ! Si
         tracer_id(tr_num) == 1019 .or.    &   ! Fe
 #if defined(__ciso)
-        tracer_id(tr_num) == 1033 .or.    &   ! DIC_13
-        tracer_id(tr_num) == 1034 .or.    &   ! DIC_14
+        tracer_id(tr_num) == 1036 .or.    &   ! DIC_13 ! NEW 3Zoo (was 1033 before)
+        tracer_id(tr_num) == 1037 .or.    &   ! DIC_14 ! NEW 3Zoo (was 1034 before)
 #endif
         tracer_id(tr_num) == 1022     ) then  ! Oxy
         call diff_ver_recom_expl(tr_num,mesh)
@@ -384,8 +384,7 @@ real :: net
 ! endif
         tracer_id(tr_num) == 1029 .or.    &   !icocn
         tracer_id(tr_num) == 1030 .or.    &   !icocc
-        tracer_id(tr_num) == 1031) then       !icchl      
-
+        tracer_id(tr_num) == 1031) then       !icchl
 
 
 
@@ -1508,10 +1507,10 @@ use REcoM_ciso
 !     write(*,*) '____________________________________________________________'
 !     write(*,*) ' --> DIC_surface,  = ', bc_surface
 !  endif
-    CASE (1023:1032)
-        bc_surface=0.0_WP  ! OG added bc for recom fields 
+    CASE (1023:1035)
+        bc_surface=0.0_WP  ! OG added bc for recom fields ! NEW 3Zoo changed from 1032 to 1035
 !ciso adapted by MB
-    CASE (1033) ! DIC_13
+    CASE (1036) ! DIC_13 ! NEW 3Zoo changed from 1033 to 1036
          if (ciso) then
            bc_surface= dt*GloCO2flux_seaicemask_13(n)
          else
@@ -1521,7 +1520,7 @@ use REcoM_ciso
              write(*,*) '____________________________________________________________'
              write(*,*) ' --> DIC_13_surface,  = ', bc_surface
          endif
-    CASE (1034) ! DIC_14
+    CASE (1037) ! DIC_14 ! NEW 3Zoo changed from 1034 to 1037
          if (ciso) then
            bc_surface= dt*GloCO2flux_seaicemask_14(n)
          else
@@ -1531,8 +1530,8 @@ use REcoM_ciso
              write(*,*) '____________________________________________________________'
              write(*,*) ' --> DIC_14_surface,  = ', bc_surface
          endif
-    CASE (1035:1099)
-        bc_surface=0.0_WP  ! OG added bc for recom fields - adapted to ciso by MB 
+    CASE (1038:1099)
+        bc_surface=0.0_WP  ! OG added bc for recom fields - adapted to ciso by MB  ! NEW 3Zoo changed from 1035 to 1038
     CASE (1102:1299)
         bc_surface=0.0_WP  ! added by MB for ciso
 !ciso adapted by MB
