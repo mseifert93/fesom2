@@ -129,6 +129,8 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         DetC,    & !< Conc of C in Detritus					[mmol/m3]
         HetN,    & !< Conc of N in heterotrophs				        [mmol/m3]
         HetC,    & !< Conc of C in heterotrophs				        [mmol/m3]
+        MicZooN, & !< NEW 3Zoo Conc of N in microzoo                            [mmol/m3]
+        MicZooC, & !< NEW 3Zoo Conc of C in microzoo                            [mmol/m3]
         DON,     & !< Dissolved organic N in the water			        [mmol/m3]
         EOC,     & !< Extracellular Organic C conc				[mmol/m3]
         DiaN,    &
@@ -224,6 +226,13 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 DetZ2Si = max(tiny,state(k,idetz2si)    + sms(k,idetz2si)) 
                 DetZ2Calc = max(tiny,state(k,idetz2calc)+ sms(k,idetz2calc))
             endif
+            if (REcoM_Third_Zoo) then                                      ! NEW 3Zoo
+               MicZooN  = max(tiny,state(k,imiczoon)    + sms(k,imiczoon))
+               MicZooC  = max(tiny,state(k,imiczooc)    + sms(k,imiczooc))
+            else
+               MicZooN  = 0.d0
+               MicZooC  = 0.d0
+            endif
             DON    = max(tiny,state(k,idon)   		+ sms(k,idon  ))
             EOC    = max(tiny,state(k,idoc)   		+ sms(k,idoc  ))
             DiaN   = max(tiny_N_d,state(k,idian)  	+ sms(k,idian ))   ! NEW: changed tiny_N to tiny_N_d
@@ -311,6 +320,13 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             if (REcoM_Second_Zoo) then  
                 recipQZoo2     =  Zoo2C / Zoo2N
             endif
+
+            if (REcoM_Third_Zoo) then                    ! NEW 3Zoo
+               recipQZoo3      = MicZooC/MicZooN
+            else
+               recipQZoo3      = 0.d0
+            endif
+
             if (Grazing_detritus) then
                  recipDet  = DetC / DetN
                  recipDet2 = DetZ2C / DetZ2N
@@ -377,6 +393,18 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 
     !Tlim_arr(k)    = arrFunc                                       ! NEWOUT
     !Tlim_cocco(k)  = CoccoTFunc                                    ! NEWOUT
+
+    if (REcoM_Third_Zoo) then                                       ! NEW 3Zoo
+       q10_mes      = 1.0242**(Temp(k))
+       q10_mic      = 1.04**(Temp(k))
+       q10_mes_res  = 1.0887**(Temp(k))
+       q10_mic_res  = 1.0897**(Temp(k))
+    else
+       q10_mes      = 0.d0
+       q10_mic      = 0.d0
+       q10_mes_res  = 0.d0
+       q10_mic_res  = 0.d0
+    endif
 
 !-------------------------------------------------------------------------------
 ! Light                                                                                                   ! NEW MOCSY
@@ -465,14 +493,17 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 ! Small phytoplankton
    PhyCO2 = a_co2_phy * HCO3_watercolumn(k) * Cunits / (b_co2_phy + HCO3_watercolumn(k) * Cunits) - exp(-c_co2_phy * CO2_watercolumn(k) * Cunits) - d_co2_phy * 10.**(-pH_watercolumn(k))
    PhyCO2 = min(PhyCO2,3.d0)      ! April 2022: limitation to 3
+   PhyCO2 = max(0.d0,PhyCO2)      ! July 2022: limitation to zero
 
 ! Diatoms
    DiaCO2 = a_co2_dia * HCO3_watercolumn(k) * Cunits / (b_co2_dia + HCO3_watercolumn(k) * Cunits) - exp(-c_co2_dia * CO2_watercolumn(k) * Cunits) - d_co2_dia * 10.**(-pH_watercolumn(k))
    DiaCO2 = min(DiaCO2,3.d0)      ! April 2022: limitation to 3
+   DiaCO2 = max(0.d0,DiaCO2)      ! July 2022: limitation to zero
 
 ! Coccolithophores
    CoccoCO2 = a_co2_cocco * HCO3_watercolumn(k) * Cunits / (b_co2_cocco + HCO3_watercolumn(k) * Cunits) - exp(-c_co2_cocco * CO2_watercolumn(k) * Cunits) - d_co2_cocco * 10.**(-pH_watercolumn(k))
    CoccoCO2 = min(CoccoCO2,3.d0)  ! April 2022: limitation to 3
+   CoccoCO2 = max(0.d0,CoccoCO2)  ! July 2022: limitation to zero
    
 
 !------------------------------------------------------------------------------
@@ -820,19 +851,29 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !                varpzDet    = pzDet   * DetN /(pzPhy*PhyN + pzDia*DiaN + PzDet*DetN + pzDetZ2*DetZ2N)
 !                varpzDetZ2  = pzDetZ2 * DetN /(pzPhy*PhyN + pzDia*DiaN + PzDet*DetN + pzDetZ2*DetZ2N)
                 if (use_coccos) then     ! NEW switch
-                   aux      = pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN + PzDet*DetN + pzDetZ2*DetZ2N ! NEW added Cocco
+                   if (REcoM_Third_Zoo) then    ! NEW 3Zoo
+                      aux      = pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN + pzMicZoo*MicZooN + PzDet*DetN + pzDetZ2*DetZ2N
+                   else
+                      aux      = pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN + PzDet*DetN + pzDetZ2*DetZ2N ! NEW added Cocco
+                   endif
                 else
-                   aux      = pzPhy*PhyN + pzDia*DiaN + PzDet*DetN + pzDetZ2*DetZ2N
+                   if (REcoM_Third_Zoo) then    ! NEW 3Zoo
+                      aux      = pzPhy*PhyN + pzDia*DiaN + pzMicZoo*MicZooN + PzDet*DetN + pzDetZ2*DetZ2N
+                   else
+                      aux      = pzPhy*PhyN + pzDia*DiaN + PzDet*DetN + pzDetZ2*DetZ2N
+                   endif
                 endif
                 varpzPhy    = pzPhy   * PhyN /aux
                 varpzDia    = pzDia   * DiaN /aux
                 varpzCocco  = pzCocco * CoccoN /aux ! NEW
+                varpzMicZoo = pzMicZoo* MicZooN /aux ! NEW 3Zoo
                 varpzDet    = pzDet   * DetN /aux
                 varpzDetZ2  = pzDetZ2 * DetN /aux
             else
                 DiaNsq      = DiaN**2
                 PhyNsq      = PhyN**2
                 CoccoNsq    = CoccoN**2                                       ! NEW
+                MicZooNsq   = MicZooN**2                                      ! NEW 3Zoo
                 DetNsq      = DetN**2
                 DetZ2Nsq    = DetZ2N**2
 !                PhyNsq      = PhyN * PhyN
@@ -841,6 +882,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 varpzDia    = pzDia * DiaNsq /(sDiaNsq + DiaNsq)
 !                CoccoNsq      = CoccoN * CoccoN                              ! NEW
                 varpzCocco  = pzCocco * CoccoNsq /(sCoccoNsq + CoccoNsq)      ! NEW
+                varpzMicZoo = pzMicZoo * MicZooNsq /(sMicZooNsq + MicZooNsq)  ! NEW 3Zoo
 !                DetNsq      = DetN * DetN
                 varpzDet    = pzDet * DetNsq /(sDetNsq + DetNsq)
 !                DetZ2Nsq    = DetZ2N * DetZ2N
@@ -851,6 +893,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             fDiaN    = varpzDia   * DiaN
             fPhyN    = varpzPhy   * PhyN
             fCoccoN  = varpzCocco * CoccoN                            ! NEW
+            fMicZooN = varpzMicZoo*MicZooN                            ! NEW 3Zoo
             fDetN    = varpzDet   * DetN
             fDetZ2N  = varpzDetZ2 * DetZ2N
 
@@ -858,13 +901,24 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 
             if (Graz_pref_new) then
                 if (use_coccos) then      ! NEW switch
-                   varpzPhy   = pzPhy * PhyN /(pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN)        ! NEW added Coccos
-                   varpzDia   = pzDia * DiaN /(pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN)        ! NEW added Coccos
+                   if (REcoM_Third_Zoo) then     ! NEW 3Zoo
+                      varpzPhy   = pzPhy * PhyN /(pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN + pzMicZoo*MicZooN)        ! NEW added Coccos
+                      varpzDia   = pzDia * DiaN /(pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN + pzMicZoo*MicZooN)        ! NEW added Coccos
+                   else
+                      varpzPhy   = pzPhy * PhyN /(pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN)        ! NEW added Coccos
+                      varpzDia   = pzDia * DiaN /(pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN)        ! NEW added Coccos
+                   endif
                 else
-                   varpzPhy   = pzPhy * PhyN /(pzPhy*PhyN + pzDia*DiaN)
-                   varpzDia   = pzDia * DiaN /(pzPhy*PhyN + pzDia*DiaN)
+                   if (REcoM_Third_Zoo) then     ! NEW 3Zoo
+                      varpzPhy   = pzPhy * PhyN /(pzPhy*PhyN + pzDia*DiaN + pzMicZoo*MicZooN)
+                      varpzDia   = pzDia * DiaN /(pzPhy*PhyN + pzDia*DiaN + pzMicZoo*MicZooN)
+                   else
+                      varpzPhy   = pzPhy * PhyN /(pzPhy*PhyN + pzDia*DiaN)
+                      varpzDia   = pzDia * DiaN /(pzPhy*PhyN + pzDia*DiaN)
+                   endif
                 endif
-                varpzCocco    = pzCocco * CoccoN /(pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN)    ! NEW
+                varpzCocco    = pzCocco * CoccoN /(pzPhy*PhyN + pzDia*DiaN + pzCocco*CoccoN)       ! NEW
+                varpzMicZoo   = pzMicZoo * MicZooN /(pzPhy*PhyN + pzDia*DiaN + pzMicZoo*MicZooN)   ! NEW 3Zoo
             else
                 DiaNsq        = DiaN  * DiaN
                 varpzDia      = pzDia * DiaNsq /(sDiaNsq + DiaNsq)
@@ -872,15 +926,19 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 varpzPhy      = pzPhy * PhyNsq /(sPhyNsq + PhyNsq)
                 CoccoNsq      = CoccoN * CoccoN                                ! NEW
                 varpzCocco    = pzCocco * CoccoNsq /(sCoccoNsq + CoccoNsq)     ! NEW
+                MicZooNsq     = MicZooN * MicZooN                              ! NEW 3Zoo
+                varpzMicZoo   = pzMicZoo * MicZooNsq /(sMicZooNsq + MicZooNsq) ! NEW 3Zoo
             end if
             fDiaN         = varpzDia * DiaN
             fPhyN         = varpzPhy * PhyN
             fCoccoN       = varpzCocco * CoccoN                            ! NEW
+            fMicZooN      = varpzMicZoo * MicZooN                          ! NEW 3Zoo
         end if
     else
         fDiaN         = pzDia * DiaN
         fPhyN         = pzPhy * PhyN
         fCoccoN       = pzCocco * CoccoN                                 ! NEW
+        fMicZooN      = pzMicZoo * MicZooN                               ! NEW 3Zoo
         if (Grazing_detritus) then
             fDetN        = pzDet   * DetN
             fDetZ2N      = pzDetZ2 * DetZ2N
@@ -889,29 +947,120 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 
     if (Grazing_detritus) then
        if (use_coccos) then     ! NEW switch
-          food           = fPhyN + fDiaN + fCoccoN + fDetN + fDetZ2N      ! NEW added Coccos
+          if (REcoM_Third_Zoo) then      ! NEW 3Zoo
+             food           = fPhyN + fDiaN + fCoccoN + fMicZooN + fDetN + fDetZ2N      ! NEW added Coccos
+          else
+             food           = fPhyN + fDiaN + fCoccoN + fDetN + fDetZ2N      ! NEW added Coccos
+          endif
        else
-          food           = fPhyN + fDiaN + fDetN + fDetZ2N
+          if (REcoM_Third_Zoo) then      ! NEW 3Zoo
+             food           = fPhyN + fDiaN + fMicZooN + fDetN + fDetZ2N
+          else
+             food           = fPhyN + fDiaN + fDetN + fDetZ2N
+          endif
        endif
+
        foodsq            = food * food
        grazingFlux       = (Graz_max * foodsq)/(epsilonr + foodsq) * HetN * arrFunc
        grazingFlux_phy   = grazingFlux * fphyN / food
        grazingFlux_Dia   = grazingFlux * fDiaN / food
        grazingFlux_Cocco = grazingFlux * fCoccoN / food                 ! NEW
+       if (REcoM_Third_Zoo) then
+          grazingFlux_miczoo = grazingFlux * fMicZooN / food            ! NEW 3Zoo
+       else
+          grazingFlux_miczoo = 0.d0
+       endif
        grazingFlux_Det   = grazingFlux * fDetN / food
        grazingFlux_DetZ2 = grazingFlux * fDetZ2N / food
-    else
-       if (use_coccos) then    ! NEW switch
-          food           = fPhyN + fDiaN + fCoccoN                        ! NEW added Coccos
+
+       grazEff = gfin + 1/(0.2*food + 2)
+       
+       if (use_coccos) then                                             ! NEW switch
+          if (REcoM_Third_Zoo) then                                     ! NEW Zoo3
+             grazingFluxcarbon_mes = (grazingFlux_phy * recipQuota * grazEff) &
+                  + (grazingFlux_Dia * recipQuota_Dia * grazEff)              &
+                  + (grazingFlux_Cocco * recipQuota_Cocco * grazEff)          &
+                  + (grazingFlux_miczoo * recipQZoo3 * grazEff)               &
+                  + (grazingFlux_Det * recipDet * grazEff)                    &
+                  + (grazingFlux_DetZ2 *recipDet2 * grazEff)
+          else
+             grazingFluxcarbon_mes = (grazingFlux_phy * recipQuota * grazEff) &
+                  + (grazingFlux_Dia * recipQuota_Dia * grazEff)              &
+                  + (grazingFlux_Cocco * recipQuota_Cocco * grazEff)          &
+                  + (grazingFlux_Det * recipDet * grazEff)                    &
+                  + (grazingFlux_DetZ2 *recipDet2 * grazEff)
+          endif
        else
-          food           = fPhyN + fDiaN
+          if (REcoM_Third_Zoo) then                                     ! NEW Zoo3 
+             grazingFluxcarbon_mes = (grazingFlux_phy * recipQuota * grazEff) &
+                  + (grazingFlux_Dia * recipQuota_Dia * grazEff)              &
+                  + (grazingFlux_miczoo * recipQZoo3 * grazEff)               &
+                  + (grazingFlux_Det * recipDet * grazEff)                    &
+                  + (grazingFlux_DetZ2 *recipDet2 * grazEff)
+          else
+             grazingFluxcarbon_mes = (grazingFlux_phy * recipQuota * grazEff) &
+                  + (grazingFlux_Dia * recipQuota_Dia * grazEff)              &
+                  + (grazingFlux_Det * recipDet * grazEff)                    &
+                  + (grazingFlux_DetZ2 *recipDet2 * grazEff)
+          endif
        endif
+                  
+    else
+
+       if (use_coccos) then    ! NEW switch
+          if (REcoM_Third_Zoo) then        ! NEW 3Zoo
+             food           = fPhyN + fDiaN + fCoccoN + fMicZooN          ! NEW added Coccos
+          else
+             food           = fPhyN + fDiaN + fCoccoN                     ! NEW added Coccos
+          endif
+       else
+          if (REcoM_Third_Zoo) then        ! NEW 3Zoo
+             food           = fPhyN + fDiaN + fMicZooN                    ! NEW added Coccos
+          else
+             food           = fPhyN + fDiaN
+          endif
+       endif
+
        foodsq            = food * food
        grazingFlux       = (Graz_max * foodsq)/(epsilonr + foodsq) * HetN * arrFunc
        grazingFlux_phy   = grazingFlux * fphyN / food
        grazingFlux_Dia   = grazingFlux * fDiaN / food
        grazingFlux_Cocco = grazingFlux * fCoccoN / food                 ! NEW
+       if (REcoM_Third_Zoo) then
+          grazingFlux_miczoo = grazingFlux * fMicZooN / food            ! NEW 3Zoo 
+       else
+          grazingFlux_miczoo = 0.d0
+       endif
+
+       grazEff = gfin + 1/(0.2*food + 2)
+
+       if (use_coccos) then                                             ! NEW switch 
+          if (REcoM_Third_Zoo) then                                     ! NEW Zoo3
+             grazingFluxcarbon_mes = (grazingFlux_phy * recipQuota * grazEff) &
+                  + (grazingFlux_Dia * recipQuota_Dia * grazEff)              &
+                  + (grazingFlux_Cocco * recipQuota_Cocco * grazEff)          &
+                  + (grazingFlux_miczoo * recipQZoo3 * grazEff)
+          else
+             grazingFluxcarbon_mes = (grazingFlux_phy * recipQuota * grazEff) &
+                  + (grazingFlux_Dia * recipQuota_Dia * grazEff)              &
+                  + (grazingFlux_Cocco * recipQuota_Cocco * grazEff)
+          endif
+       else
+          if (REcoM_Third_Zoo) then                                     ! NEW Zoo3  
+             grazingFluxcarbon_mes = (grazingFlux_phy * recipQuota * grazEff) &
+                   + (grazingFlux_Dia * recipQuota_Dia * grazEff)             &
+                   + (grazingFlux_miczoo * recipQZoo3 * grazEff)
+          else
+             grazingFluxcarbon_mes = (grazingFlux_phy * recipQuota * grazEff) &
+                  + (grazingFlux_Dia * recipQuota_Dia * grazEff)
+          endif
+       endif
+
     endif
+
+    Mesfecalloss_n   = fecal_rate_n_mes * grazingFlux * grazEff             ! NEW 3Zoo
+    Mesfecalloss_c   = fecal_rate_c_mes * grazingFluxcarbon_mes             ! NEW 3Zoo
+
 
     if (REcoM_Second_Zoo) then
 !-------------------------------------------------------------------------------
@@ -927,28 +1076,37 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !             varpzDet2      = pzDet2   * DetN   /(pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN + pzDet2 * DetN + pzDetZ22 * DetZ2N)
 !             varpzDetZ22    = pzDetZ22 * DetZ2N /(pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN + pzDet2 * DetN + pzDetZ22 * DetZ2N)
              if (use_coccos) then       ! NEW switch
-                aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzCocco2 * CoccoN + pzHet * HetN + pzDet2 * DetN + pzDetZ22 * DetZ2N       ! NEW added Coccos
+                if (REcoM_Third_Zoo) then   ! NEW 3Zoo
+                   aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzCocco2 * CoccoN + pzHet * HetN + pzMicZoo2 * MicZooN + pzDet2 * DetN + pzDetZ22 * DetZ2N       ! NEW added Coccos
+                else
+                   aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzCocco2 * CoccoN + pzHet * HetN + pzDet2 * DetN + pzDetZ22 * DetZ2N                             ! NEW added Coccos
+                endif
              else
-                aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN + pzDet2 * DetN + pzDetZ22 * DetZ2N
+                if (REcoM_Third_Zoo) then   ! NEW 3Zoo
+                   aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN + pzMicZoo2 * MicZooN + pzDet2 * DetN + pzDetZ22 * DetZ2N
+                else
+                   aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN + pzDet2 * DetN + pzDetZ22 * DetZ2N
+                endif
              endif
+
              varpzDia2      = pzDia2   * DiaN   /aux
              varpzPhy2      = pzPhy2   * PhyN   /aux
              varpzCocco2    = pzCocco2 * CoccoN /aux      ! NEW added Coccos
+             varpzMicZoo2   = pzMicZoo2* MicZooN/aux      ! NEW 3Zoo
              varpzHet       = pzHet    * HetN   /aux  
              varpzDet2      = pzDet2   * DetN   /aux
              varpzDetZ22    = pzDetZ22 * DetZ2N /aux
           else
              DiaNsq2        = DiaN * DiaN
              varpzDia2      = pzDia2 * DiaNsq2 /(sDiaNsq2 + DiaNsq2)
-             fDiaN2         = varpzDia2 * DiaN
              PhyNsq2        = PhyN * PhyN
              varpzPhy2      = pzPhy2 * PhyNsq2 /(sPhyNsq2 + PhyNsq2)
-             fPhyN2         = varpzPhy2 * PhyN
+             CoccoNsq2      = CoccoN * CoccoN                                   ! NEW
              varpzCocco2    = pzCocco2 * CoccoNsq2 /(sCoccoNsq2 + CoccoNsq2)    ! NEW
-             fCoccoN2       = varpzCocco2 * CoccoN                              ! NEW
+             MicZooNsq2     = MicZooN * MicZooN                                 ! NEW 3Zoo
+             varpzMicZoo2   = pzMicZoo2 * MicZooNsq2 /(sMicZooNsq2 + MicZooNsq2)! NEW 3Zoo
              HetNsq         = HetN * HetN
              varpzHet       = pzHet * HetNsq /(sHetNsq + HetNsq)
-             fHetN          = varpzHet * HetN   
              DetNsq         = DetN * DetN
              varpzDet2      = pzDet2 * DetNsq /(sDetNsq2 + DetNsq)
              DetZ2Nsq       = DetZ2N * DetZ2N
@@ -957,6 +1115,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
           fDiaN2         = varpzDia2 * DiaN
           fPhyN2         = varpzPhy2 * PhyN
           fCoccoN2       = varpzCocco2 * CoccoN                              ! NEW
+          fMicZooN2      = varpzMicZoo2 * MicZooN                            ! NEW 3Zoo
           fHetN          = varpzHet * HetN
           fDetN2         = varpzDet2 * DetN
           fDetZ2N2       = varpzDetZ22 * DetZ2N
@@ -966,37 +1125,48 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !             varpzPhy2      = pzPhy2 * PhyN /(pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN)
 !             varpzHet       = pzHet * HetN /(pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN)
              if (use_coccos) then    ! NEW switch
-                aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzCocco2 * CoccoN + pzHet * HetN         ! NEW added Coccos
+                if (REcoM_Third_Zoo) then    ! NEW 3Zoo
+                   aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzCocco2 * CoccoN + pzHet * HetN + pzMicZoo2 * MicZooN         ! NEW added Coccos 
+                else
+                   aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzCocco2 * CoccoN + pzHet * HetN                               ! NEW added Coccos
+                endif
              else
-                aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN
+                if (RecoM_Third_Zoo) then    ! NEW 3Zoo
+                   aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN + pzMicZoo2 * MicZooN
+                else
+                   aux         = pzPhy2 * PhyN + PzDia2 * DiaN + pzHet * HetN
+                endif
              endif
-             varpzDia2      = pzDia2 * DiaN /aux
-             varpzPhy2      = pzPhy2 * PhyN /aux
-             varpzCocco2    = pzCocco2 * CoccoN /aux     ! NEW 
-             varpzHet       = pzHet  * HetN /aux
+
+             varpzDia2      = pzDia2    * DiaN   /aux
+             varpzPhy2      = pzPhy2    * PhyN   /aux
+             varpzCocco2    = pzCocco2  * CoccoN /aux     ! NEW 
+             varpzMicZoo2   = pzMicZoo2 * MicZooN/aux     ! NEW 3Zoo
+             varpzHet       = pzHet     * HetN   /aux
 
           else
              DiaNsq2        = DiaN * DiaN
              varpzDia2      = pzDia2 * DiaNsq2 /(sDiaNsq2 + DiaNsq2)
-             fDiaN2         = varpzDia2 * DiaN
              PhyNsq2        = PhyN * PhyN
              varpzPhy2      = pzPhy2 * PhyNsq2 /(sPhyNsq2 + PhyNsq2)
-             fPhyN2         = varpzPhy2 * PhyN
              CoccoNsq2      = CoccoN * CoccoN                                   ! NEW
              varpzCocco2    = pzCocco2 * CoccoNsq2 /(sCoccoNsq2 + CoccoNsq2)    ! NEW
-             fCoccoN2       = varpzCocco2 * CoccoN                              ! NEW
+             MicZooNsq2     = MicZooN * MicZooN                                 ! NEW 3Zoo
+             varpzMicZoo2   = pzMicZoo2 * MicZooNsq2 /(sMicZooNsq2 + MicZooNsq2)! NEW 3Zoo
              HetNsq         = HetN * HetN
              varpzHet       = pzHet * HetNsq /(sHetNsq + HetNsq)
           end if
           fDiaN2         = varpzDia2 * DiaN
           fPhyN2         = varpzPhy2 * PhyN
           fCoccoN2       = varpzCocco2 * CoccoN                                 ! NEW
+          fMicZooN2      = varpzMicZoo2 * MicZooN                               ! NEW 3Zoo 
           fHetN          = varpzHet * HetN
        end if
     else
        fDiaN2         = pzDia2 * DiaN
        fPhyN2         = pzPhy2 * PhyN
        fCoccoN2       = pzCocco2 * CoccoN                                       ! NEW
+       fMicZooN2      = pzMicZoo2 * MicZooN                                     ! NEW 3Zoo
        fHetN          = pzHet * HetN
        if (Grazing_detritus) then
           fDetN2         = pzDet2 * DetN
@@ -1006,38 +1176,78 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 
     if (Grazing_detritus) then
        if (use_coccos) then    ! NEW switch
-          food2          = fPhyN2 + fDiaN2 + fCoccoN2 + fHetN + fDetN2 + fDetZ2N2    ! NEW added Coccos
+          if (REcoM_Third_Zoo) then    ! NEW Zoo
+             food2          = fPhyN2 + fDiaN2 + fCoccoN2 + fHetN + fDetN2 + fDetZ2N2 + fMicZooN2    ! NEW added Coccos 
+          else
+             food2          = fPhyN2 + fDiaN2 + fCoccoN2 + fHetN + fDetN2 + fDetZ2N2                ! NEW added Coccos
+          endif
        else
-          food2          = fPhyN2 + fDiaN2 + fHetN + fDetN2 + fDetZ2N2
+          if (REcoM_Third_Zoo) then    ! NEW Zoo
+             food2          = fPhyN2 + fDiaN2 + fHetN + fDetN2 + fDetZ2N2 + fMicZooN2
+          else
+             food2          = fPhyN2 + fDiaN2 + fHetN + fDetN2 + fDetZ2N2
+          endif
        endif
-       foodsq2           = food2 * food2
-       grazingFlux2     = (Graz_max2 * foodsq2)/(epsilon2 + foodsq2) * Zoo2N * arrFuncZoo2
-       grazingFlux_phy2  = grazingFlux2 * fphyN2 / food2
-       grazingFlux_Dia2  = grazingFlux2 * fDiaN2 / food2
-       grazingFlux_Cocco2 = grazingFlux2 * fCoccoN2 / food2                          ! NEW
-       grazingFlux_het2  = grazingFlux2 * fHetN / food2
-       grazingFlux_Det2  = grazingFlux2 * fDetN2 / food2
+       foodsq2             = food2 * food2
+       grazingFlux2        = (Graz_max2 * foodsq2)/(epsilon2 + foodsq2) * Zoo2N * arrFuncZoo2
+       grazingFlux_phy2    = grazingFlux2 * fphyN2 / food2
+       grazingFlux_Dia2    = grazingFlux2 * fDiaN2 / food2
+       grazingFlux_Cocco2  = grazingFlux2 * fCoccoN2 / food2                          ! NEW
+       if (REcoM_Third_Zoo) then
+          grazingFlux_miczoo2 = grazingFlux2 * fMicZooN2 / food2                      ! NEW 3Zoo
+       else
+          grazingFlux_miczoo2 = 0.d0
+       endif
+       grazingFlux_het2    = grazingFlux2 * fHetN / food2
+       grazingFlux_Det2    = grazingFlux2 * fDetN2 / food2
        grazingFlux_DetZ22  = grazingFlux2 * fDetZ2N2 / food2
 
        if (use_coccos) then    ! NEW switch
-          grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
-               + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2) &
-               + (grazingFlux_het2 * recipQZoo * grazEff2)      &
-               + (grazingFlux_Cocco2 * recipQuota_Cocco * grazEff2) &      ! NEW
-               + (grazingFlux_Det2 * recipDet * grazEff2)       &
-               + (grazingFlux_DetZ22 *recipDet2 * grazEff2)    
+          if (REcoM_Third_Zoo) then    ! NEW 3Zoo
+             grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
+                  + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2)              &
+                  + (grazingFlux_Cocco2 * recipQuota_Cocco * grazEff2)          &      ! NEW 
+                  + (grazingFlux_het2 * recipQZoo * grazEff2)                   &
+                  + (grazingFlux_miczoo2 * recipQZoo3 * grazEff2)               &
+                  + (grazingFlux_Det2 * recipDet * grazEff2)                    &
+                  + (grazingFlux_DetZ22 *recipDet2 * grazEff2)
+          else
+             grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
+                  + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2)              &
+                  + (grazingFlux_het2 * recipQZoo * grazEff2)                   &
+                  + (grazingFlux_Cocco2 * recipQuota_Cocco * grazEff2)          &      ! NEW
+                  + (grazingFlux_Det2 * recipDet * grazEff2)                    &
+                  + (grazingFlux_DetZ22 *recipDet2 * grazEff2)    
+         endif
        else
-          grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
-               + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2) &
-               + (grazingFlux_het2 * recipQZoo * grazEff2) &
-               + (grazingFlux_Det2 * recipDet * grazEff2) &
-               + (grazingFlux_DetZ22 * recipDet2 * grazEff2)
+          if (RecoM_Third_Zoo) then    ! NEW 3Zoo
+             grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
+                  + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2)              &
+                  + (grazingFlux_het2 * recipQZoo * grazEff2)                   &
+                  + (grazingFlux_miczoo2 * recipQZoo3 * grazEff2)               &
+                  + (grazingFlux_Det2 * recipDet * grazEff2)                    &
+                  + (grazingFlux_DetZ22 * recipDet2 * grazEff2)
+          else
+             grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
+                  + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2)              &
+                  + (grazingFlux_het2 * recipQZoo * grazEff2)                   &
+                  + (grazingFlux_Det2 * recipDet * grazEff2)                    &
+                  + (grazingFlux_DetZ22 * recipDet2 * grazEff2)
+          endif
        endif
     else
        if (use_coccos) then    ! NEW switch
-          food2          = fPhyN2 + fDiaN2 + fCoccoN2 + fHetN                        ! NEW
+          if (REcoM_Third_Zoo) then    ! NEW 3Zoo
+             food2          = fPhyN2 + fDiaN2 + fCoccoN2 + fHetN + fMicZooN2               ! NEW 
+          else
+             food2          = fPhyN2 + fDiaN2 + fCoccoN2 + fHetN                           ! NEW
+          endif
        else
-          food2          = fPhyN2 + fDiaN2 + fHetN
+          if (REcoM_Third_Zoo) then    ! NEW 3Zoo
+             food2          = fPhyN2 + fDiaN2 + fHetN + fMicZooN2
+          else
+             food2          = fPhyN2 + fDiaN2 + fHetN
+          endif
        endif
        foodsq2           = food2 * food2
        grazingFlux2      = (Graz_max2 * foodsq2)/(epsilon2 + foodsq2) * Zoo2N * arrFuncZoo2
@@ -1045,19 +1255,103 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
        grazingFlux_Dia2  = grazingFlux2 * fDiaN2 / food2
        grazingFlux_Cocco2 = grazingFlux2 * fCoccoN2 / food2                          ! NEW
        grazingFlux_het2  = grazingFlux2 * fHetN / food2
+       if (REcoM_Third_Zoo) then
+          grazingFlux_miczoo2 = grazingFlux2 * fMicZooN2 / food2                     ! NEW 3Zoo
+       else
+          grazingFlux_miczoo2 = 0.d0
+       endif
 
        if (use_coccos) then   ! NEW switch
-          grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
-               + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2) &
-               + (grazingFlux_Cocco2 * recipQuota_Cocco * grazEff2) &      ! NEW
-               + (grazingFlux_het2 * recipQZoo * grazEff2)
+          if (REcoM_Third_Zoo) then    ! NEW 3Zoo
+             grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
+                  + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2)              &
+                  + (grazingFlux_Cocco2 * recipQuota_Cocco * grazEff2)          &      ! NEW
+                  + (grazingFlux_het2 * recipQZoo * grazEff2)                   &
+                  + (grazingFlux_miczoo2 * recipQZoo3 * grazEff2)
+          else
+             grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
+                  + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2)              &
+                  + (grazingFlux_Cocco2 * recipQuota_Cocco * grazEff2)          &      ! NEW
+                  + (grazingFlux_het2 * recipQZoo * grazEff2)
+          endif
        else
-          grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
-               + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2) &
-               + (grazingFlux_het2 * recipQzoo * grazEff2)
+          if (REcoM_Third_Zoo) then    ! NEW 3Zoo
+             grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
+                  + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2)              &
+                  + (grazingFlux_het2 * recipQzoo * grazEff2)                   &
+                  + (grazingFlux_miczoo2 * recipQZoo3 * grazEff2)
+          else
+             grazingFluxcarbonzoo2 = (grazingFlux_phy2 * recipQuota * grazEff2) &
+                  + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2)              &
+                  + (grazingFlux_het2 * recipQzoo * grazEff2)
+          endif
        endif
     end if
     end if
+
+!-------------------------------------------------------------------------------   
+!< Third Zooplankton (Microzooplankton)    ! NEW 3Zoo (entire section)
+
+    if (REcoM_Grazing_Variable_Preference) then
+       if (Graz_pref_new) then
+          if (use_coccos) then
+             varpzPhy3      = pzPhy3 * PhyN /(pzPhy3*PhyN + pzDia3*DiaN + pzCocco3*CoccoN)
+          else
+             varpzPhy3      = pzPhy3 * PhyN /(pzPhy3*PhyN + pzDia3*DiaN)
+          endif
+       else
+          PhyNsq3        = PhyN * PhyN
+          varpzPhy3      = pzPhy3 * PhyNsq3 /(sPhyNsq3 + PhyNsq3)
+          DiaNsq3        = DiaN * DiaN
+          varpzDia3      = pzDia3 * DiaNsq3 /(sDiaNsq3 + DiaNsq3)
+          CoccoNsq3      = CoccoN * CoccoN
+          varpzCocco3    = pzCocco3 * CoccoNsq3 /(sCoccoNsq3 + CoccoNsq3)
+       endif
+       fPhyN3         = varpzPhy3   * PhyN
+       fDiaN3         = varpzDia3   * DiaN
+       fCoccoN3       = varpzCocco3 * CoccoN
+    else
+       fPhyN3         = pzPhy3   * PhyN
+       fDiaN3         = pzDia3   * DiaN
+       fCoccoN3       = pzCocco3 * CoccoN
+    endif
+    if (use_coccos) then
+       food3            = fPhyN3 + fDiaN3 + fCoccoN3
+    else
+       food3            = fPhyN3 + fDiaN3
+    endif
+    foodsq3          = food3 * food3
+    if (REcoM_Third_Zoo) then
+       grazingFlux3     = (Graz_max3 * foodsq3)/(epsilon3 + foodsq3) * MicZooN * q10_mic
+    else
+       grazingFlux3     = 0.d0
+    endif
+    if (use_coccos) then
+       if (REcoM_Third_Zoo) then
+          grazingFlux_phy3   = grazingFlux3 * fphyN3   / food3
+          grazingFlux_Dia3   = grazingFlux3 * fDiaN3   / food3
+          grazingFlux_Cocco3 = grazingFlux3 * fCoccoN3 / food3
+          grazEff3           = grazEff3
+       else
+          grazingFlux_phy3   = 0.d0
+          grazingFlux_Dia3   = 0.d0
+          grazingFlux_Cocco3 = 0.d0
+          grazEff3           = 0.d0
+       endif
+    else
+       if (REcoM_Third_Zoo) then
+          grazingFlux_phy3   = grazingFlux3 * fphyN3   / food3
+          grazingFlux_Dia3   = grazingFlux3 * fDiaN3   / food3
+          grazingFlux_Cocco3 = 0.d0
+          grazEff3           = grazEff3
+       else
+          grazingFlux_phy3   = 0.d0
+          grazingFlux_Dia3   = 0.d0
+          grazingFlux_Cocco3 = 0.d0
+          grazEff3           = 0.d0
+       endif
+    endif
+
 
 !-------------------------------------------------------------------------------
 ! Heterotrophic respiration is assumed to drive zooplankton back to Redfield C:N
@@ -1065,7 +1359,11 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 ! res_het: Timescale for zooplankton respiration [day−1 ]
 
     if (het_resp_noredfield) then
-        HetRespFlux    = res_het *  arrFunc * HetC ! tau * f_T [HetC]
+       if (REcoM_Third_Zoo) then      ! NEW 3Zoo
+          HetRespFlux    = res_het * q10_mes_res * HetC
+       else
+          HetRespFlux    = res_het *  arrFunc * HetC ! tau * f_T [HetC]
+       endif
     else
         if (HetRespFlux_plus) then
             HetRespFlux    = recip_res_het * arrFunc * (hetC    * recip_hetN_plus - redfield) * HetC
@@ -1088,7 +1386,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     end if
 
 !-------------------------------------------------------------------------------
-! Quadratic zooplanton mortality
+! Quadratic zooplankton mortality
     hetLossFlux    = loss_het * HetN * HetN
 
     if (REcoM_Second_Zoo) then
@@ -1118,6 +1416,20 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
           Zoo2fecalloss_c   = 0.0
        end if
     end if
+!------------------------------------------------------------------------------- 
+! Third zooplankton (microzooplankton) respiration ! NEW 3Zoo
+    if (REcoM_Third_Zoo) then
+       MicZooRespFlux    =  res_miczoo * q10_mic_res * MicZooC
+    else
+       MicZooRespFlux    = 0.d0
+    endif
+!-------------------------------------------------------------------------------
+! Third zooplankton (microzooplankton) mortality   ! NEW 3Zoo
+    if (REcoM_Third_Zoo) then 
+       MicZooLossFlux    = loss_miczoo * MicZooN * MicZooN
+    else
+       MicZooLossFlux    = 0.d0
+    endif
 !-------------------------------------------------------------------------------
 ! Phytoplankton and detritus aggregation
     if (diatom_mucus) then
@@ -1174,6 +1486,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 
        PICPOCCO2     = a_co2_calc * HCO3_watercolumn(k) * Cunits / (b_co2_calc + HCO3_watercolumn(k) * Cunits) - exp(-c_co2_calc * CO2_watercolumn(k) * Cunits) - d_co2_calc * 10.**(-pH_watercolumn(k))
        PICPOCCO2     = min(PICPOCCO2,3.d0)                                       ! April 2022: limitation to 3
+       PICPOCCO2     = max(0.d0,PICPOCCO2)                                       ! July 2022: limitation to zero
 
        PICPOCN     = -0.31 * (DIN/(DIN + k_din_c)) + 1.31
        PICPOCN     = max(tiny,PICPOCN)
@@ -1213,17 +1526,43 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 
     if (use_coccos) then                                                                           ! NEW switch
        if (REcoM_Second_Zoo) then
-          calc_loss_gra  = grazingFlux_Cocco * recipQuota_Cocco/(CoccoC + tiny) * PhyCalc          ! NEW changed to Coccos
-          calc_loss_gra2 = grazingFlux_Cocco2 * recipQuota_Cocco/(CoccoC + tiny) * PhyCalc         ! NEW changed to Coccos
+          if (REcoM_Third_Zoo) then                                                                ! NEW 3Zoo
+             calc_loss_gra  = grazingFlux_Cocco * recipQuota_Cocco/(CoccoC + tiny) * PhyCalc       ! NEW changed to Coccos
+             calc_loss_gra2 = grazingFlux_Cocco2 * recipQuota_Cocco/(CoccoC + tiny) * PhyCalc      ! NEW changed to Coccos
+             calc_loss_gra3 = grazingFlux_Cocco3 * recipQuota_Cocco/(CoccoC + tiny) * PhyCalc
+          else
+             calc_loss_gra  = grazingFlux_Cocco * recipQuota_Cocco/(CoccoC + tiny) * PhyCalc       ! NEW changed to Coccos
+             calc_loss_gra2 = grazingFlux_Cocco2 * recipQuota_Cocco/(CoccoC + tiny) * PhyCalc      ! NEW changed to Coccos 
+             calc_loss_gra3 = 0.d0
+          endif
        else
-          calc_loss_gra  = grazingFlux_Cocco * recipQuota_Cocco/(CoccoC + tiny)  * PhyCalc         ! NEW changed to Coccos
+          if (REcoM_Third_Zoo) then                                                                ! NEW 3Zoo
+             calc_loss_gra  = grazingFlux_Cocco * recipQuota_Cocco/(CoccoC + tiny)  * PhyCalc      ! NEW changed to Coccos 
+             calc_loss_gra3 = grazingFlux_Cocco3 * recipQuota_Cocco/(CoccoC + tiny) * PhyCalc
+          else
+             calc_loss_gra  = grazingFlux_Cocco * recipQuota_Cocco/(CoccoC + tiny)  * PhyCalc      ! NEW changed to Coccos
+             calc_loss_gra3 = 0.d0
+          endif
        endif
     else
        if (REcoM_Second_Zoo) then
-          calc_loss_gra  = grazingFlux_phy * recipQuota/(PhyC + tiny) * PhyCalc
-          calc_loss_gra2 = grazingFlux_phy2 * recipQuota/(PhyC + tiny) * PhyCalc
+          if (REcoM_Third_Zoo) then                                                                ! NEW 3Zoo
+             calc_loss_gra  = grazingFlux_phy * recipQuota/(PhyC + tiny) * PhyCalc
+             calc_loss_gra2 = grazingFlux_phy2 * recipQuota/(PhyC + tiny) * PhyCalc
+             calc_loss_gra3 = grazingFlux_phy3 * recipQuota/(PhyC + tiny)    * PhyCalc
+          else
+             calc_loss_gra  = grazingFlux_phy * recipQuota/(PhyC + tiny) * PhyCalc
+             calc_loss_gra2 = grazingFlux_phy2 * recipQuota/(PhyC + tiny) * PhyCalc
+             calc_loss_gra3 = 0.d0
+          endif
        else
-          calc_loss_gra = grazingFlux_phy * recipQuota/(PhyC + tiny) * PhyCalc
+          if (REcoM_Third_Zoo) then                                                                ! NEW 3Zoo
+             calc_loss_gra  = grazingFlux_phy * recipQuota/(PhyC + tiny) * PhyCalc
+             calc_loss_gra3 = grazingFlux_Cocco3 * recipQuota_Cocco/(CoccoC + tiny) * PhyCalc
+          else
+             calc_loss_gra  = grazingFlux_phy * recipQuota/(PhyC + tiny) * PhyCalc
+             calc_loss_gra3 = 0.d0
+          endif
        endif
     endif
           
@@ -1258,6 +1597,28 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
        grazingFlux_Cocco  = 0.d0
        grazingFlux_Cocco2 = 0.d0
        KOchl_cocco        = 0.d0
+    endif
+
+    if (REcoM_Third_Zoo) then         ! NEW 3Zoo
+       MicZooN             = MicZooN
+       MicZooC             = MicZooC
+       grazingFlux_phy3    = grazingFlux_phy3
+       grazingFlux_Dia3    = grazingFlux_Dia3
+       grazingFlux_Cocco3  = grazingFLux_Cocco3
+       grazingFlux_miczoo  = grazingFlux_miczoo
+       grazingFlux_miczoo2 = grazingFlux_miczoo2
+       grazingFlux3        = grazingFlux3
+       calc_loss_gra3      = calc_loss_gra3
+    else
+       MicZooN             = 0.d0
+       MicZooC             = 0.d0
+       grazingFlux_phy3    = 0.d0
+       grazingFlux_Dia3    = 0.d0
+       grazingFlux_Cocco3  = 0.d0
+       grazingFlux_miczoo  = 0.d0
+       grazingFlux_miczoo2 = 0.d0
+       grazingFlux3        = 0.d0
+       calc_loss_gra3      = 0.d0
     endif
 
 !____________________________________________________________
@@ -1297,9 +1658,11 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             + rho_C1 * arrFunc              * EOC        & ! --> Remineralization of DOC
             + HetRespFlux                                & ! --> Zooplankton respiration                     
             + Zoo2RespFlux                               &                    
+            + MicZooRespFlux                             & ! NEW 3Zoo
             + calc_diss                     * DetCalc    & ! --> Calcite dissolution from detritus 
             + calc_loss_gra  * calc_diss_guts            &
             + calc_loss_gra2 * calc_diss_guts            &
+            + calc_loss_gra3 * calc_diss_guts            & ! NEW 3Zoo
             + calc_diss2                     * DetZ2Calc & 
             - calcification                              & ! --> Calcification
                                                         ) * dt_b + sms(k,idic)
@@ -1313,9 +1676,10 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             + phyRespRate_Cocco             * CoccoC  &          ! NEW
             + rho_C1 * arrFunc              * EOC     &
             + HetRespFlux                             & 
-                    
+            + MicZooRespFlux                          &          ! NEW 3Zoo
             + calc_diss                     * DetCalc &
             + calc_loss_gra * calc_diss_guts          &
+            + calc_loss_gra3* calc_diss_guts          &          ! NEW 3Zoo
             - calcification                           &
                                                       ) * dt_b + sms(k,idic)
     endif
@@ -1354,6 +1718,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             + 2.d0 * calc_diss             * DetCalc &
             + 2.d0 * calc_loss_gra * calc_diss_guts  &
             + 2.d0 * calc_loss_gra2 * calc_diss_guts &
+            + 2.d0 * calc_loss_gra3 * calc_diss_guts &           ! NEW 3Zoo
             + 2.d0 * calc_diss2            * DetZ2Calc &
             - 2.d0 * calcification                   &                      
                                              ) * dt_b + sms(k,ialk)
@@ -1365,6 +1730,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - 1.0625 * rho_N * arrFunc     * DON     &
             + 2.d0 * calc_diss             * DetCalc &
             + 2.d0 * calc_loss_gra * calc_diss_guts  &
+            + 2.d0 * calc_loss_gra3 * calc_diss_guts &           ! NEW 3Zoo
             - 2.d0 * calcification                   &
                                              ) * dt_b + sms(k,ialk) 
     endif
@@ -1379,6 +1745,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - aggregationRate              * phyN    & ! -- Aggregation loss
             - grazingFlux_phy                        & ! -- Grazing loss
             - grazingFlux_phy2                       &     
+            - grazingFlux_phy3                       & ! NEW 3Zoo
                                                    ) * dt_b + sms(k,iphyn)
     else
         sms(k,iphyn)      = (                        &
@@ -1386,6 +1753,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - lossN * limitFacN            * PhyN    &
             - aggregationRate              * phyN    &
             - grazingFlux_phy                        &
+            - grazingFlux_phy3                       & ! NEW 3Zoo
                                                    ) * dt_b + sms(k,iphyn)
    endif
 !____________________________________________________________
@@ -1404,6 +1772,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - aggregationRate              * PhyC    & ! -- Aggregation loss
             - grazingFlux_phy * recipQuota           & ! -- Grazing loss
             - grazingFlux_phy2 * recipQuota          &
+            - grazingFlux_phy3 * recipQuota          & ! NEW 3Zoo
                                                    ) * dt_b + sms(k,iphyc)
     else
         sms(k,iphyc)      = (                        &
@@ -1412,6 +1781,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - phyRespRate                  * PhyC    &
             - aggregationRate              * PhyC    &
             - grazingFlux_phy * recipQuota           &
+            - grazingFlux_phy3 * recipQuota          & ! NEW 3Zoo
                                                    ) * dt_b + sms(k,iphyc)
    endif
 !____________________________________________________________
@@ -1427,6 +1797,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - aggregationRate              * PhyChl  & ! -- Aggregation loss
      	    - grazingFlux_phy * Chl2N                & ! -- Grazing loss
             - grazingFlux_phy2 * Chl2N               & 
+            - grazingFlux_phy3 * Chl2N               & ! NEW 3Zoo
                                                    ) * dt_b + sms(k,ipchl)
     else
         sms(k,ipchl)       = (                       &
@@ -1434,6 +1805,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
      	    - KOchl                        * PhyChl  &
      	    - aggregationRate              * PhyChl  &
      	    - grazingFlux_phy * Chl2N                &
+            - grazingFlux_phy3 * Chl2N               &
                                                    ) * dt_b + sms(k,ipchl)
     endif
 !-------------------------------------------------------------------------------
@@ -1502,66 +1874,133 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !-------------------------------------------------------------------------------
 ! Detritus N
    if (Grazing_detritus) then
-    sms(k,idetn)       = (                       &
-	+ grazingFlux_phy                        &
-        - grazingFlux_phy * grazEff              &
-        + grazingFlux_dia                        &
-        - grazingFlux_dia * grazEff              &
-        + grazingFlux_Cocco                      &              ! NEW
-        - grazingFlux_Cocco * grazEff            &              ! NEW
-        - grazingFlux_Det * grazEff              & !!!Sloppy feeding is  thought because of grazing flux multiplied with grazeff 
-        - grazingFlux_Det2 * grazEff             &
-        + aggregationRate              * PhyN    &
-        + aggregationRate              * DiaN    &
-        + aggregationRate              * CoccoN  &              ! NEW
-        + hetLossFlux                            &
-        - reminN * arrFunc             * DetN    &
+      if (REcoM_Third_Zoo) then                                 ! NEW 3Zoo
+         sms(k,idetn)       = (                        &
+              + grazingFlux_phy3                       &
+              - grazingFlux_phy3 * grazEff3            &
+              + grazingFlux_dia3                       &
+              - grazingFlux_dia3 * grazEff3            &
+              + grazingFlux_Cocco3                     &
+              - grazingFlux_Cocco3 * grazEff3          &
+              - grazingFlux_Det * grazEff              &
+              - grazingFlux_Det2 * grazEff2            &
+              + aggregationRate              * PhyN    &
+              + aggregationRate              * DiaN    &
+              + aggregationRate              * CoccoN  & 
+              + miczooLossFlux                         &
+              - reminN * arrFunc             * DetN    &
                                                ) * dt_b + sms(k,idetn)
+      else
+         sms(k,idetn)       = (                        &
+              + grazingFlux_phy                        &
+              - grazingFlux_phy * grazEff              &
+              + grazingFlux_dia                        &
+              - grazingFlux_dia * grazEff              &
+              + grazingFlux_Cocco                      &              ! NEW
+              - grazingFlux_Cocco * grazEff            &              ! NEW
+              - grazingFlux_Det * grazEff              & !!!Sloppy feeding is  thought because of grazing flux multiplied with grazeff 
+              - grazingFlux_Det2 * grazEff2            &
+              + aggregationRate              * PhyN    &
+              + aggregationRate              * DiaN    &
+              + aggregationRate              * CoccoN  &              ! NEW
+              + hetLossFlux                            &
+              - reminN * arrFunc             * DetN    &
+                                               ) * dt_b + sms(k,idetn)
+      endif
    else
-    sms(k,idetn)       = (                       &
-        + grazingFlux_phy                        &
-        + grazingFlux_dia                        &
-        + grazingFlux_Cocco                      &              ! NEW
-        - grazingFlux * grazEff                  &
-        + aggregationRate              * PhyN    &
-        + aggregationRate              * DiaN    &
-        + aggregationRate              * CoccoN  &              ! NEW
-        + hetLossFlux                            &
-        - reminN * arrFunc             * DetN    &
+      if (REcoM_Third_Zoo) then                                       ! NEW 3Zoo
+         sms(k,idetn)       = (                        &
+              + grazingFlux_phy3                       &
+              + grazingFlux_dia3                       &
+              + grazingFlux_Cocco3                     &
+              - grazingFlux * grazEff3                 &
+              + aggregationRate              * PhyN    &
+              + aggregationRate              * DiaN    &
+              + aggregationRate              * CoccoN  &
+              + miczooLossFlux                         &
+              - reminN * arrFunc             * DetN    &
                                                ) * dt_b + sms(k,idetn)
+       else
+          sms(k,idetn)       = (                       &
+               + grazingFlux_phy                        &
+               + grazingFlux_dia                        &
+               + grazingFlux_Cocco                      &              ! NEW
+               - grazingFlux * grazEff                  &
+               + aggregationRate              * PhyN    &
+               + aggregationRate              * DiaN    &
+               + aggregationRate              * CoccoN  &              ! NEW
+               + hetLossFlux                            &
+               - reminN * arrFunc             * DetN    &
+                                               ) * dt_b + sms(k,idetn)
+       endif
    end if   
 !-------------------------------------------------------------------------------
 ! Detritus C
    if (Grazing_detritus) then
-    sms(k,idetc)       = (                            &
-        + grazingFlux_phy * recipQuota                 &
-        - grazingFlux_phy * recipQuota * grazEff       &
-        + grazingFlux_Dia * recipQuota_Dia             &
-        - grazingFlux_Dia * recipQuota_Dia * grazEff   &
-        + grazingFlux_Cocco * recipQuota_Cocco         &         ! NEW
-        - grazingFlux_Cocco * recipQuota_Cocco * grazEff &       ! NEW
-        - grazingFlux_Det * recipDet * grazEff         &
-        - grazingFlux_Det2 * recipDet2 * grazEff       &     
-        + aggregationRate              * phyC          &
-        + aggregationRate              * DiaC          &
-        + aggregationRate              * CoccoC        &         ! NEW
-        + hetLossFlux * recipQZoo                      &
-        - reminC * arrFunc             * DetC          &
-                                             )   * dt_b + sms(k,idetc)
+      if (REcoM_Third_Zoo) then                                        !  NEW 3Zoo
+         sms(k,idetc)       = (                                   &
+               + grazingFlux_phy3 * recipQuota                    &
+               - grazingFlux_phy3 * recipQuota * grazEff3         &
+               + grazingFlux_Dia3 * recipQuota_Dia                & 
+               - grazingFlux_Dia3 * recipQuota_Dia * grazEff3     &
+               + grazingFlux_Cocco3 * recipQuota_Cocco            &
+               - grazingFlux_Cocco3 * recipQuota_Cocco * grazEff3 &
+               - grazingFlux_Det * recipDet * grazEff             &
+               - grazingFlux_Det2 * recipDet2 * grazEff2          &
+               + aggregationRate              * phyC              &
+               + aggregationRate              * DiaC              &
+               + aggregationRate              * CoccoC            &
+               + miczooLossFlux * recipQZoo3                      &
+                - reminC * arrFunc             * DetC             &
+                                               )   * dt_b + sms(k,idetc)
+       else
+          sms(k,idetc)       = (                                &
+               + grazingFlux_phy * recipQuota                   &
+               - grazingFlux_phy * recipQuota * grazEff         &
+               + grazingFlux_Dia * recipQuota_Dia               &
+               - grazingFlux_Dia * recipQuota_Dia * grazEff     &
+               + grazingFlux_Cocco * recipQuota_Cocco           &       ! NEW
+               - grazingFlux_Cocco * recipQuota_Cocco * grazEff &       ! NEW
+               - grazingFlux_Det * recipDet * grazEff           &
+               - grazingFlux_Det2 * recipDet2 * grazEff         &     
+               + aggregationRate              * phyC            &
+               + aggregationRate              * DiaC            &
+               + aggregationRate              * CoccoC          &       ! NEW
+               + hetLossFlux * recipQZoo                        &
+               - reminC * arrFunc             * DetC            &
+                                              )   * dt_b + sms(k,idetc)
+       endif
    else
-    sms(k,idetc)       = (                             &
-        + grazingFlux_phy * recipQuota                 &
-        - grazingFlux_phy * recipQuota * grazEff       &
-        + grazingFlux_Dia * recipQuota_Dia             &
-        - grazingFlux_Dia * recipQuota_Dia * grazEff   &
-        + grazingFlux_Cocco * recipQuota_Cocco         &         ! NEW
-        - grazingFlux_Cocco * recipQuota_Cocco * grazEff &       ! NEW
-        + aggregationRate              * phyC          &
-        + aggregationRate              * DiaC          &
-        + aggregationRate              * CoccoC        &         ! NEW
-        + hetLossFlux * recipQZoo                      &
-        - reminC * arrFunc             * DetC          &
-                                             )   * dt_b + sms(k,idetc)
+      if (REcoM_Third_Zoo) then                                         ! NEW 3Zoo
+         sms(k,idetc)       = (                                   &
+               + grazingFlux_phy3 * recipQuota                    &
+               - grazingFlux_phy3 * recipQuota * grazEff3         &
+               + grazingFlux_Dia3 * recipQuota_Dia                &
+               - grazingFlux_Dia3 * recipQuota_Dia * grazEff3     &
+               + grazingFlux_Cocco3 * recipQuota_Cocco            &
+               - grazingFlux_Cocco3 * recipQuota_Cocco * grazEff3 &
+               + aggregationRate              * phyC              &
+               + aggregationRate              * DiaC              &
+               + aggregationRate              * CoccoC            &
+               + miczooLossFlux * recipQZoo3                      &
+               - reminC * arrFunc             * DetC              &
+                                              )   * dt_b + sms(k,idetc)
+      else
+         
+         sms(k,idetc)       = (                                &
+              + grazingFlux_phy * recipQuota                   &
+              - grazingFlux_phy * recipQuota * grazEff         &
+              + grazingFlux_Dia * recipQuota_Dia               &
+              - grazingFlux_Dia * recipQuota_Dia * grazEff     &
+              + grazingFlux_Cocco * recipQuota_Cocco           &       ! NEW
+              - grazingFlux_Cocco * recipQuota_Cocco * grazEff &       ! NEW
+              + aggregationRate              * phyC            &
+              + aggregationRate              * DiaC            &
+              + aggregationRate              * CoccoC          &       ! NEW
+              + hetLossFlux * recipQZoo                        &
+              - reminC * arrFunc             * DetC            &
+                                              )   * dt_b + sms(k,idetc)
+      endif
    end if
 !____________________________________________________________
 !< Heterotrophic N
@@ -1571,12 +2010,14 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - grazingFlux_het2                       &
      	    - hetLossFlux                            & ! -- Mortality
      	    - lossN_z                      * HetN    & ! -- Excretion of DON
+            - Mesfecalloss_n                         & ! NEW 3Zoo
                                                    ) * dt_b + sms(k,ihetn)
     else
         sms(k,ihetn)       = (                       &
      	    + grazingFlux * grazEff                  &
      	    - hetLossFlux                            &
      	    - lossN_z                      * HetN    &
+            - Mesfecalloss_n                         & ! NEW 3Zoo
                                                    ) * dt_b + sms(k,ihetn)
     endif   
 !____________________________________________________________
@@ -1588,22 +2029,26 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
      	        + grazingFlux_phy * recipQuota * grazEff     & ! -- Grazing on small phytoplankton
      	        + grazingFlux_Dia * recipQuota_Dia * grazEff & ! -- Grazing on diatom
                 + grazingFlux_Cocco*recipQuota_Cocco*grazEff &            ! NEW
+                + grazingFlux_miczoo * recipQZoo3 * grazEff  &            ! NEW 3Zoo
                 + grazingFlux_Det * recipDet * grazEff       & ! -- Grazing on detritus
                 + grazingFlux_DetZ2 * recipDet2 * grazEff    &
      	        - hetLossFlux * recipQZoo                    & ! -- Mortality loss
                 - grazingFlux_het2 * recipQZoo               &
      	        - lossC_z                      * HetC        & ! -- Excretion loss
       	        - hetRespFlux                                & ! -- REspiration loss
+                - Mesfecalloss_c                             &            ! NEW 3Zoo
                                                         ) * dt_b + sms(k,ihetc)
         else
             sms(k,ihetc)      = (                            &
      	        + grazingFlux_phy * recipQuota * grazEff     &
      	        + grazingFlux_Dia * recipQuota_Dia * grazEff &
                 + grazingFlux_Cocco*recipQuota_Cocco*grazEff &             ! NEW
+                + grazingFlux_miczoo * recipQZoo3 * grazEff  &             ! NEW 3Zoo
      	        - hetLossFlux * recipQZoo                    &
                 - grazingFlux_het2 * recipQZoo               &
      	        - lossC_z                      * HetC        &
      	        - hetRespFlux                                & 
+                - Mesfecalloss_c                             &             ! NEW 3Zoo
                                                         ) * dt_b + sms(k,ihetc)
         endif
     else
@@ -1611,9 +2056,11 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             + grazingFlux_phy * recipQuota * grazEff     &
             + grazingFlux_Dia * recipQuota_Dia * grazEff &
             + grazingFlux_Cocco*recipQuota_Cocco*grazEff &             ! NEW
+            + grazingFlux_miczoo * recipQZoo3 * grazEff  &             ! NEW 3Zoo
             - hetLossFlux * recipQZoo                    &
             - lossC_z                      * HetC        &
             - hetRespFlux                                &
+            - Mesfecalloss_c                             &             ! NEW 3Zoo
                                                         ) * dt_b + sms(k,ihetc)
     endif
 !____________________________________________________________
@@ -1654,84 +2101,256 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
          - Zoo2fecalloss_c                              &
                                                 ) * dt_b + sms(k,izoo2c)
      end if   
+
+!-------------------------------------------------------------------------------
+  ! Third Zooplankton (Microzooplankton) N             ! NEW 3Zoo
+     if (REcoM_Second_Zoo) then
+        sms(k,imiczoon)       = (                      &
+             + grazingFlux3 * grazEff3                 &
+             - grazingFlux_miczoo                      &
+             - grazingFlux_miczoo2                     &
+             - MicZooLossFlux                          &
+             - lossN_z3                      * MicZooN &
+                                                ) * dt_b + sms(k,imiczoon)
+     else
+        sms(k,imiczoon)       = (                      &
+             + grazingFlux3 * grazEff3                 &
+             - grazingFlux_miczoo                      &
+             - MicZooLossFlux                          &
+             - lossN_z3                      * MicZooN &
+                                                ) * dt_b + sms(k,imiczoon)
+     endif
+
+!------------------------------------------------------------------------------- 
+  ! Third Zooplankton (Microzooplankton) C             ! NEW 3Zoo
+     if (REcoM_Second_Zoo) then
+        sms(k,imiczooc)      = (                                &
+             + grazingFlux_phy3 * recipQuota * grazEff3         &
+             + grazingFlux_Dia3 * recipQuota_Dia * grazEff3     &
+             + grazingFlux_Cocco3 * recipQuota_Cocco * grazEff3 & 
+             - MicZooLossFlux * recipQZoo3                      &
+             - grazingFlux_miczoo * recipQZoo3                  & 
+             - grazingFlux_miczoo2 * recipQZoo3                 &
+             - lossC_z3                      * MicZooC          &
+             - MicZooRespFlux                                   &
+                                              ) * dt_b + sms(k,imiczooc)
+     else
+        sms(k,imiczooc)      = (                                &
+             + grazingFlux_phy3 * recipQuota * grazEff3         &
+             + grazingFlux_Dia3 * recipQuota_Dia * grazEff3     &
+             + grazingFlux_Cocco3 * recipQuota_Cocco * grazEff3 &
+             - grazingFlux_miczoo * recipQZoo3                  &
+             - MicZooLossFlux * recipQZoo3                      &
+             - lossC_z3                      * MicZooC          &
+             - MicZooRespFlux                                   &
+                                              ) * dt_b + sms(k,imiczooc)
+     endif
+
 !---------------------------------------------------------------------------------
   ! Second Zooplankton Detritus N
      if (Grazing_detritus) then
-      sms(k,idetz2n)       = (                       &
-         + grazingFlux_phy2                       &
-         - grazingFlux_phy2 * grazEff2            &         
-         + grazingFlux_dia2                       &
-         - grazingFlux_dia2 * grazEff2            &
-         + grazingFlux_Cocco2                     &                ! NEW
-         - grazingFlux_Cocco2 * grazEff2          &                ! NEW 
-         + grazingFlux_het2                       &
-         - grazingFlux_het2 * grazEff2            &
-         - grazingFlux_DetZ2 * grazEff2           &
-         - grazingFlux_DetZ22 * grazEff2          &   
-         + Zoo2LossFlux                           &
-         + Zoo2fecalloss_n                          &
-         - reminN * arrFunc             * DetZ2N  &
+        if (REcoM_Third_Zoo) then    ! NEW 3Zoo
+           sms(k,idetz2n)       = (                      &
+                + grazingFlux_phy2                       &
+                - grazingFlux_phy2 * grazEff2            &
+                + grazingFlux_dia2                       &
+                - grazingFlux_dia2 * grazEff2            &
+                + grazingFlux_Cocco2                     &
+                - grazingFlux_Cocco2 * grazEff2          &
+                + grazingFlux_het2                       &
+                - grazingFlux_het2 * grazEff2            &
+                + grazingFlux_miczoo2                    &
+                - grazingFlux_miczoo2 * grazEff2         &
+                + grazingFlux_phy                        &
+                - grazingFlux_phy * grazEff              &
+                + grazingFlux_dia                        &
+                - grazingFlux_dia * grazEff              &
+                + grazingFlux_Cocco                      &
+                - grazingFlux_Cocco * grazEff            &
+                + grazingFlux_miczoo                     &
+                - grazingFlux_miczoo * grazEff           &
+                - grazingFlux_DetZ2 * grazEff            &
+                - grazingFlux_DetZ22 * grazEff2          &
+                + Zoo2LossFlux                           &
+                + hetLossFlux                            &
+                + Zoo2fecalloss_n                        &
+                + Mesfecalloss_n                         &
+                - reminN * arrFunc            * DetZ2N   &
+                                              ) * dt_b + sms(k,idetz2n)
+        else
+           sms(k,idetz2n)       = (                      &
+                + grazingFlux_phy2                       &
+                - grazingFlux_phy2 * grazEff2            &         
+                + grazingFlux_dia2                       &
+                - grazingFlux_dia2 * grazEff2            &
+                + grazingFlux_Cocco2                     &                ! NEW
+                - grazingFlux_Cocco2 * grazEff2          &                ! NEW 
+                + grazingFlux_het2                       &
+                - grazingFlux_het2 * grazEff2            &
+                - grazingFlux_DetZ2 * grazEff2           &
+                - grazingFlux_DetZ22 * grazEff2          &   
+                + Zoo2LossFlux                           &
+                + Zoo2fecalloss_n                        &
+                - reminN * arrFunc             * DetZ2N  &
                                                ) * dt_b + sms(k,idetz2n)
+        endif
      else
-      sms(k,idetz2n)       = (                       &
-         + grazingFlux_phy2                       &
-         + grazingFlux_dia2                       &
-         + grazingFlux_Cocco2                     &                ! NEW
-         + grazingFlux_het2                       &
-         - grazingFlux2 * grazEff2                &
-         + Zoo2LossFlux                           &
-         + Zoo2fecalloss_n                          &
-         - reminN * arrFunc             * DetZ2N  &
+        if (REcoM_Third_Zoo) then     ! NEW 3Zoo
+           sms(k,idetz2n)       = (                      &
+                + grazingFlux_phy2                       &
+                + grazingFlux_dia2                       &
+                + grazingFlux_Cocco2                     &
+                + grazingFlux_het2                       &
+                + grazingFlux_miczoo2                    &
+                - grazingFlux2 * grazEff2                &
+                + grazingFlux_phy                        &
+                + grazingFlux_dia                        &
+                + grazingFlux_Cocco                      &
+                + grazingFlux_miczoo                     &
+                - grazingFlux * grazEff                  &
+                + Zoo2LossFlux                           &
+                + hetLossFlux                            &
+                + Zoo2fecalloss_n                        &
+                + Mesfecalloss_n                         &
+                - reminN * arrFunc            * DetZ2N   &
+                                              ) * dt_b + sms(k,idetz2n)
+        else
+           sms(k,idetz2n)       = (                      &
+                + grazingFlux_phy2                       &
+                + grazingFlux_dia2                       &
+                + grazingFlux_Cocco2                     &                ! NEW
+                + grazingFlux_het2                       &
+                - grazingFlux2 * grazEff2                &
+                + Zoo2LossFlux                           &
+                + Zoo2fecalloss_n                        &
+                - reminN * arrFunc             * DetZ2N  &
                                                ) * dt_b + sms(k,idetz2n)
+        endif
      end if
  !---------------------------------------------------------------------------------                                                                                            
                                                            
   ! Second Zooplankton Detritus C
      if (Grazing_detritus) then
-      sms(k,idetz2c)       = (                             &
-        + grazingFlux_phy2 * recipQuota                &
-        - grazingFlux_phy2 * recipQuota * grazEff2     &
-        + grazingFlux_Dia2 * recipQuota_Dia            &
-        - grazingFlux_Dia2 * recipQuota_Dia * grazEff2 &
-        + grazingFlux_Cocco2 * recipQuota_Cocco        &           ! NEW
-        - grazingFlux_Cocco2*recipQuota_Cocco*grazEff2 &           ! NEW
-        + grazingFlux_het2 * recipQZoo                 &
-        - grazingFlux_het2 * recipQZoo * grazEff2      &
-        - grazingFlux_DetZ2 * recipDet * grazEff2      &
-        - grazingFlux_DetZ22 * recipDet2 * grazEff2    &
-        + Zoo2LossFlux * recipQZoo2                    &
-        + Zoo2fecalloss_c                   & 
-        - reminC * arrFunc             * DetZ2C          &
-                                             )   * dt_b + sms(k,idetz2c)
+        if (REcoM_Third_Zoo) then    ! NEW 3Zoo
+           sms(k,idetz2c)       = (                                &
+                + grazingFlux_phy2 * recipQuota                    &
+                - grazingFlux_phy2 * recipQuota * grazEff2         &
+                + grazingFlux_Dia2 * recipQuota_Dia                &
+                - grazingFlux_Dia2 * recipQuota_Dia * grazEff2     &
+                + grazingFlux_Cocco2 * recipQuota_Cocco            & 
+                - grazingFlux_Cocco2 * recipQuota_Cocco * grazEff2 & 
+                + grazingFlux_het2 * recipQZoo                     &
+                - grazingFlux_het2 * recipQZoo * grazEff2          &
+                + grazingFlux_miczoo2 * recipQZoo3                 &
+                - grazingFlux_miczoo2 * recipQZoo3 * grazEff2      &
+                + grazingFlux_phy * recipQuota                     &
+                - grazingFlux_phy * recipQuota * grazEff           &
+                + grazingFlux_Dia * recipQuota_Dia                 &
+                - grazingFlux_Dia * recipQuota_Dia * grazEff       &
+                + grazingFlux_Cocco * recipQuota_Cocco             &
+                - grazingFlux_Cocco * recipQuota_Cocco * grazEff   &
+                + grazingFlux_miczoo * recipQZoo3                  &
+                - grazingFlux_miczoo * recipQZoo3 * grazEff        &
+                - grazingFlux_DetZ2 * recipDet2 * grazEff          &
+                - grazingFlux_DetZ22 * recipDet2 * grazEff2        &
+                + Zoo2LossFlux * recipQZoo2                        &
+                + hetLossFlux * recipQZoo                          &
+                + Zoo2fecalloss_c                                  &
+                + Mesfecalloss_c                                   &
+                - reminC * arrFunc            * DetZ2C             &
+                                                     )   * dt_b + sms(k,idetz2c)
+        else
+           sms(k,idetz2c)       = (                            &
+                + grazingFlux_phy2 * recipQuota                &
+                - grazingFlux_phy2 * recipQuota * grazEff2     &
+                + grazingFlux_Dia2 * recipQuota_Dia            &
+                - grazingFlux_Dia2 * recipQuota_Dia * grazEff2 &
+                + grazingFlux_Cocco2 * recipQuota_Cocco        &           ! NEW
+                - grazingFlux_Cocco2*recipQuota_Cocco*grazEff2 &           ! NEW
+                + grazingFlux_het2 * recipQZoo                 &
+                - grazingFlux_het2 * recipQZoo * grazEff2      &
+                - grazingFlux_DetZ2 * recipDet * grazEff2      &
+                - grazingFlux_DetZ22 * recipDet2 * grazEff2    &
+                + Zoo2LossFlux * recipQZoo2                    &
+                + Zoo2fecalloss_c                              & 
+                - reminC * arrFunc             * DetZ2C        &
+                                                     )   * dt_b + sms(k,idetz2c)
+        endif
      else
-      sms(k,idetz2c)       = (                             &
-        + grazingFlux_phy2 * recipQuota                &
-        - grazingFlux_phy2 * recipQuota * grazEff2     &
-        + grazingFlux_Dia2 * recipQuota_Dia            &
-        - grazingFlux_Dia2 * recipQuota_Dia * grazEff2 &
-        + grazingFlux_Cocco2 * recipQuota_Cocco        &           ! NEW
-        - grazingFlux_Cocco2*recipQuota_Cocco*grazEff2 &           ! NEW
-        + grazingFlux_het2 * recipQZoo                 &
-        - grazingFlux_het2 * recipQZoo * grazEff2      &
-        + Zoo2LossFlux * recipQZoo2                    &
-        + Zoo2fecalloss_c                    &
-        - reminC * arrFunc             * DetZ2C          &
-                                             )   * dt_b + sms(k,idetz2c)
+        if (REcoM_Third_Zoo) then     ! NEW Zoo
+           sms(k,idetz2c)       = (                              &
+                + grazingFlux_phy2 * recipQuota                  &
+                - grazingFlux_phy2 * recipQuota * grazEff2       &
+                + grazingFlux_Dia2 * recipQuota_Dia              &
+                - grazingFlux_Dia2 * recipQuota_Dia * grazEff2   &
+                + grazingFlux_Cocco2 * recipQuota_Cocco          & 
+                - grazingFlux_Cocco2*recipQuota_Cocco*grazEff2   &   
+                + grazingFlux_het2 * recipQZoo                   &
+                - grazingFlux_het2 * recipQZoo * grazEff2        &
+                + grazingFlux_miczoo2 * recipQZoo3               &
+                - grazingFlux_miczoo2 * recipQZoo3 * grazEff2    &
+                + grazingFlux_phy * recipQuota                   &
+                - grazingFlux_phy * recipQuota * grazEff         &
+                + grazingFlux_Dia * recipQuota_Dia               &
+                - grazingFlux_Dia * recipQuota_Dia * grazEff     &
+                + grazingFlux_Cocco * recipQuota_Cocco           &
+                - grazingFlux_Cocco * recipQuota_Cocco * grazEff &
+                + grazingFlux_miczoo * recipQZoo3                &
+                - grazingFlux_miczoo * recipQZoo3 * grazEff      &
+                + Zoo2LossFlux * recipQZoo2                      &
+                + hetLossFlux * recipQZoo                        &
+                + Zoo2fecalloss_c                                &
+                + Mesfecalloss_c                                 &
+                - reminC * arrFunc             * DetZ2C          &
+                                                     )   * dt_b + sms(k,idetz2c)
+         else
+            sms(k,idetz2c)       = (                            &
+                 + grazingFlux_phy2 * recipQuota                &
+                 - grazingFlux_phy2 * recipQuota * grazEff2     &
+                 + grazingFlux_Dia2 * recipQuota_Dia            &
+                 - grazingFlux_Dia2 * recipQuota_Dia * grazEff2 &
+                 + grazingFlux_Cocco2 * recipQuota_Cocco        &           ! NEW
+                 - grazingFlux_Cocco2*recipQuota_Cocco*grazEff2 &           ! NEW
+                 + grazingFlux_het2 * recipQZoo                 &
+                 - grazingFlux_het2 * recipQZoo * grazEff2      &
+                 + Zoo2LossFlux * recipQZoo2                    &
+                 + Zoo2fecalloss_c                              &
+                 - reminC * arrFunc             * DetZ2C        &
+                                                     )   * dt_b + sms(k,idetz2c)
+         endif
      end if
 
  !-------------------------------------------------------------------------------------
-  !Second Zooplankton  Detritus Si                                                                                                                                                                                                      
-     sms(k,idetz2si)     = (                          &
-         + grazingFlux_dia2 * qSiN                    &  ! --> qSin convert N to Si
-         - reminSiT                        * DetZ2Si  &
+  !Second Zooplankton  Detritus Si                              
+       if (REcoM_Third_Zoo) then    ! NEW 3Zoo
+          sms(k,idetz2si)     = (                         &
+             + grazingFlux_dia2 * qSiN                    &
+             + grazingFlux_dia  * qSiN                    &
+             - reminSiT                        * DetZ2Si  &
                                              ) * dt_b + sms(k,idetz2si)
+       else
+          sms(k,idetz2si)     = (                         &
+             + grazingFlux_dia2 * qSiN                    &  ! --> qSin convert N to Si
+             - reminSiT                        * DetZ2Si  &
+                                             ) * dt_b + sms(k,idetz2si)
+       endif
  !-------------------------------------------------------------------------------                                                                                              
  ! Detritus calcite   
-     sms(k,idetz2calc)   = (               &
-       + calc_loss_gra2                  &
-       - calc_loss_gra2 * calc_diss_guts &
-       - calc_diss2     * DetZ2Calc       &
+       if (REcoM_Third_Zoo) then    ! NEW 3Zoo
+          sms(k,idetz2calc)   = (                &
+               + calc_loss_gra2                  &
+               - calc_loss_gra2 * calc_diss_guts &
+               + calc_loss_gra                   &
+               - calc_loss_gra *  calc_diss_guts &
+               - calc_diss2     * DetZ2Calc      &
                                            ) * dt_b + sms(k,idetz2calc)
+       else
+          sms(k,idetz2calc)   = (                &
+               + calc_loss_gra2                  &
+               - calc_loss_gra2 * calc_diss_guts &
+               - calc_diss2     * DetZ2Calc      &
+                                           ) * dt_b + sms(k,idetz2calc)
+       endif
    endif                                                                               
 !-------------------------------------------------------------------------------
 ! DON (Extracellular organic N)
@@ -1744,6 +2363,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       + reminN * arrFunc               * DetZ2N &
       + lossN_z                        * HetN   &
       + lossN_z2                       * Zoo2N  &
+      + lossN_z3                       * MicZooN&                  ! NEW 3Zoo 
       - rho_N * arrFunc                * DON    &
 !      + LocRiverDON                             &
                                              ) * dt_b + sms(k,idon)
@@ -1755,6 +2375,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       + lossN_c * limitFacN_Cocco      * CoccoN &                  ! NEW
       + reminN * arrFunc               * DetN   &
       + lossN_z                        * HetN   &
+      + lossN_z3                       * MicZooN&                  ! NEW 3Zoo
       - rho_N * arrFunc                * DON    &
 !      + LocRiverDON                             &
                                               ) * dt_b + sms(k,idon)
@@ -1770,6 +2391,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       + reminC * arrFunc               * DetZ2C &
       + lossC_z                        * HetC   &
       + lossC_z2                       * Zoo2C  &
+      + lossC_z3                       * MicZooC&                  ! NEW 3Zoo
       - rho_c1 * arrFunc               * EOC    &
 !      + LocRiverDOC                             &
                                               ) * dt_b + sms(k,idoc)	
@@ -1780,6 +2402,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       + lossC_c * limitFacN_cocco      * CoccoC &                  ! NEW
       + reminC * arrFunc               * DetC   &
       + lossC_z                        * HetC   &
+      + lossC_z3                       * MicZooC&                  ! NEW 3Zoo
       - rho_c1 * arrFunc               * EOC    &
 !      + LocRiverDOC                             &
                                               ) * dt_b + sms(k,idoc)
@@ -1798,6 +2421,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - aggregationRate                * DiaN  & ! -- Aggregation loss
             - grazingFlux_Dia                        & ! -- Grazing loss
             - grazingFlux_Dia2                       &
+            - grazingFlux_Dia3                       & ! NEW 3Zoo
                                                  ) * dt_b + sms(k,idian)
     else
         sms(k,idian)      = (                      &
@@ -1805,6 +2429,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - lossN_d * limitFacN_dia        * DiaN  &
             - aggregationRate                * DiaN  &
             - grazingFlux_Dia                        &
+            - grazingFlux_Dia3                       & ! NEW 3Zoo
                                                  ) * dt_b + sms(k,idian)
     endif 		
 !____________________________________________________________
@@ -1822,6 +2447,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - aggregationRate                * DiaC  &
             - grazingFlux_dia * recipQuota_dia       &
             - grazingFlux_dia2 * recipQuota_dia      &
+            - grazingFlux_dia3 * recipQuota_dia      & ! NEW 3Zoo
      	                                           ) * dt_b + sms(k,idiac)
     else
         sms(k,idiac)      = (                      &
@@ -1830,6 +2456,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - phyRespRate_dia                * DiaC  &
             - aggregationRate                * DiaC  &
             - grazingFlux_dia * recipQuota_dia       &
+            - grazingFlux_dia3 * recipQuota_dia      & ! NEW 3Zoo
      	                                           ) * dt_b + sms(k,idiac)
     endif
 
@@ -1842,7 +2469,8 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - KOchl_dia                      * DiaChl & ! -- Degradation loss
             - aggregationRate                * DiaChl & ! -- Aggregation loss
             - grazingFlux_dia * Chl2N_dia             & ! -- Grazing loss
-            - grazingFlux_dia2 * Chl2N_dia            &                 
+            - grazingFlux_dia2 * Chl2N_dia            &          
+            - grazingFlux_dia3 * Chl2N_dia            & ! NEW 3Zoo
                                                    ) * dt_b + sms(k,idchl)
     else
         sms(k,idchl)      = (                         &
@@ -1850,6 +2478,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - KOchl_dia                      * DiaChl &
             - aggregationRate                * DiaChl &
             - grazingFlux_dia * Chl2N_dia             &
+            - grazingFlux_dia3 * Chl2N_dia            & ! NEW 3Zoo
                                                    ) * dt_b + sms(k,idchl)
     endif 
 !____________________________________________________________
@@ -1866,6 +2495,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - aggregationRate                 * DiaSi & ! -- Aggregation loss
             - grazingFlux_dia * qSiN                  & ! -- Grazing loss
             - grazingFlux_dia2 * qSiN                 &
+            - grazingFlux_dia3 * qSiN                 & ! NEW 3Zoo
                                                    ) * dt_b + sms(k,idiasi)
     else
         sms(k,idiasi)        = (                    &
@@ -1873,6 +2503,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - lossN_d * limitFacN_dia         * DiaSi &
             - aggregationRate                 * DiaSi &
             - grazingFlux_dia * qSiN                  &
+            - grazingFlux_dia3 * qSiN                 & ! NEW 3Zoo
                                                    ) * dt_b + sms(k,idiasi)
     endif
 !-------------------------------------------------------------------------------
@@ -1884,6 +2515,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       - aggregationRate               * CoccoN &                        ! NEW
       - grazingFlux_Cocco                      &                        ! NEW
       - grazingFlux_Cocco2                     &                        ! NEW
+      - grazingFlux_Cocco3                     &                        ! NEW 3Zoo 
                                              ) * dt_b + sms(k,icocn)      ! NEW
    else                                                                 ! NEW
     sms(k,icocn)      = (                      &                        ! NEW
@@ -1891,6 +2523,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       - lossN_c * limitFacN_cocco     * CoccoN &                        ! NEW
       - aggregationRate               * CoccoN &                        ! NEW
       - grazingFlux_Cocco                      &                        ! NEW
+      - grazingFlux_Cocco3                     &                        ! NEW 3Zoo
                                                  ) * dt_b + sms(k,icocn)  ! NEW
    endif                                                                ! NEW
 !-------------------------------------------------------------------------------
@@ -1903,6 +2536,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       - aggregationRate               * CoccoC &                        ! NEW
       - grazingFlux_cocco * recipQuota_cocco   &                        ! NEW
       - grazingFlux_Cocco2* recipQuota_cocco   &                        ! NEW
+      - grazingFlux_Cocco3* recipQuota_cocco   &                        ! NEW 3Zoo
                                              ) * dt_b + sms(k,icocc)      ! NEW
    else                                                                 ! NEW
     sms(k,icocc)      = (                      &                        ! NEW
@@ -1910,7 +2544,8 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       - lossC_c * limitFacN_cocco     * CoccoC &                        ! NEW
       - phyRespRate_cocco             * CoccoC &                        ! NEW
       - aggregationRate               * CoccoC &                        ! NEW
-      - grazingFlux_cocco * recipQuota_cocco   &                        ! NEW
+      - grazingFlux_cocco  * recipQuota_cocco  &                        ! NEW
+      - grazingFlux_cocco3 * recipQuota_cocco  &                        ! NEW 3Zoo
                                              ) * dt_b + sms(k,icocc)      ! NEW
    endif
 
@@ -1944,17 +2579,20 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       - aggregationRate                * CoccoChl &                     ! NEW
       - grazingFlux_cocco * Chl2N_cocco           &                     ! NEW
       - grazingFlux_Cocco2* Chl2N_cocco           &                     ! NEW
+      - grazingFlux_Cocco3* Chl2N_cocco           &                     ! NEW 3Zoo
                                              ) * dt_b + sms(k,icchl)      ! NEW
    else                                                                 ! NEW
     sms(k,icchl)      = (                         &                     ! NEW
       + chlSynth_cocco                 * CoccoC   &                     ! NEW
       - KOchl_cocco                    * CoccoChl &                     ! NEW
       - aggregationRate                * CoccoChl &                     ! NEW
-      - grazingFlux_cocco * Chl2N_cocco           &                     ! NEW
+      - grazingFlux_cocco  * Chl2N_cocco          &                     ! NEW
+      - grazingFlux_cocco3 * Chl2N_cocco          &                     ! NEW 3Zoo
                                              ) * dt_b + sms(k,icchl)      ! NEW
    endif 
 !-------------------------------------------------------------------------------
 ! Detritus Si
+  !!! May need some revision -> is it Zoo3 and otherwise Zoo2? Or Zoo1?
    if (REcoM_Second_Zoo) then
     sms(k,idetsi)     = (                       &
       + aggregationRate                 * DiaSi &
@@ -2035,6 +2673,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 + reminN * arrFunc        * DetZ2N   &
                 + lossN_z                 * HetN     & ! --> Excretion from zooplanton
                 + lossN_z2                * Zoo2N    &         
+                + lossN_z3                * MicZooN  & ! NEW 3Zoo
                                                )     &
                 - kScavFe                 * DetC   * FreeFe   & 
                 - kScavFe                 * DetZ2C * FreeFe   &
@@ -2056,6 +2695,8 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 +  hetRespFlux                       & ! Zooplankton respiration
                 +  lossC_z2               * Zoo2C    &
                 +  zoo2RespFlux                      &
+                +  lossC_z3               * MicZooC  & ! NEW 3Zoo
+                +  MicZooRespFlux                    & ! NEW 3Zoo
                                                )     &
                 -  kScavFe                * DetC   * FreeFe   & ! Scavenging of free iron (correlated with detC)
                 -  kScavFe                * DetZ2C * FreeFe   &   
@@ -2072,7 +2713,8 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 + lossN_d*limitFacN_dia   * DiaN      &
                 + lossN_c*limitFacN_cocco * CoccoN    &                      ! NEW
                 + reminN * arrFunc        * DetN      &
-                + lossN_z                 * HetN )    &
+                + lossN_z                 * HetN      &
+                + lossN_z3                * MicZooN)  &                      ! NEW 3Zoo
                 - kScavFe                 * DetC * FreeFe &
                                               ) * dt_b + sms(k,ife)
         else
@@ -2088,7 +2730,9 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 +  lossC_c*limitFacN_cocco* CoccoC   &                         ! NEW
                 +  reminC * arrFunc       * detC     &
                 +  lossC_z                * hetC     &
-                +  hetRespFlux  )                    &
+                +  hetRespFlux                       &
+                +  lossC_z3               * MicZooC  &                         ! NEW 3Zoo
+                +  MicZooRespFlux                  ) &                         ! NEW 3Zoo
                 -  kScavFe                * DetC * FreeFe   & 
                                               ) * dt_b + sms(k,ife)
     end if
@@ -2106,6 +2750,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                - calc_loss_agg                       & ! -- Aggregation loss
                - calc_loss_gra                       & ! -- Grazing loss
                - calc_loss_gra2                      &
+               - calc_loss_gra3                      &                             ! NEW 3Zoo
                                                   ) * dt_b + sms(k,iphycal)
        else
           sms(k,iphycal)    = (             &
@@ -2114,6 +2759,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                - phyRespRate_cocco         * phyCalc &                             ! NEW
                - calc_loss_agg                       &
                - calc_loss_gra                       &
+               - calc_loss_gra3                      &                             ! NEW 3Zoo
                                                   ) * dt_b + sms(k,iphycal)
        endif
     else
@@ -2125,6 +2771,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                - calc_loss_agg               & ! -- Aggregation loss 
                - calc_loss_gra               & ! -- Grazing loss
                - calc_loss_gra2              &
+               - calc_loss_gra3              &                                     ! NEW 3Zoo
                                                   ) * dt_b + sms(k,iphycal)
        else
           sms(k,iphycal)    = (             &
@@ -2133,6 +2780,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                - phyRespRate       * phyCalc &
                - calc_loss_agg               &
                - calc_loss_gra               &
+               - calc_loss_gra3              &                                     ! NEW 3Zoo
                                                   ) * dt_b + sms(k,iphycal)
        endif
     endif
@@ -2140,23 +2788,45 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !-------------------------------------------------------------------------------
 ! Detritus calcite
     if (use_coccos) then                                                 ! NEW switch
-       sms(k,idetcal)   = (               &
-            + lossC_c * limitFacN_cocco * phyCalc &                      ! VERY NEW (changed from phy to cocco)
-            + phyRespRate_cocco         * phyCalc &                      ! VERY NEW (changed from phy to cocco)
-            + calc_loss_agg                       &
-            + calc_loss_gra                       &
-            - calc_loss_gra * calc_diss_guts      &
-            - calc_diss     * DetCalc             &
+       if (REcoM_Third_Zoo) then     ! NEW 3Zoo
+          sms(k,idetcal)   = (               &
+               + lossC_c * limitFacN_cocco * phyCalc &
+               + phyRespRate_cocco         * phyCalc & 
+               + calc_loss_agg                       &
+               + calc_loss_gra3                      &
+               - calc_loss_gra3 * calc_diss_guts     &
+               - calc_diss     * DetCalc             &
                                            ) * dt_b + sms(k,idetcal)
+       else
+          sms(k,idetcal)   = (               &
+               + lossC_c * limitFacN_cocco * phyCalc &                      ! VERY NEW (changed from phy to cocco)
+               + phyRespRate_cocco         * phyCalc &                      ! VERY NEW (changed from phy to cocco)
+               + calc_loss_agg                       &
+               + calc_loss_gra                       &
+               - calc_loss_gra * calc_diss_guts      &
+               - calc_diss     * DetCalc             &
+                                           ) * dt_b + sms(k,idetcal)
+       endif
     else
-       sms(k,idetcal)   = (               &
-            + lossC * limitFacN * phyCalc    &
-            + phyRespRate       * phyCalc    &
-            + calc_loss_agg                  &
-            + calc_loss_gra                  &
-            - calc_loss_gra * calc_diss_guts &
-            - calc_diss     * DetCalc        &
+       if (REcoM_Third_Zoo) then     ! NEW 3Zoo
+          sms(k,idetcal)   = (               &
+               + lossC * limitFacN * phyCalc    &
+               + phyRespRate       * phyCalc    &
+               + calc_loss_agg                  &
+               + calc_loss_gra3                 &
+               - calc_loss_gra3 * calc_diss_guts&
+               - calc_diss     * DetCalc        &
                                            ) * dt_b + sms(k,idetcal)
+       else
+          sms(k,idetcal)   = (               &
+               + lossC * limitFacN * phyCalc    &
+               + phyRespRate       * phyCalc    &
+               + calc_loss_agg                  &
+               + calc_loss_gra                  &
+               - calc_loss_gra * calc_diss_guts &
+               - calc_diss     * DetCalc        &
+                                           ) * dt_b + sms(k,idetcal)
+       endif
     endif
 !#endif
 !-------------------------------------------------------------------------------
@@ -2172,6 +2842,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       - rho_C1  * arrFunc   * EOC   &
       - hetRespFlux                 &
       - Zoo2RespFlux                 &
+      - MicZooRespFlux               &              ! NEW 3Zoo
                                         )*redO2C * dt_b + sms(k,ioxy)  
    else
     sms(k,ioxy)   = (               &
@@ -2183,6 +2854,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       - phyRespRate_cocco   * CoccoC&               ! NEW
       - rho_C1  * arrFunc   * EOC   &
       - hetRespFlux                 &
+      - MicZooRespFlux              &               ! NEW 3Zoo
                                       )*redO2C * dt_b + sms(k,ioxy)
    endif
 
