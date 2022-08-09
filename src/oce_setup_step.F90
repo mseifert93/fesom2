@@ -605,7 +605,7 @@ use REcoM_ciso
             write (id_string, "(I4)") id
             write(*,*) 'initializing '//trim(i_string)//'th tracer with ID='//trim(id_string)
          end if
-   CASE (1023:1031)     ! NEW ms: changed from 1028 to 1031
+   CASE (1023:1033)     ! NEW ms: changed from 1028 to 1031 NEW 3Zoo: changed from 1031 to 1033
          tr_arr(:,:,i)=0.0_WP
         if (mype==0) then
             write (i_string,  "(I4)") i
@@ -613,7 +613,7 @@ use REcoM_ciso
             write(*,*) 'initializing '//trim(i_string)//'th tracer with ID='//trim(id_string)
          end if
 !MB preliminary extension for carbon isotopes which should be refactored in later versions
-       CASE (1033:1034)       ! initialize tracer ID=33-34 = DIC_13|14
+       CASE (1036:1037)       ! initialize tracer ID=33-34 = DIC_13|14   ! NEW 3Zoo: had to moce this from 1033:1034 to 1036:1037
          tr_arr(:,:,25:26)=0.0_WP
          if (mype==0) then
             write (i_string,  "(I4)") i
