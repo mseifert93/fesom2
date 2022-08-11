@@ -465,14 +465,17 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 ! Small phytoplankton
    PhyCO2 = a_co2_phy * HCO3_watercolumn(k) * Cunits / (b_co2_phy + HCO3_watercolumn(k) * Cunits) - exp(-c_co2_phy * CO2_watercolumn(k) * Cunits) - d_co2_phy * 10.**(-pH_watercolumn(k))
    PhyCO2 = min(PhyCO2,3.d0)      ! April 2022: limitation to 3
+   PhyCO2 = max(0.d0,PhyCO2)      ! July 2022: limitation to zero
 
 ! Diatoms
    DiaCO2 = a_co2_dia * HCO3_watercolumn(k) * Cunits / (b_co2_dia + HCO3_watercolumn(k) * Cunits) - exp(-c_co2_dia * CO2_watercolumn(k) * Cunits) - d_co2_dia * 10.**(-pH_watercolumn(k))
    DiaCO2 = min(DiaCO2,3.d0)      ! April 2022: limitation to 3
+   DiaCO2 = max(0.d0,DiaCO2)      ! July 2022: limitation to zero
 
 ! Coccolithophores
    CoccoCO2 = a_co2_cocco * HCO3_watercolumn(k) * Cunits / (b_co2_cocco + HCO3_watercolumn(k) * Cunits) - exp(-c_co2_cocco * CO2_watercolumn(k) * Cunits) - d_co2_cocco * 10.**(-pH_watercolumn(k))
    CoccoCO2 = min(CoccoCO2,3.d0)  ! April 2022: limitation to 3
+   CoccoCO2 = max(0.d0,CoccoCO2)  ! July 2022: limitation to zero
    
 
 !------------------------------------------------------------------------------
@@ -940,15 +943,12 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
           else
              DiaNsq2        = DiaN * DiaN
              varpzDia2      = pzDia2 * DiaNsq2 /(sDiaNsq2 + DiaNsq2)
-             fDiaN2         = varpzDia2 * DiaN
              PhyNsq2        = PhyN * PhyN
              varpzPhy2      = pzPhy2 * PhyNsq2 /(sPhyNsq2 + PhyNsq2)
-             fPhyN2         = varpzPhy2 * PhyN
+             CoccoNsq2      = CoccoN * CoccoN                                   ! NEW
              varpzCocco2    = pzCocco2 * CoccoNsq2 /(sCoccoNsq2 + CoccoNsq2)    ! NEW
-             fCoccoN2       = varpzCocco2 * CoccoN                              ! NEW
              HetNsq         = HetN * HetN
              varpzHet       = pzHet * HetNsq /(sHetNsq + HetNsq)
-             fHetN          = varpzHet * HetN   
              DetNsq         = DetN * DetN
              varpzDet2      = pzDet2 * DetNsq /(sDetNsq2 + DetNsq)
              DetZ2Nsq       = DetZ2N * DetZ2N
@@ -1174,6 +1174,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 
        PICPOCCO2     = a_co2_calc * HCO3_watercolumn(k) * Cunits / (b_co2_calc + HCO3_watercolumn(k) * Cunits) - exp(-c_co2_calc * CO2_watercolumn(k) * Cunits) - d_co2_calc * 10.**(-pH_watercolumn(k))
        PICPOCCO2     = min(PICPOCCO2,3.d0)                                       ! April 2022: limitation to 3
+       PICPOCCO2     = max(0.d0,PICPOCCO2)                                       ! July 2022: limitation to zero
 
        PICPOCN     = -0.31 * (DIN/(DIN + k_din_c)) + 1.31
        PICPOCN     = max(tiny,PICPOCN)
