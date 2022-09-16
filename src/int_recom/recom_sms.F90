@@ -406,6 +406,13 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
        q10_mic_res  = 0.d0
     endif
 
+! O2 dependency of organic matter remineralization                  ! NEW O2remin
+    if (O2dep_remin) then
+       O2Func = O2/(k_o2_remin + O2) ! factor between 0-1
+    else
+       O2Func = 1.d0                 ! in this case, remin. rates only depend on temperature
+    endif
+
 !-------------------------------------------------------------------------------
 ! Light                                                                                                   ! NEW MOCSY
 !-------------------------------------------------------------------------------
@@ -1638,7 +1645,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         - N_assim                      * PhyC    &  ! --> N assimilation Nanophytoplankton, [mmol N/(mmol C * day)] C specific N utilization rate
         - N_assim_Dia                  * DiaC    &  ! --> N assimilation Diatoms
         - N_assim_Cocco                * CoccoC  &          ! NEW
-        + rho_N * arrFunc              * DON     &  ! --> DON remineralization, temperature dependent [day^-1 * mmol/m3]       
+        + rho_N * arrFunc * O2Func     * DON     &  ! --> DON remineralization, temperature dependent [day^-1 * mmol/m3]  ! NEW O2remin
 !        + LocRiverDIN                            & ! --> added in FESOM2 
                                              ) * dt_b + sms(k,idin)  
 
@@ -1655,7 +1662,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             + phyRespRate_Dia               * DiaC       & ! --> Diatom respiration
             - Cphot_Cocco                   * CoccoC     &          ! NEW
             + phyRespRate_Cocco             * CoccoC     &          ! NEW
-            + rho_C1 * arrFunc              * EOC        & ! --> Remineralization of DOC
+            + rho_C1 * arrFunc * O2Func     * EOC        & ! --> Remineralization of DOC ! NEW O2remin
             + HetRespFlux                                & ! --> Zooplankton respiration                     
             + Zoo2RespFlux                               &                    
             + MicZooRespFlux                             & ! NEW 3Zoo
@@ -1674,7 +1681,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             + phyRespRate_Dia               * DiaC    &
             - Cphot_Cocco                   * CoccoC  &          ! NEW
             + phyRespRate_Cocco             * CoccoC  &          ! NEW
-            + rho_C1 * arrFunc              * EOC     &
+            + rho_C1 * arrFunc * O2Func     * EOC     &          ! NEW O2remin
             + HetRespFlux                             & 
             + MicZooRespFlux                          &          ! NEW 3Zoo
             + calc_diss                     * DetCalc &
@@ -1711,27 +1718,27 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !< N_assimC: 1.0625 = 1/16 + 1
     if (REcoM_Second_Zoo) then
         sms(k,ialk)      = (                       &
-            + 1.0625 * N_assim             * PhyC    &
-            + 1.0625 * N_assim_Dia         * DiaC    &
-            + 1.0625 * N_assim_Cocco       * CoccoC  &           ! NEW
-            - 1.0625 * rho_N * arrFunc     * DON     &     
-            + 2.d0 * calc_diss             * DetCalc &
-            + 2.d0 * calc_loss_gra * calc_diss_guts  &
-            + 2.d0 * calc_loss_gra2 * calc_diss_guts &
-            + 2.d0 * calc_loss_gra3 * calc_diss_guts &           ! NEW 3Zoo
+            + 1.0625 * N_assim             * PhyC      &
+            + 1.0625 * N_assim_Dia         * DiaC      &
+            + 1.0625 * N_assim_Cocco       * CoccoC    &           ! NEW
+            - 1.0625 * rho_N * arrFunc * O2Func * DON &           ! NEW O2remin                 
+            + 2.d0 * calc_diss             * DetCalc   &
+            + 2.d0 * calc_loss_gra * calc_diss_guts    &
+            + 2.d0 * calc_loss_gra2 * calc_diss_guts   &
+            + 2.d0 * calc_loss_gra3 * calc_diss_guts   &           ! NEW 3Zoo
             + 2.d0 * calc_diss2            * DetZ2Calc &
             - 2.d0 * calcification                   &                      
                                              ) * dt_b + sms(k,ialk)
     else
         sms(k,ialk)      = (                       &
-            + 1.0625 * N_assim             * PhyC    &
-            + 1.0625 * N_assim_Dia         * DiaC    &
-            + 1.0625 * N_assim_Cocco       * CoccoC  &           ! NEW
-            - 1.0625 * rho_N * arrFunc     * DON     &
-            + 2.d0 * calc_diss             * DetCalc &
-            + 2.d0 * calc_loss_gra * calc_diss_guts  &
-            + 2.d0 * calc_loss_gra3 * calc_diss_guts &           ! NEW 3Zoo
-            - 2.d0 * calcification                   &
+            + 1.0625 * N_assim             * PhyC      &
+            + 1.0625 * N_assim_Dia         * DiaC      &
+            + 1.0625 * N_assim_Cocco       * CoccoC    &           ! NEW
+            - 1.0625 * rho_N * arrFunc * O2Func * DON &           ! NEW O2remin
+            + 2.d0 * calc_diss             * DetCalc   &
+            + 2.d0 * calc_loss_gra * calc_diss_guts    &
+            + 2.d0 * calc_loss_gra3 * calc_diss_guts   &           ! NEW 3Zoo
+            - 2.d0 * calcification                     &
                                              ) * dt_b + sms(k,ialk) 
     endif
 !____________________________________________________________
@@ -1888,7 +1895,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
               + aggregationRate              * DiaN    &
               + aggregationRate              * CoccoN  & 
               + miczooLossFlux                         &
-              - reminN * arrFunc             * DetN    &
+              - reminN * arrFunc * O2Func    * DetN    &        ! NEW O2remin
                                                ) * dt_b + sms(k,idetn)
       else
          sms(k,idetn)       = (                        &
@@ -1904,7 +1911,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
               + aggregationRate              * DiaN    &
               + aggregationRate              * CoccoN  &              ! NEW
               + hetLossFlux                            &
-              - reminN * arrFunc             * DetN    &
+              - reminN * arrFunc * O2Func    * DetN    &              ! NEW O2remin
                                                ) * dt_b + sms(k,idetn)
       endif
    else
@@ -1918,7 +1925,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
               + aggregationRate              * DiaN    &
               + aggregationRate              * CoccoN  &
               + miczooLossFlux                         &
-              - reminN * arrFunc             * DetN    &
+              - reminN * arrFunc * O2Func    * DetN    &              ! O2remin
                                                ) * dt_b + sms(k,idetn)
        else
           sms(k,idetn)       = (                       &
@@ -1930,7 +1937,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                + aggregationRate              * DiaN    &
                + aggregationRate              * CoccoN  &              ! NEW
                + hetLossFlux                            &
-               - reminN * arrFunc             * DetN    &
+               - reminN * arrFunc * O2Func    * DetN    &              ! NEW O2remin
                                                ) * dt_b + sms(k,idetn)
        endif
    end if   
@@ -1951,7 +1958,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                + aggregationRate              * DiaC              &
                + aggregationRate              * CoccoC            &
                + miczooLossFlux * recipQZoo3                      &
-                - reminC * arrFunc             * DetC             &
+                - reminC * arrFunc * O2Func   * DetC              &    ! NEW O2remin
                                                )   * dt_b + sms(k,idetc)
        else
           sms(k,idetc)       = (                                &
@@ -1967,7 +1974,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                + aggregationRate              * DiaC            &
                + aggregationRate              * CoccoC          &       ! NEW
                + hetLossFlux * recipQZoo                        &
-               - reminC * arrFunc             * DetC            &
+               - reminC * arrFunc * O2Func    * DetC            &       ! NEW O2remin
                                               )   * dt_b + sms(k,idetc)
        endif
    else
@@ -1983,7 +1990,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                + aggregationRate              * DiaC              &
                + aggregationRate              * CoccoC            &
                + miczooLossFlux * recipQZoo3                      &
-               - reminC * arrFunc             * DetC              &
+               - reminC * arrFunc * O2Func    * DetC              &     ! NEW O2remin
                                               )   * dt_b + sms(k,idetc)
       else
          
@@ -1998,7 +2005,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
               + aggregationRate              * DiaC            &
               + aggregationRate              * CoccoC          &       ! NEW
               + hetLossFlux * recipQZoo                        &
-              - reminC * arrFunc             * DetC            &
+              - reminC * arrFunc * O2Func    * DetC            &       ! NEW O2remin
                                               )   * dt_b + sms(k,idetc)
       endif
    end if
@@ -2175,7 +2182,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 + hetLossFlux                            &
                 + Zoo2fecalloss_n                        &
                 + Mesfecalloss_n                         &
-                - reminN * arrFunc            * DetZ2N   &
+                - reminN * arrFunc * O2Func   * DetZ2N   &                ! NEW O2remin
                                               ) * dt_b + sms(k,idetz2n)
         else
            sms(k,idetz2n)       = (                      &
@@ -2191,7 +2198,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 - grazingFlux_DetZ22 * grazEff2          &   
                 + Zoo2LossFlux                           &
                 + Zoo2fecalloss_n                        &
-                - reminN * arrFunc             * DetZ2N  &
+                - reminN * arrFunc * O2Func    * DetZ2N  &                ! NEW O2remin
                                                ) * dt_b + sms(k,idetz2n)
         endif
      else
@@ -2212,7 +2219,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 + hetLossFlux                            &
                 + Zoo2fecalloss_n                        &
                 + Mesfecalloss_n                         &
-                - reminN * arrFunc            * DetZ2N   &
+                - reminN * arrFunc * O2Func   * DetZ2N   &                ! NEW O2remin
                                               ) * dt_b + sms(k,idetz2n)
         else
            sms(k,idetz2n)       = (                      &
@@ -2223,7 +2230,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 - grazingFlux2 * grazEff2                &
                 + Zoo2LossFlux                           &
                 + Zoo2fecalloss_n                        &
-                - reminN * arrFunc             * DetZ2N  &
+                - reminN * arrFunc * O2Func    * DetZ2N  &                ! NEW O2remin
                                                ) * dt_b + sms(k,idetz2n)
         endif
      end if
@@ -2257,7 +2264,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 + hetLossFlux * recipQZoo                          &
                 + Zoo2fecalloss_c                                  &
                 + Mesfecalloss_c                                   &
-                - reminC * arrFunc            * DetZ2C             &
+                - reminC * arrFunc * O2Func   * DetZ2C             &       ! NEW O2remin
                                                      )   * dt_b + sms(k,idetz2c)
         else
            sms(k,idetz2c)       = (                            &
@@ -2273,7 +2280,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 - grazingFlux_DetZ22 * recipDet2 * grazEff2    &
                 + Zoo2LossFlux * recipQZoo2                    &
                 + Zoo2fecalloss_c                              & 
-                - reminC * arrFunc             * DetZ2C        &
+                - reminC * arrFunc * O2Func    * DetZ2C        &           ! NEW O2remin
                                                      )   * dt_b + sms(k,idetz2c)
         endif
      else
@@ -2301,7 +2308,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 + hetLossFlux * recipQZoo                        &
                 + Zoo2fecalloss_c                                &
                 + Mesfecalloss_c                                 &
-                - reminC * arrFunc             * DetZ2C          &
+                - reminC * arrFunc * O2Func    * DetZ2C          &          ! NEW O2remin
                                                      )   * dt_b + sms(k,idetz2c)
          else
             sms(k,idetz2c)       = (                            &
@@ -2315,7 +2322,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                  - grazingFlux_het2 * recipQZoo * grazEff2      &
                  + Zoo2LossFlux * recipQZoo2                    &
                  + Zoo2fecalloss_c                              &
-                 - reminC * arrFunc             * DetZ2C        &
+                 - reminC * arrFunc * O2Func    * DetZ2C        &           ! NEW O2remin
                                                      )   * dt_b + sms(k,idetz2c)
          endif
      end if
@@ -2359,12 +2366,12 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       + lossN * limitFacN              * phyN   &
       + lossN_d * limitFacN_Dia        * DiaN   &
       + lossN_c * limitFacN_Cocco      * CoccoN &                  ! NEW
-      + reminN * arrFunc               * DetN   &
-      + reminN * arrFunc               * DetZ2N &
+      + reminN * arrFunc * O2Func      * DetN   &                  ! NEW O2remin
+      + reminN * arrFunc * O2Func      * DetZ2N &                  ! NEW O2remin
       + lossN_z                        * HetN   &
       + lossN_z2                       * Zoo2N  &
       + lossN_z3                       * MicZooN&                  ! NEW 3Zoo 
-      - rho_N * arrFunc                * DON    &
+      - rho_N * arrFunc * O2Func       * DON    &                  ! NEW O2remin
 !      + LocRiverDON                             &
                                              ) * dt_b + sms(k,idon)
    else
@@ -2373,10 +2380,10 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       + lossN * limitFacN              * phyN   &
       + lossN_d * limitFacN_Dia        * DiaN   &
       + lossN_c * limitFacN_Cocco      * CoccoN &                  ! NEW
-      + reminN * arrFunc               * DetN   &
+      + reminN * arrFunc * O2Func      * DetN   &                  ! NEW O2remin
       + lossN_z                        * HetN   &
       + lossN_z3                       * MicZooN&                  ! NEW 3Zoo
-      - rho_N * arrFunc                * DON    &
+      - rho_N * arrFunc * O2Func       * DON    &                  ! NEW O2remin
 !      + LocRiverDON                             &
                                               ) * dt_b + sms(k,idon)
    endif
@@ -2387,12 +2394,12 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       + lossC * limitFacN              * phyC   &
       + lossC_d * limitFacN_dia        * DiaC   &
       + lossC_c * limitFacN_cocco      * CoccoC &                  ! NEW
-      + reminC * arrFunc               * DetC   &
-      + reminC * arrFunc               * DetZ2C &
+      + reminC * arrFunc * O2Func      * DetC   &                  ! NEW O2remin
+      + reminC * arrFunc * O2Func      * DetZ2C &                  ! NEW O2remin
       + lossC_z                        * HetC   &
       + lossC_z2                       * Zoo2C  &
       + lossC_z3                       * MicZooC&                  ! NEW 3Zoo
-      - rho_c1 * arrFunc               * EOC    &
+      - rho_c1 * arrFunc * O2Func      * EOC    &                  ! NEW O2remin
 !      + LocRiverDOC                             &
                                               ) * dt_b + sms(k,idoc)	
    else 
@@ -2400,10 +2407,10 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       + lossC * limitFacN              * phyC   &
       + lossC_d * limitFacN_dia        * DiaC   &
       + lossC_c * limitFacN_cocco      * CoccoC &                  ! NEW
-      + reminC * arrFunc               * DetC   &
+      + reminC * arrFunc * O2Func      * DetC   &                  ! NEW O2remin
       + lossC_z                        * HetC   &
       + lossC_z3                       * MicZooC&                  ! NEW 3Zoo
-      - rho_c1 * arrFunc               * EOC    &
+      - rho_c1 * arrFunc * O2Func      * EOC    &                  ! NEW O2remin
 !      + LocRiverDOC                             &
                                               ) * dt_b + sms(k,idoc)
    endif 		
@@ -2663,77 +2670,77 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     if (REcoM_Second_Zoo) then
         if (use_Fe2N) then
             sms(k,ife) = ( Fe2N * (                  &
-                - N_assim                 * PhyC     & ! --> N assimilation Nanophytoplankton, [mmol N/(mmol C * day)] C specific N utilization rate  
-                - N_assim_dia             * DiaC     & ! --> N assimilation Diatom
-                - N_assim_cocco           * CoccoC    &                      ! NEW
-                + lossN*limitFacN         * PhyN     & ! --> Excretion from small pythoplankton
-                + lossN_d*limitFacN_dia   * DiaN     & ! --> Excretion from diatom
-                + lossN_c*limitFacN_cocco * CoccoN    &                      ! NEW
-                + reminN * arrFunc        * DetN     & ! --> Remineralization of detritus
-                + reminN * arrFunc        * DetZ2N   &
-                + lossN_z                 * HetN     & ! --> Excretion from zooplanton
-                + lossN_z2                * Zoo2N    &         
-                + lossN_z3                * MicZooN  & ! NEW 3Zoo
+                - N_assim                   * PhyC     & ! --> N assimilation Nanophytoplankton, [mmol N/(mmol C * day)] C specific N utilization rate  
+                - N_assim_dia               * DiaC     & ! --> N assimilation Diatom
+                - N_assim_cocco             * CoccoC    &                      ! NEW
+                + lossN*limitFacN           * PhyN     & ! --> Excretion from small pythoplankton
+                + lossN_d*limitFacN_dia     * DiaN     & ! --> Excretion from diatom
+                + lossN_c*limitFacN_cocco   * CoccoN    &                      ! NEW
+                + reminN * arrFunc * O2Func * DetN     & ! --> Remineralization of detritus   ! NEW O2remin
+                + reminN * arrFunc * O2Func * DetZ2N   &                       ! NEW O2remin
+                + lossN_z                   * HetN     & ! --> Excretion from zooplanton
+                + lossN_z2                  * Zoo2N    &         
+                + lossN_z3                  * MicZooN  & ! NEW 3Zoo
                                                )     &
-                - kScavFe                 * DetC   * FreeFe   & 
-                - kScavFe                 * DetZ2C * FreeFe   &
+                - kScavFe                   * DetC   * FreeFe   & 
+                - kScavFe                   * DetZ2C * FreeFe   &
                                                ) * dt_b + sms(k,ife)
         else
             sms(k,ife)      = ( Fe2C *(          &
-                -  Cphot                  * PhyC     & ! Small pyhtoplankton photosynthesis ---/
-                -  Cphot_dia              * DiaC     & ! Diatom photosynthesis                / -> net growth
-                -  Cphot_cocco            * CoccoC   &                         ! NEW
-                +  phyRespRate            * PhyC     & ! Small pyhtoplankton respiration --- /
-                +  phyRespRate_dia        * DiaC     & ! Diatom respiration
-                +  phyRespRate_cocco      * CoccoC   &                         ! NEW
-                +  lossC*limitFacN        * phyC     & ! Exrcetion from small pythoplankton
-                +  lossC_d*limitFacN_dia  * diaC     & ! Excretion from diatom
-                +  lossC_c*limitFacN_cocco* CoccoC   &                         ! NEW
-                +  reminC * arrFunc       * detC     & ! Remineralization of detritus
-                +  reminC * arrFunc       * DetZ2C   &
-                +  lossC_z                * hetC     & ! Excretion from zooplanton
+                -  Cphot                     * PhyC     & ! Small pyhtoplankton photosynthesis ---/
+                -  Cphot_dia                 * DiaC     & ! Diatom photosynthesis                / -> net growth
+                -  Cphot_cocco               * CoccoC   &                         ! NEW
+                +  phyRespRate               * PhyC     & ! Small pyhtoplankton respiration --- /
+                +  phyRespRate_dia           * DiaC     & ! Diatom respiration
+                +  phyRespRate_cocco         * CoccoC   &                         ! NEW
+                +  lossC*limitFacN           * phyC     & ! Exrcetion from small pythoplankton
+                +  lossC_d*limitFacN_dia     * diaC     & ! Excretion from diatom
+                +  lossC_c*limitFacN_cocco   * CoccoC   &                         ! NEW
+                +  reminC * arrFunc * O2Func * detC     & ! Remineralization of detritus    ! NEW O2remin
+                +  reminC * arrFunc * O2Func * DetZ2C   &                         ! NEW O2remin
+                +  lossC_z                   * hetC     & ! Excretion from zooplanton
                 +  hetRespFlux                       & ! Zooplankton respiration
-                +  lossC_z2               * Zoo2C    &
+                +  lossC_z2                  * Zoo2C    &
                 +  zoo2RespFlux                      &
-                +  lossC_z3               * MicZooC  & ! NEW 3Zoo
+                +  lossC_z3                  * MicZooC  & ! NEW 3Zoo
                 +  MicZooRespFlux                    & ! NEW 3Zoo
                                                )     &
-                -  kScavFe                * DetC   * FreeFe   & ! Scavenging of free iron (correlated with detC)
-                -  kScavFe                * DetZ2C * FreeFe   &   
+                -  kScavFe                   * DetC   * FreeFe   & ! Scavenging of free iron (correlated with detC)
+                -  kScavFe                   * DetZ2C * FreeFe   &   
                                                 ) * dt_b + sms(k,ife)
         end if
    else
 
         if (use_Fe2N) then
             sms(k,ife) = ( Fe2N * (                   &
-                - N_assim                 * PhyC      &
-                - N_assim_dia             * DiaC      &
-                - N_assim_cocco           * CoccoC    &                      ! NEW
-                + lossN*limitFacN         * PhyN      &
-                + lossN_d*limitFacN_dia   * DiaN      &
-                + lossN_c*limitFacN_cocco * CoccoN    &                      ! NEW
-                + reminN * arrFunc        * DetN      &
-                + lossN_z                 * HetN      &
-                + lossN_z3                * MicZooN)  &                      ! NEW 3Zoo
-                - kScavFe                 * DetC * FreeFe &
+                - N_assim                   * PhyC      &
+                - N_assim_dia               * DiaC      &
+                - N_assim_cocco             * CoccoC    &                      ! NEW
+                + lossN*limitFacN           * PhyN      &
+                + lossN_d*limitFacN_dia     * DiaN      &
+                + lossN_c*limitFacN_cocco   * CoccoN    &                      ! NEW
+                + reminN * arrFunc * O2Func * DetN      &                      ! NEW O2remin
+                + lossN_z                   * HetN      &
+                + lossN_z3                  * MicZooN)  &                      ! NEW 3Zoo
+                - kScavFe                   * DetC * FreeFe &
                                               ) * dt_b + sms(k,ife)
         else
             sms(k,ife)      = ( Fe2C *(          &
-                -  Cphot                  * PhyC     &
-                -  Cphot_dia              * DiaC     &
-                -  Cphot_cocco            * CoccoC   &                         ! NEW
-                +  phyRespRate            * PhyC     &
-                +  phyRespRate_dia        * DiaC     &
-                +  phyRespRate_cocco      * CoccoC   &                         ! NEW
-                +  lossC*limitFacN        * phyC     &
-                +  lossC_d*limitFacN_dia  * diaC     &
-                +  lossC_c*limitFacN_cocco* CoccoC   &                         ! NEW
-                +  reminC * arrFunc       * detC     &
-                +  lossC_z                * hetC     &
+                -  Cphot                     * PhyC     &
+                -  Cphot_dia                 * DiaC     &
+                -  Cphot_cocco               * CoccoC   &                         ! NEW
+                +  phyRespRate               * PhyC     &
+                +  phyRespRate_dia           * DiaC     &
+                +  phyRespRate_cocco         * CoccoC   &                         ! NEW
+                +  lossC*limitFacN           * phyC     &
+                +  lossC_d*limitFacN_dia     * diaC     &
+                +  lossC_c*limitFacN_cocco   * CoccoC   &                         ! NEW
+                +  reminC * arrFunc * O2Func * detC     &                         ! NEW O2remin
+                +  lossC_z                   * hetC     &
                 +  hetRespFlux                       &
-                +  lossC_z3               * MicZooC  &                         ! NEW 3Zoo
+                +  lossC_z3                  * MicZooC  &                         ! NEW 3Zoo
                 +  MicZooRespFlux                  ) &                         ! NEW 3Zoo
-                -  kScavFe                * DetC * FreeFe   & 
+                -  kScavFe                   * DetC * FreeFe   & 
                                               ) * dt_b + sms(k,ife)
     end if
    endif
@@ -2833,28 +2840,28 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 ! Oxygen
    if (REcoM_Second_Zoo) then
     sms(k,ioxy)   = (               &
-      + Cphot              * phyC  &
-      - phyRespRate         * phyC  &
-      + Cphot_dia          * diaC  &
-      - phyRespRate_dia     * diaC  &
-      + Cphot_cocco         * CoccoC&               ! NEW
-      - phyRespRate_cocco   * CoccoC&               ! NEW
-      - rho_C1  * arrFunc   * EOC   &
-      - hetRespFlux                 &
-      - Zoo2RespFlux                 &
-      - MicZooRespFlux               &              ! NEW 3Zoo
+      + Cphot                      * phyC   &
+      - phyRespRate                * phyC   &
+      + Cphot_dia                  * diaC   &
+      - phyRespRate_dia            * diaC   &
+      + Cphot_cocco                * CoccoC &               ! NEW
+      - phyRespRate_cocco          * CoccoC &               ! NEW
+      - rho_C1  * arrFunc * O2Func * EOC    &               ! NEW O2remin
+      - hetRespFlux                         &
+      - Zoo2RespFlux                        &
+      - MicZooRespFlux                      &               ! NEW 3Zoo
                                         )*redO2C * dt_b + sms(k,ioxy)  
    else
     sms(k,ioxy)   = (               &
-      + Cphot              * phyC  &
-      - phyRespRate         * phyC  &
-      + Cphot_dia          * diaC  &
-      - phyRespRate_dia     * diaC  &
-      + Cphot_cocco         * CoccoC&               ! NEW
-      - phyRespRate_cocco   * CoccoC&               ! NEW
-      - rho_C1  * arrFunc   * EOC   &
-      - hetRespFlux                 &
-      - MicZooRespFlux              &               ! NEW 3Zoo
+      + Cphot                      * phyC   &
+      - phyRespRate                * phyC   &
+      + Cphot_dia                  * diaC   &
+      - phyRespRate_dia            * diaC   &
+      + Cphot_cocco                * CoccoC &               ! NEW
+      - phyRespRate_cocco          * CoccoC &               ! NEW
+      - rho_C1  * arrFunc * O2Func * EOC    &               ! NEW O2remin
+      - hetRespFlux                         &
+      - MicZooRespFlux                      &               ! NEW 3Zoo
                                       )*redO2C * dt_b + sms(k,ioxy)
    endif
 
