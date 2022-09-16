@@ -68,6 +68,7 @@ module recom_config
   Logical                :: diatom_mucus    = .true.    ! Effect of nutrient limitation on the aggregation
   Logical                :: Graz_pref_new    = .true.    ! If it is true Fasham et 1990, otherwise original recom variable preference
   Logical                :: use_coccos            = .true.     ! NEW to have a version without coccos; needs to be used together with a special namelist (e.g. GR coccos = 0)
+  Logical                :: O2dep_remin           = .true.     ! NEW O2remin Add option for O2 dependency of organic matter remineralization
   Logical                :: OmegaC_diss           = .true.     ! NEW DISS Use mocsy calcite omega to compute calcite dissolution
   Logical                :: CO2lim                = .true.     ! NEW Use CO2 dependence of growth and calcification
   !Logical                :: inter_CT_CL           = .true.     ! NEW inter use interaction between CO2 and both, temperature and light
@@ -104,7 +105,7 @@ module recom_config
                        Grazing_detritus,                                                                  &
                        zoo2_fecal_loss,                   zoo2_initial_field,    het_resp_noredfield,     &
                        diatom_mucus,                      Graz_pref_new,         use_coccos,              & ! NEW added use_coccos
-                       OmegaC_diss,                       CO2lim,                                         & ! NEW DISS added OmegaC_diss, NEW added CO2lim
+                       O2dep_remin,                       OmegaC_diss,           CO2lim,                  & ! NEW O2remin, NEW DISS added OmegaC_diss, NEW added CO2lim
                        Diags      ,                       constant_CO2,                                   &
                        UseFeDust,                         UseDustClim,           UseDustClimAlbani,       &
                        use_Fe2N,                          use_photodamage,       HetRespFlux_plus,        &
@@ -131,7 +132,8 @@ module recom_config
   Real(kind=8)                 :: C2K            = 273.15d0       !     Conversion from degrees C to K
   Real(kind=8)                 :: Ae             = 4500.d0        ! [K] Slope of the linear part of the Arrhenius function
   Real(kind=8)                 :: reminSi        = 0.02d0
-  namelist /paArrhenius/ recom_Tref, C2K, Ae, reminSi  
+  Real(kind=8)                 :: k_o2_remin     = 15.d0          ! NEW O2remin mmol m-3; Table 1 in Cram 2018 cites DeVries & Weber 2017 for a range of 0-30 mmol m-3
+  namelist /paArrhenius/ recom_Tref, C2K, Ae, reminSi, k_o2_remin  
 !!------------------------------------------------------------------------------
 !! *** For limiter function ***
   Real(kind=8)                 :: NMinSlope      = 50.d0 
@@ -437,6 +439,7 @@ Module REcoM_declarations
   Real(kind=8)  :: q10_mes                ! NEW 3Zoo
   Real(kind=8)  :: q10_mes_res            ! NEW 3Zoo
   Real(kind=8)  :: reminSiT
+  Real(kind=8)  :: O2Func                 ! NEW O2remin
 !-------------------------------------------------------------------------------
 ! CO2 dependence of rates ! NEW CO2
   Real(kind=8)  :: h_depth(1)             ! pH from mocsy is converted to proton concentration
