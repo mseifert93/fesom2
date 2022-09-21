@@ -2599,13 +2599,11 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
    endif 
 !-------------------------------------------------------------------------------
 ! Detritus Si
-  !!! May need some revision -> is it Zoo3 and otherwise Zoo2? Or Zoo1?
-   if (REcoM_Second_Zoo) then
+   if (REcoM_Third_Zoo) then
     sms(k,idetsi)     = (                       &
       + aggregationRate                 * DiaSi &
       + lossN_d * limitFacN_dia         * DiaSi &
-      + grazingFlux_dia * qSiN                  &
-!      + grazingFlux_dia2 * qSiN                 & should not be here
+      + grazingFlux_dia3 * qSiN                 &
       - reminSiT                        * DetSi &
                                              ) * dt_b + sms(k,idetsi)
    else
