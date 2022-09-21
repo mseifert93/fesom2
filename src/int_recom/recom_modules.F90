@@ -262,7 +262,7 @@ module recom_config
 ! Third Zooplankton (Microzooplankton)
 
   Real(kind=8)                 :: graz_max3     = 0.46d0          ! NEW 3Zoo [mmol N/(m3 * day)] Maximum grazing loss parameter
-  Real(kind=8)                 :: epsilon3      = 0.35d0          ! NEW 3Zoo [(mmol N)2 /m6] Half saturation constant for grazing loss
+  Real(kind=8)                 :: epsilon3      = 0.64d0          ! NEW 3Zoo [(mmol N)2 /m6] Half saturation constant for grazing loss
   Real(kind=8)                 :: loss_miczoo   = 0.01d0          ! NEW 3Zoo [1/day] Temperature dependent N degradation of extracellular organic N (EON)
   Real(kind=8)                 :: res_miczoo    = 0.01d0          ! NEW 3Zoo [1/day] Respiration by heterotrophs and mortality (loss to detritus)
   Real(kind=8)                 :: pzDia3        = 0.5d0           ! NEW 3Zoo Maximum diatom preference
@@ -320,7 +320,7 @@ module recom_config
 !! *** Detritus N ***
   Real(kind=8)                 :: gfin          = 0.3d0         ! NEW 3Zoo [] Grazing efficiency (fraction of grazing flux into zooplankton pool) 
   Real(kind=8)                 :: grazEff2      = 0.8d0         ! NEW 3Zoo [] Grazing efficiency (fraction of grazing flux into second zooplankton pool) 
-  Real(kind=8)                 :: grazEff3      = 0.24d0        ! NEW 3Zoo [] Grazing efficiency (fraction of grazing flux into microzooplankton pool)
+  Real(kind=8)                 :: grazEff3      = 0.8d0         ! NEW 3Zoo [] Grazing efficiency (fraction of grazing flux into microzooplankton pool)
   Real(kind=8)                 :: reminN        = 0.165d0       ! NEW 3Zoo [1/day] Temperature dependent remineralisation rate of detritus 
   !Real(kind=8)                 :: grazEff       = 0.4d0         ! [] Grazing efficiency (fraction of grazing flux into zooplankton pool) 
   !Real(kind=8)                 :: grazEff2      = 0.8d0         ! [] Grazing efficiency (fraction of grazing flux into second zooplankton pool)
@@ -333,8 +333,8 @@ module recom_config
   namelist /padetritus_C/ reminC, rho_c2
 !!------------------------------------------------------------------------------
 !! *** Heterotrophs ***
-  Real(kind=8)                 :: lossN_z       = 0.15d0
-  Real(kind=8)                 :: lossC_z       = 0.15d0
+  Real(kind=8)                 :: lossN_z       = 0.1d0
+  Real(kind=8)                 :: lossC_z       = 0.1d0
   namelist /paheterotrophs/ lossN_z, lossC_z
 !!------------------------------------------------------------------------------
 !! *** Second Zooplankton ***                          
@@ -343,8 +343,8 @@ module recom_config
   namelist /paseczooloss/ lossN_z2, lossC_z2
 !!-----------------------------------------------------------------------------
 !! *** Third Zooplankton ***
-  Real(kind=8)                 :: lossN_z3      = 0.15d0       ! NEW 3Zoo
-  Real(kind=8)                 :: lossC_z3      = 0.15d0       ! NEW 3Zoo
+  Real(kind=8)                 :: lossN_z3      = 0.05d0       ! NEW 3Zoo
+  Real(kind=8)                 :: lossC_z3      = 0.05d0       ! NEW 3Zoo
   namelist /pathirdzooloss/ lossN_z3, lossC_z3
 !!------------------------------------------------------------------------------                                                                                                                                                                                               
 !! *** Parameters for CO2 limitation ***                       ! NEW
