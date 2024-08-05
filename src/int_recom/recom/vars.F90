@@ -237,10 +237,9 @@ SUBROUTINE vars(ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, BetaD, rhoSW, p,
   ! practical salinity (psu)
   REAL(kind=rx), DIMENSION(N) :: salprac
   REAL(kind=rx), DIMENSION(N) :: kspc_out     ! NEW
-
   
   ! Call the subroutine that actually computes
-  call vars_sprac (ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, kspc_out, BetaD, rhoSW, p, tempis,  &  ! NEW: added kspc_out
+  call vars_sprac (ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, kspc_out, BetaD, rhoSW, p, tempis,  & ! NEW: added kspc_out
                 temp, sal, alk, dic, sil, phos, Patm, depth, lat, N,                         &
                 optCON, optT, optP, optB, optK1K2, optKf, optGAS, optS, lon, salprac, verbose   )
                 

@@ -300,7 +300,7 @@ SUBROUTINE buffesm(gammaDIC, betaDIC, omegaDIC, gammaALK, betaALK, omegaALK, Rf,
   print *, 'Calling vars_sprac'
 !  Compute carbonate system variables from DIC, ALK, T, S, nutrients, etc
 !  -------------------------------------------------------------------------------------
-  CALL vars_sprac(ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, kspc_out, BetaD, rhoSW, p, tempis,  &   ! NEW: added kspc_out
+  CALL vars_sprac(ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, kspc_out,BetaD, rhoSW, p, tempis,  &   ! NEW: added kspc_out
              temp, sal, alk, dic, sil, phos, Patm, depth, lat, N,                      &
              optCON, optT, optP, opB, opK1K2, opKf, opGAS, opS, lon, salprac      )
 

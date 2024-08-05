@@ -52,35 +52,19 @@ subroutine recom(mesh)
   integer                    :: idiags
 
   real(kind=8)               :: Sali, net, net1, net2
-  real(kind=8),  allocatable :: Temp(:), Sali_depth(:), zr(:), PAR(:)
-  real(kind=8),  allocatable :: C(:,:)
-  real(kind=8),  allocatable :: CO2_watercolumn(:)                                ! NEW MOCSY
-  real(kind=8),  allocatable :: pH_watercolumn(:)                                 ! NEW MOCSY
-  real(kind=8),  allocatable :: pCO2_watercolumn(:)                               ! NEW MOCSY
-  real(kind=8),  allocatable :: HCO3_watercolumn(:)                               ! NEW MOCSY
-  real(kind=8),  allocatable :: CO3_watercolumn(:)                                ! NEW DISS
-  real(kind=8),  allocatable :: OmegaC_watercolumn(:)                             ! NEW DISS
-  real(kind=8),  allocatable :: kspc_watercolumn(:)                               ! NEW DISS
-  real(kind=8),  allocatable :: rhoSW_watercolumn(:)                              ! NEW DISS
 
-  !real(kind=8),  allocatable :: Nutlim_phy(:)                               ! NEWOUT
-  !real(kind=8),  allocatable :: Nutlim_dia(:)                               ! NEWOUT
-  !real(kind=8),  allocatable :: Nutlim_cocco(:)                             ! NEWOUT
-  !real(kind=8),  allocatable :: Tlim_arr(:)                                 ! NEWOUT
-  !real(kind=8),  allocatable :: Tlim_cocco(:)                               ! NEWOUT
-  !real(kind=8),  allocatable :: Llim_phy(:)                                 ! NEWOUT
-  !real(kind=8),  allocatable :: Llim_dia(:)                                 ! NEWOUT
-  !real(kind=8),  allocatable :: Llim_cocco(:)                               ! NEWOUT
-  !real(kind=8),  allocatable :: CO2lim_phy(:)                               ! NEWOUT
-  !real(kind=8),  allocatable :: CO2lim_dia(:)                               ! NEWOUT
-  !real(kind=8),  allocatable :: CO2lim_cocco(:)                             ! NEWOUT
-  !real(kind=8),  allocatable :: PR_phy(:)                                   ! NEWOUT
-  !real(kind=8),  allocatable :: PR_dia(:)                                   ! NEWOUT
-  !real(kind=8),  allocatable :: PR_cocco(:)                                 ! NEWOUT
-  !real(kind=8),  allocatable :: Cal_Tlim(:)                                 ! NEWOUT
-  !real(kind=8),  allocatable :: Cal_CO2lim(:)                               ! NEWOUT
-  !real(kind=8),  allocatable :: Cal_Nlim(:)                                 ! NEWOUT
-  !real(kind=8),  allocatable :: Cal_pure(:)                                 ! NEWOUT
+  logical :: do_update = .false. 
+
+  real(kind=8), allocatable  :: Temp(:), Sali_depth(:), zr(:), PAR(:)
+  real(kind=8),  allocatable :: C(:,:)
+  real(kind=8),  allocatable :: CO2_watercolumn(:)                                        ! NEW MOCSY
+  real(kind=8),  allocatable :: pH_watercolumn(:)                                         ! NEW MOCSY
+  real(kind=8),  allocatable :: pCO2_watercolumn(:)                                       ! NEW MOCSY
+  real(kind=8),  allocatable :: HCO3_watercolumn(:)                                       ! NEW MOCSY
+  real(kind=8),  allocatable :: CO3_watercolumn(:)                                        ! NEW DISS
+  real(kind=8),  allocatable :: OmegaC_watercolumn(:)                                     ! NEW DISS
+  real(kind=8),  allocatable :: kspc_watercolumn(:)                                       ! NEW DISS
+  real(kind=8),  allocatable :: rhoSW_watercolumn(:)                                      ! NEW DISS
 
   character(len=2)           :: tr_num_name
 #include "../associate_mesh.h"
@@ -88,13 +72,7 @@ subroutine recom(mesh)
   allocate(Temp(nl-1), Sali_depth(nl-1), zr(nl-1) , PAR(nl-1))
   allocate(CO2_watercolumn(nl-1), pH_watercolumn(nl-1), pCO2_watercolumn(nl-1) , HCO3_watercolumn(nl-1))
   allocate(CO3_watercolumn(nl-1), OmegaC_watercolumn(nl-1), kspc_watercolumn(nl-1) , rhoSW_watercolumn(nl-1))
-  !allocate(Nutlim_phy(nl-1), Nutlim_dia(nl-1), Nutlim_cocco(nl-1), Tlim_arr(nl-1), Tlim_cocco(nl-1))
-  !allocate(Llim_phy(nl-1), Llim_dia(nl-1), Llim_cocco(nl-1))
-  !allocate(CO2lim_phy(nl-1), CO2lim_dia(nl-1), CO2lim_cocco(nl-1))
-  !allocate(PR_phy(nl-1), PR_dia(nl-1), PR_cocco(nl-1))
-  !allocate(Cal_Tlim(nl-1), Cal_CO2lim(nl-1), Cal_Nlim(nl-1), Cal_pure(nl-1))
   allocate(C(nl-1,bgc_num))
-
 
   if (.not. use_REcoM) return
 
@@ -102,22 +80,41 @@ subroutine recom(mesh)
 !************************* READ SURFACE BOUNDARY FILES *********************************			
 
 if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> Atm_input'//achar(27)//'[0m'
-
   call Atm_input(mesh)        !<  read surface atmospheric deposition for Fe, N, CO2
+
+if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'   --> River_input'//achar(27)//'[0m'
   call River_input(mesh)      !<  read riverine input
+
+if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//' --> Erosion_input'//achar(27)//'[0m'
   call Erosion_input(mesh)    !<  read erosion input
 
 if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> bio_fluxes'//achar(27)//'[0m'
-
   call bio_fluxes(mesh)       !<  alkalinity restoring/ virtual flux is possible
-  
-  if (mype==0 .and. mstep==1) write(*,*), "call bio_fluxes is ready"   ! NEW: added print statement
+
+  if (use_atbox) then    ! MERGE
+! Prognostic atmospheric isoCO2
+    call recom_atbox(mesh)
+!   optional I/O of isoCO2 and inferred cosmogenic 14C production; this may cost some CPU time
+    if (ciso .and. ciso_14) then
+      call annual_event(do_update)
+      if (do_update .and. mype==0) write (*, fmt = '(a50,2x,i6,4(2x,f6.2))') &
+                                         'Year, xCO2 (ppm), cosmic 14C flux (at / cm² / s):', &
+                                          yearold, x_co2atm(1), x_co2atm_13(1), x_co2atm_14(1), cosmic_14(1) * production_rate_to_flux_14
+    end if
+  end if
+
+! MERGE
+! ======================================================================================
+!************************* READ BOTTOM BOUNDARY FILES*********************************
+if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> Sed_input'//achar(27)//'[0m'
+if (use_MEDUSA .and. (sedflx_num .ne. 0)) then
+   call Sed_input(mesh) !! --> sedimentary input from MEDUSA
+end if ! use_MEDUSA and sedflx_num not 0
 
 ! ======================================================================================
 !********************************* LOOP STARTS *****************************************			
 
   do n=1, myDim_nod2D  ! needs exchange_nod in the end
-!  if (mype==0 .and. mstep==1) write(*,*), "Loop ", n, "of ",myDim_nod2D       ! NEW: added print statement
 !     if (ulevels_nod2D(n)>1) cycle 
 !            nzmin = ulevels_nod2D(n)
 
@@ -127,11 +124,18 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> bio_fluxes'
      !!---- This is needed for piston velocity 
      Loc_ice_conc = a_ice(n) 
 
-     !!---- Mean sea level pressure 
+     !!---- Mean sea level pressure ! MERGE
+#if defined (__oasis) 
+!!   MB: This is an ad-hoc patch for AWIESM-2.1 and needs to be improved:
+!!   We should consider air pressure provided by ECHAM.
+     Loc_slp           = pa2atm
+#else
      Loc_slp = press_air(n)
+#endif 
 
      !!---- Benthic layers
      LocBenthos(1:benthos_num) = Benthos(n,1:benthos_num)
+!CV: It is not clear to me whether this is still needed
 
      !!---- Local conc of [H+]-ions from last time time step. Stored in LocVar
      !!---- used as first guess for H+ conc.in subroutine CO2flux (provided by recom_init)
@@ -139,15 +143,40 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> bio_fluxes'
 
      !!---- Interpolated wind from atmospheric forcing 
      !!---- temporarily stored in module LocVar
+#if defined (__oasis)
+!    Derive 10m-wind speed from wind stress fields, see module recom_ciso.
+!    This is an ad-hoc solution as long as 10m-winds are not handled from OASIS.
+     Uloc              = wind_10(stress_atmoce_x(n), stress_atmoce_y(n))
+#else
      ULoc = sqrt(u_wind(n)**2+v_wind(n)**2)
+#endif
 
      !!---- Atmospheric CO2 in LocVar                                                                        
-     LocAtmCO2         = AtmCO2(month)   
+     LocAtmCO2         = AtmCO2(month)
+
+! Update of prognostic atmospheric CO2 values
+     if (use_atbox) then
+       LocAtmCO2                   = x_co2atm(1)
+       if (ciso) then
+         LocAtmCO2_13              = x_co2atm_13(1)
+         if (ciso_14) LocAtmCO2_14 = x_co2atm_14(1)
+       end if
+     else
+! Consider prescribed atmospheric CO2 values
+       if (ciso) then
+         LocAtmCO2_13              = AtmCO2_13(month)
+         if (ciso_14) then
+!          Latitude of nodal point n 
+           lat_val = geo_coord_nod2D(2,n) / rad
+!          Zonally binned NH / SH / TZ 14CO2 input values
+           LocAtmCO2_14 = AtmCO2_14(lat_zone(lat_val), month)
+         end if
+       end if
+     end if  ! use_atbox
+
      if (ciso) then
-        LocAtmCO2_13 = AtmCO2_13(month)
-        LocAtmCO2_14 = AtmCO2_14(month)
-        r_atm_13 = LocAtmCO2_13(1) / LocAtmCO2(1)
-        r_atm_14 = LocAtmCO2_14(1) / LocAtmCO2(1)
+       r_atm_13                    = LocAtmCO2_13(1) / LocAtmCO2(1)
+       if (ciso_14) r_atm_14       = LocAtmCO2_14(1) / LocAtmCO2(1)
      end if
 
      !!---- Shortwave penetration
@@ -161,9 +190,7 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> bio_fluxes'
      Sali = tr_arr(1,       n, 2)
      Sali_depth(1:nzmax)= tr_arr(1:nzmax, n, 2)                                    ! NEW MOCSY
 
-     ! CO2 for the whole watercolumn                                               ! NEW MOCSY
-     !if (mype==0 .and. mstep==1) write(*,*), "starting to assign CO2 diagnostics"   ! NEW: added print statement 
-    
+     !!---- CO2 in the watercolumn                                                 ! NEW MOCSY
      CO2_watercolumn(1:nzmax)    = CO23D(1:nzmax, n)                               ! NEW MOCSY
      pH_watercolumn(1:nzmax)     = pH3D(1:nzmax, n)                                ! NEW MOCSY
      pCO2_watercolumn(1:nzmax)   = pCO23D(1:nzmax, n)                              ! NEW MOCSY
@@ -172,38 +199,9 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> bio_fluxes'
      OmegaC_watercolumn(1:nzmax) = OmegaC3D(1:nzmax, n)                            ! NEW DISS
      kspc_watercolumn(1:nzmax)   = kspc3D(1:nzmax, n)                              ! NEW DISS
      rhoSW_watercolumn(1:nzmax)  = rhoSW3D(1:nzmax, n)                             ! NEW DISS
-     
-     !if (mype==0 .and. mstep==1) write(*,*), "successful assignment of CO2 diagnostics"   ! NEW: added print statement  
-    
-
-     ! Additional output to analyse limitations                                 ! NEWOUT
-     !Nutlim_phy(1:nzmax)         = Nutlim_phy3D(1:nzmax, n)                        ! NEWOUT
-     !Nutlim_dia(1:nzmax)         = Nutlim_dia3D(1:nzmax, n)                        ! NEWOUT
-     !Nutlim_cocco(1:nzmax)       = Nutlim_cocco3D(1:nzmax, n)                      ! NEWOUT
-     !Tlim_arr(1:nzmax)           = Tlim_arr3D(1:nzmax, n)                          ! NEWOUT
-     !Tlim_cocco(1:nzmax)         = Tlim_cocco3D(1:nzmax, n)                        ! NEWOUT
-     !Llim_phy(1:nzmax)           = Llim_phy3D(1:nzmax, n)                          ! NEWOUT
-     !Llim_dia(1:nzmax)           = Llim_dia3D(1:nzmax, n)                          ! NEWOUT
-     !Llim_cocco(1:nzmax)         = Llim_cocco3D(1:nzmax, n)                        ! NEWOUT
-     !CO2lim_phy(1:nzmax)         = CO2lim_phy3D(1:nzmax, n)                        ! NEWOUT
-     !CO2lim_dia(1:nzmax)         = CO2lim_dia3D(1:nzmax, n)                        ! NEWOUT
-     !CO2lim_cocco(1:nzmax)       = CO2lim_cocco3D(1:nzmax, n)                      ! NEWOUT
-     !PR_phy(1:nzmax)             = PR_phy3D(1:nzmax, n)                            ! NEWOUT
-     !PR_dia(1:nzmax)             = PR_dia3D(1:nzmax, n)                            ! NEWOUT
-     !PR_cocco(1:nzmax)           = PR_cocco3D(1:nzmax, n)                          ! NEWOUT
-     !Cal_Tlim(1:nzmax)           = Cal_Tlim3D(1:nzmax, n)                          ! NEWOUT
-     !Cal_CO2lim(1:nzmax)         = Cal_CO2lim3D(1:nzmax, n)                        ! NEWOUT
-     !Cal_Nlim(1:nzmax)           = Cal_Nlim3D(1:nzmax, n)                          ! NEWOUT
-     !Cal_pure(1:nzmax)           = Cal_pure3D(1:nzmax, n)                          ! NEWOUT
-
 
      !!---- Biogeochemical tracers
-     !if (mype==0 .and. mstep==1) write(*,*), "bgc_num = ",bgc_num               ! NEW: added print statement
-     !if (mype==0 .and. mstep==1) write(*,*), "num_tracers =  ",num_tracers      ! NEW: added print statement            
-     
-     C(1:nzmax,1:bgc_num) = tr_arr(1:nzmax, n, 3:num_tracers)             
-     
-     !if (mype==0 .and. mstep==1) write(*,*), "successful assignment of tracer"      ! NEW: added print statement
+     C(1:nzmax,1:bgc_num) = tr_arr(1:nzmax, n, num_tracers-bgc_num+1:num_tracers)             
 
      !!---- Depth of the nodes in the water column 
      zr(1:nzmax) = Z_3d_n(1:nzmax, n)                          
@@ -215,15 +213,116 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> bio_fluxes'
      FeDust = GloFeDust(n) * (1 - a_ice(n)) * dust_sol    
      NDust = GloNDust(n)  * (1 - a_ice(n))
 
-     allocate(Diags3Dloc(nzmax,28))         ! NEW changed from 8 to 28
-     Diags3Dloc(:,:) = 0.d0
+if (Diags) then
+
+     !!---- Allocate 3D diagnostics    ! Comment Miriam (2/2024): changed grazing from a 3D to a 2D diagnostic while completing all grazing fluxes
+!     allocate(vertgrazmeso_tot(nl-1), vertgrazmeso_n(nl-1), vertgrazmeso_d(nl-1))
+!     vertgrazmeso_tot = 0.d0
+!     vertgrazmeso_n   = 0.d0
+!     vertgrazmeso_d   = 0.d0
+
+!#if defined (__coccos)
+!     allocate(vertgrazmeso_c(nl-1))
+!     vertgrazmeso_c   = 0.d0
+!#endif
+
+     allocate(vertrespmeso(nl-1))
+     vertrespmeso  = 0.d0
+
+#if defined (__3Zoo2Det)
+     allocate(vertrespmacro(nl-1), vertrespmicro(nl-1))
+     vertrespmacro = 0.d0
+     vertrespmicro = 0.d0
+#endif
+
+     allocate(vertcalcdiss(nl-1), vertcalcif(nl-1))
+     vertcalcdiss = 0.d0
+     vertcalcif   = 0.d0
+
+     allocate(vertaggn(nl-1), vertaggd(nl-1))
+     vertaggn = 0.d0
+     vertaggd = 0.d0
+
+     allocate(vertdocexn(nl-1), vertdocexd(nl-1))
+     vertdocexn = 0.d0
+     vertdocexd = 0.d0
+
+     allocate(vertrespn(nl-1), vertrespd(nl-1))
+     vertrespn = 0.d0
+     vertrespd = 0.d0
+
+#if defined (__coccos)
+     allocate(vertaggc(nl-1), vertdocexc(nl-1), vertrespc(nl-1))
+     vertaggc = 0.d0
+     vertdocexc = 0.d0
+     vertrespc = 0.d0
+#endif
+
+     !!---- Allocate 2D diagnostics
+     allocate(vertNPPn(nl-1), vertGPPn(nl-1), vertNNAn(nl-1), vertChldegn(nl-1)) 
+     vertNPPn = 0.d0
+     vertGPPn = 0.d0
+     vertNNAn = 0.d0
+     Chldegn = 0.d0
+
+     allocate(vertNPPd(nl-1), vertGPPd(nl-1), vertNNAd(nl-1), vertChldegd(nl-1)) 
+     vertNPPd = 0.d0
+     vertGPPd = 0.d0
+     vertNNAd = 0.d0
+     Chldegd = 0.d0
+
+#if defined (__coccos)
+     allocate(vertNPPc(nl-1), vertGPPc(nl-1), vertNNAc(nl-1), vertChldegc(nl-1)) 
+     vertNPPc = 0.d0
+     vertGPPc = 0.d0
+     vertNNAc = 0.d0
+     Chldegc = 0.d0
+#endif
+
+     if (Grazing_detritus) then
+        allocate(vertgrazmeso_tot(nl-1), vertgrazmeso_n(nl-1), vertgrazmeso_d(nl-1))
+        vertgrazmeso_tot = 0.d0
+        vertgrazmeso_n   = 0.d0
+        vertgrazmeso_d   = 0.d0
+#if defined (__coccos)
+        allocate(vertgrazmeso_c(nl-1))
+        vertgrazmeso_c   = 0.d0
+#endif
+        allocate(vertgrazmeso_det(nl-1))
+        vertgrazmeso_det = 0.d0
+#if defined (__3Zoo2Det)
+        allocate(vertgrazmeso_mic(nl-1), vertgrazmeso_det2(nl-1))
+        vertgrazmeso_mic  = 0.d0
+        vertgrazmeso_det2 = 0.d0
+        allocate(vertgrazmacro_tot(nl-1), vertgrazmacro_n(nl-1), vertgrazmacro_d(nl-1))
+        vertgrazmacro_tot = 0.d0
+        vertgrazmacro_n   = 0.d0
+        vertgrazmacro_d   = 0.d0
+#if defined (__coccos)
+        allocate(vertgrazmacro_c(nl-1))
+        vertgrazmacro_c   = 0.d0
+#endif
+        allocate(vertgrazmacro_mes(nl-1), vertgrazmacro_det(nl-1), vertgrazmacro_mic(nl-1), vertgrazmacro_det2(nl-1))
+        vertgrazmacro_mes = 0.d0
+        vertgrazmacro_det = 0.d0
+        vertgrazmacro_mic = 0.d0
+        vertgrazmacro_det2= 0.d0
+        allocate(vertgrazmicro_tot(nl-1), vertgrazmicro_n(nl-1), vertgrazmicro_d(nl-1))
+        vertgrazmicro_tot = 0.d0
+        vertgrazmicro_n   = 0.d0
+        vertgrazmicro_d   = 0.d0
+#if defined (__coccos)
+        allocate(vertgrazmicro_c(nl-1))
+        vertgrazmicro_c   = 0.d0
+#endif
+#endif
+     endif !Grazing_detritus
+end if
 
 if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_Forcing'//achar(27)//'[0m'
 
-
 ! ======================================================================================
 !******************************** RECOM FORCING ****************************************
-
      call REcoM_Forcing(zr, n, nzmax, C, SW, Loc_slp, Temp, Sali, Sali_depth &
            , CO2_watercolumn                                     & ! NEW MOCSY CO2 for the whole watercolumn
            , pH_watercolumn                                      & ! NEW MOCSY pH for the whole watercolumn
@@ -233,33 +332,148 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_Forci
            , OmegaC_watercolumn                                  & ! NEW DISS OmegaC for the whole watercolumn
            , kspc_watercolumn                                    & ! NEW DISS stoichiometric solubility product for calcite [mol^2/kg^2]
            , rhoSW_watercolumn                                   & ! NEW DISS in-situ density of seawater [mol/m^3]
-          ! , Nutlim_phy                                          & ! NEWOUT nutrient limitation of small phytoplankton
-          ! , Nutlim_dia                                          & ! NEWOUT nutrient limitation of diatoms
-          ! , Nutlim_cocco                                        & ! NEWOUT nutrient limitiation of coccolithophores
-          ! , Tlim_arr                                            & ! NEWOUT temperature limitation according to the Arrhenius function
-          ! , Tlim_cocco                                          & ! NEWOUT temperature limitation of coccolithophores
-          ! , Llim_phy                                            & ! NEWOUT light limitation of small phytoplankton
-          ! , Llim_dia                                            & ! NEWOUT light limitation of diatoms
-          ! , Llim_cocco                                          & ! NEWOUT light limitation of coccolithophores
-          ! , CO2lim_phy                                          & ! NEWOUT CO2 limitation of small phytoplankton
-          ! , CO2lim_dia                                          & ! NEWOUT CO2 limitation of diatoms
-          ! , CO2lim_cocco                                        & ! NEWOUT CO2 limitation of coccolithophores
-          ! , PR_phy                                              & ! NEWOUT Photosynthesis rate of small phytoplankton
-          ! , PR_dia                                              & ! NEWOUT Photosynthesis rate of diatoms
-          ! , PR_cocco                                            & ! NEWOUT Photosynthesis rate of coccolithophores
-          ! , Cal_Tlim                                            & ! NEWOUT Temperature dependence of calcification
-          ! , Cal_CO2lim                                          & ! NEWOUT CO2 dependence of calcification
-          ! , Cal_Nlim                                            & ! NEWOUT Nitrate dependence of calcification
-          ! , Cal_pure                                            & ! NEWOUT PIC only dependent on PICPOCmax,  CoccoC, T, N, CO2
            , PAR, mesh)
 
-     tr_arr(1:nzmax, n, 3:num_tracers)       = C(1:nzmax, 1:bgc_num)
-
+     tr_arr(1:nzmax, n, num_tracers-bgc_num+1:num_tracers)       = C(1:nzmax, 1:bgc_num)
 
      !!---- Local variables that have been changed during the time-step are stored so they can be saved
      Benthos(n,1:benthos_num)     = LocBenthos(1:benthos_num)                                ! Updating Benthos values
 
-     Diags2D(n,1:12)              = LocDiags2D(1:12)                                ! Updating diagnostics ! NEW: changed from 8 to 12
+!     Diags2D(n,1:12)               = LocDiags2D(1:12)                                ! Updating diagnostics
+
+if (Diags) then
+     !!---- Updating 2D diagnostics
+     NPPn(n) = locNPPn
+     GPPn(n) = locGPPn
+     NNAn(n) = locNNAn
+     Chldegn(n) = locChldegn
+
+     NPPd(n) = locNPPd
+     GPPd(n) = locGPPd
+     NNAd(n) = locNNAd
+     Chldegd(n) = locChldegd
+
+#if defined (__coccos)
+     NPPc(n) = locNPPc
+     GPPc(n) = locGPPc
+     NNAc(n) = locNNAc
+     Chldegc(n) = locChldegc
+#endif
+
+     if (Grazing_detritus) then
+     ! Mesozooplankton
+     grazmeso_tot(n) = locgrazmeso_tot
+     grazmeso_n(n)   = locgrazmeso_n
+     grazmeso_d(n)   = locgrazmeso_d
+#if defined (__coccos)
+     grazmeso_c(n)   = locgrazmeso_c
+#endif
+     grazmeso_det(n) = locgrazmeso_det
+#if defined (__3Zoo2Det)
+     grazmeso_mic(n) = locgrazmeso_mic
+     grazmeso_det2(n)= locgrazmeso_det2
+#endif
+
+#if defined (__3Zoo2Det)
+     ! Macrozooplankton
+     grazmacro_tot(n) = locgrazmacro_tot
+     grazmacro_n(n)   = locgrazmacro_n
+     grazmacro_d(n)   = locgrazmacro_d
+#if defined (__coccos)
+     grazmacro_c(n)   = locgrazmacro_c
+#endif
+     grazmacro_mes(n) = locgrazmacro_mes
+     grazmacro_det(n) = locgrazmacro_det
+     grazmacro_mic(n) = locgrazmacro_mic
+     grazmacro_det2(n)= locgrazmacro_det2
+
+     ! Microzooplankton
+     grazmicro_tot(n) = locgrazmicro_tot
+     grazmicro_n(n)   = locgrazmicro_n
+     grazmicro_d(n)   = locgrazmicro_d
+#if defined (__coccos)
+     grazmicro_c(n)   = locgrazmicro_c
+#endif
+     
+#endif
+     endif
+     
+     !!---- Updating 3D diagnostics
+!     grazmeso_tot(1:nzmax,n) = vertgrazmeso_tot(1:nzmax)
+!     grazmeso_n(1:nzmax,n)   = vertgrazmeso_n(1:nzmax)
+!     grazmeso_d(1:nzmax,n)   = vertgrazmeso_d(1:nzmax)
+!#if defined (__coccos)
+!     grazmeso_c(1:nzmax,n)   = vertgrazmeso_c(1:nzmax)
+!#endif
+
+     respmeso(1:nzmax,n)     = vertrespmeso(1:nzmax)
+#if defined (__3Zoo2Det)
+     respmacro(1:nzmax,n)    = vertrespmacro(1:nzmax)
+     respmicro(1:nzmax,n)    = vertrespmicro(1:nzmax)
+#endif
+     calcdiss(1:nzmax,n)     = vertcalcdiss(1:nzmax)
+     calcif(1:nzmax,n)       = vertcalcif(1:nzmax)
+
+     aggn(1:nzmax,n)         = vertaggn(1:nzmax)
+     docexn(1:nzmax,n)       = vertdocexn(1:nzmax)
+     respn(1:nzmax,n)        = vertrespn(1:nzmax)
+     NPPn3D(1:nzmax,n)       = vertNPPn(1:nzmax)
+
+     aggd(1:nzmax,n)         = vertaggd(1:nzmax)
+     respd(1:nzmax,n)        = vertrespd(1:nzmax)
+     docexd(1:nzmax,n)       = vertdocexd(1:nzmax)
+     NPPd3D(1:nzmax,n)       = vertNPPd(1:nzmax)
+
+#if defined (__coccos)
+     aggc(1:nzmax,n)         = vertaggc(1:nzmax)
+     docexc(1:nzmax,n)       = vertdocexc(1:nzmax)
+     respc(1:nzmax,n)        = vertrespc(1:nzmax)
+     NPPc3D(1:nzmax,n)       = vertNPPc(1:nzmax)
+#endif
+
+     !!---- Deallocating 2D diagnostics
+     deallocate(vertNPPn,vertGPPn,vertNNAn,vertChldegn) 
+     deallocate(vertNPPd,vertGPPd,vertNNAd,vertChldegd) 
+#if defined (__coccos)
+     deallocate(vertNPPc,vertGPPc,vertNNAc,vertChldegc) 
+#endif
+
+     if (Grazing_detritus) then
+        deallocate(vertgrazmeso_tot, vertgrazmeso_n,  vertgrazmeso_d)
+#if defined (__coccos)
+        deallocate(vertgrazmeso_c)
+#endif
+        deallocate(vertgrazmeso_det)
+#if defined (__3Zoo2Det)
+        deallocate(vertgrazmeso_mic, vertgrazmeso_det2)
+        deallocate(vertgrazmacro_tot, vertgrazmacro_n, vertgrazmacro_d)
+#if defined (__coccos)
+        deallocate(vertgrazmacro_c)
+#endif
+        deallocate(vertgrazmacro_mes, vertgrazmacro_det, vertgrazmacro_mic, vertgrazmacro_det2)
+        deallocate(vertgrazmicro_tot, vertgrazmicro_n, vertgrazmicro_d)
+#if defined (__coccos)
+        deallocate(vertgrazmicro_c)
+#endif        
+#endif
+     endif ! Grazing_detritus
+        
+
+     !!---- Deallocating 3D Diagnistics
+     !     deallocate(vertgrazmeso_tot, vertgrazmeso_n, vertgrazmeso_d, vertrespmeso)
+     deallocate(vertrespmeso)
+#if defined (__3Zoo2Det)
+     deallocate(vertrespmacro, vertrespmicro)
+#endif
+     deallocate(vertcalcdiss, vertcalcif)
+     deallocate(vertaggn, vertdocexn, vertrespn)
+     deallocate(vertaggd, vertdocexd, vertrespd)
+#if defined (__coccos)
+!    deallocate(vertgrazmeso_c)
+     deallocate(vertaggc, vertdocexc, vertrespc)
+#endif
+endif
+
      GloPCO2surf(n)               = pco2surf(1)
      GlodPCO2surf(n)              = dpco2surf(1)
 
@@ -267,9 +481,10 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_Forci
      GloCO2flux_seaicemask(n)     = co2flux_seaicemask(1)                 !  [mmol/m2/s]
      GloO2flux_seaicemask(n)      = o2flux_seaicemask(1)                  !  [mmol/m2/s]
      if (ciso) then
-!        tr_arr(1:nzmax, n, 25:40)    = C(1:nzmax,23:38)
         GloCO2flux_seaicemask_13(n)     = co2flux_seaicemask_13(1)        !  [mmol/m2/s]
-        GloCO2flux_seaicemask_14(n)     = co2flux_seaicemask_14(1)        !  [mmol/m2/s]
+        if (ciso_14) then
+            GloCO2flux_seaicemask_14(n) = co2flux_seaicemask_14(1)        !  [mmol/m2/s]
+        end if
      end if
 
      GloHplus(n)                  = ph(1) !hplus
@@ -280,78 +495,113 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_Forci
      GlodecayBenthos(n, 1:benthos_num) = decayBenthos(1:benthos_num)/SecondsPerDay ! convert from [mmol/m2/d] to [mmol/m2/s]  
 
      PAR3D(1:nzmax,n)             = PAR(1:nzmax) !     PAR3D(inds(1:nn))   = PAR(1:nn)
-     
-     CO23D(1:nzmax,n)             = CO2_watercolumn(1:nzmax)       ! NEW ms
-     pH3D(1:nzmax,n)              = pH_watercolumn(1:nzmax)        ! NEW ms 
-     pCO23D(1:nzmax,n)            = pCO2_watercolumn(1:nzmax)      ! NEW ms 
-     HCO33D(1:nzmax,n)            = HCO3_watercolumn(1:nzmax)      ! NEW ms 
-     CO33D(1:nzmax,n)             = CO3_watercolumn(1:nzmax)       ! NEW ms 
-     OmegaC3D(1:nzmax,n)          = OmegaC_watercolumn(1:nzmax)    ! NEW ms 
-     kspc3D(1:nzmax,n)            = kspc_watercolumn(1:nzmax)      ! NEW ms 
-     rhoSW3D(1:nzmax,n)           = rhoSW_watercolumn(1:nzmax)     ! NEW ms 
-   
-     do idiags = 1,diags3d_num
-       Diags3D(1:nzmax,n,idiags)  = Diags3Dloc(1:nzmax,idiags) ! 1=NPPnano, 2=NPPdia
-     end do
-
-     deallocate(Diags3Dloc)
-     
+     CO23D(1:nzmax,n)             = CO2_watercolumn(1:nzmax)       ! NEW MOCSY
+     pH3D(1:nzmax,n)              = pH_watercolumn(1:nzmax)        ! NEW MOCSY
+     pCO23D(1:nzmax,n)            = pCO2_watercolumn(1:nzmax)      ! NEW MOCSY 
+     HCO33D(1:nzmax,n)            = HCO3_watercolumn(1:nzmax)      ! NEW MOCSY
+     CO33D(1:nzmax,n)             = CO3_watercolumn(1:nzmax)       ! NEW MOCSY
+     OmegaC3D(1:nzmax,n)          = OmegaC_watercolumn(1:nzmax)    ! NEW DISS
+     kspc3D(1:nzmax,n)            = kspc_watercolumn(1:nzmax)      ! NEW DISS
+     rhoSW3D(1:nzmax,n)           = rhoSW_watercolumn(1:nzmax)     ! NEW DISS
 
   end do
 
 ! ======================================================================================
 !************************** EXCHANGE NODAL INFORMATION *********************************			
 
-  if (mype==0 .and. mstep==1) write(*,*), "Exchange of nodal information on tracers starts"       ! NEW: added print statement
-
-  do tr_num=3, bgc_num+2 
+!if (mype==0) print *, "num_tracers = ", num_tracers
+!if (mype==0) print *, "bgc_num = ", bgc_num
+!if (mype==0) print *, "num_tracers - bgc_num = ", num_tracers-bgc_num
+  do tr_num=num_tracers-bgc_num+1, num_tracers !bgc_num+2 
     call exchange_nod(tr_arr(:,:,tr_num))
   end do
-
-  if (mype==0 .and. mstep==1) write(*,*), "Exchange of nodal information on tracers was successful"       ! NEW: added print statement
 
   do n=1, benthos_num
     call exchange_nod(Benthos(:,n))
   end do
   
-  do n=1, 12                                  ! NEW: changed from 8 to 12
-    call exchange_nod(Diags2D(:,n))	
-  end do
+!  do n=1, 12
+!    call exchange_nod(Diags2D(:,n))
+!  end do
+
+  if (Diags) then
+    call exchange_nod(NPPn)
+    call exchange_nod(NPPd)
+    call exchange_nod(GPPn)
+    call exchange_nod(GPPd)
+    call exchange_nod(NNAn)
+    call exchange_nod(NNAd)
+    call exchange_nod(Chldegn)
+    call exchange_nod(Chldegd)
+#if defined (__coccos)
+    call exchange_nod(NPPc)
+    call exchange_nod(GPPc)
+    call exchange_nod(NNAc)
+    call exchange_nod(Chldegc)
+#endif
+    call exchange_nod(grazmeso_tot)
+    call exchange_nod(grazmeso_n)
+    call exchange_nod(grazmeso_d)
+#if defined (__coccos)
+    call exchange_nod(grazmeso_c)
+#endif
+    call exchange_nod(grazmeso_det)
+#if defined (__3Zoo2Det)
+    call exchange_nod(grazmeso_mic)
+    call exchange_nod(grazmeso_det2)
+    call exchange_nod(grazmacro_tot)
+    call exchange_nod(grazmacro_n)
+    call exchange_nod(grazmacro_d)
+#if defined (__coccos)
+    call exchange_nod(grazmacro_c)
+#endif
+    call exchange_nod(grazmacro_mes)
+    call exchange_nod(grazmacro_det)
+    call exchange_nod(grazmacro_mic)
+    call exchange_nod(grazmacro_det2)
+    call exchange_nod(grazmicro_tot)
+    call exchange_nod(grazmicro_n)
+    call exchange_nod(grazmicro_d)
+#if defined (__coccos)
+    call exchange_nod(grazmicro_c)
+#endif
+#endif
+  endif
 
   call exchange_nod(GloPCO2surf)	
   call exchange_nod(GloCO2flux)	
   call exchange_nod(GloCO2flux_seaicemask)
-
-  do n=1, 4
-    call exchange_nod(GlodecayBenthos(:,n))
-  end do
-
   if (ciso) then
     call exchange_nod(GloPCO2surf_13)
-    call exchange_nod(GloPCO2surf_14)
     call exchange_nod(GloCO2flux_13)
-    call exchange_nod(GloCO2flux_14)
     call exchange_nod(GloCO2flux_seaicemask_13)
-    call exchange_nod(GloCO2flux_seaicemask_14)  
+    if (ciso_14) then
+      call exchange_nod(GloPCO2surf_14)
+      call exchange_nod(GloCO2flux_14)
+      call exchange_nod(GloCO2flux_seaicemask_14)
+    end if 
   end if
+
+  do n=1, benthos_num  !4
+    call exchange_nod(GlodecayBenthos(:,n))
+  end do
+ 
   call exchange_nod(GloO2flux_seaicemask)	
   call exchange_nod(GloHplus)	
   call exchange_nod(AtmFeInput)	
   call exchange_nod(AtmNInput)	
-!  call exchange_nod(DenitBen)
-  call exchange_nod(PAR3D)
+!  call exchange_nod(DenitBen)	
 
-  call exchange_nod(CO23D)       ! NEW ms
-  call exchange_nod(pH3D)        ! NEW ms
-  call exchange_nod(pCO23D)      ! NEW ms
-  call exchange_nod(HCO33D)      ! NEW ms
-  call exchange_nod(CO33D)       ! NEW ms
-  call exchange_nod(OmegaC3D)    ! NEW ms
-  call exchange_nod(kspc3D)      ! NEW ms
-  call exchange_nod(rhoSW3D)	 ! NEW ms
-!  do n=1, 2
-!     call exchange_nod(Diags3D(:,:,n))	
-!  end do
+  call exchange_nod(PAR3D)
+  call exchange_nod(CO23D)
+  call exchange_nod(pH3D)
+  call exchange_nod(pCO23D)
+  call exchange_nod(HCO33D)
+  call exchange_nod(CO33D)
+  call exchange_nod(OmegaC3D)
+  call exchange_nod(kspc3D)
+  call exchange_nod(rhoSW3D)
+
 end subroutine recom
 ! ======================================================================================
 ! Alkalinity restoring to climatology                                 			*
@@ -405,7 +655,6 @@ subroutine bio_fluxes(mesh)
 !  end if
 
   ! Alkalinity restoring to climatology
-  if (.not. restore_alkalinity .and. mype==0 .and. mstep==1) write(*,*), "restore_alkalinity is OFF"   ! NEW: added print statement (copied from Claudia's code)
   if (.not. restore_alkalinity) return
   do n=1, myDim_nod2D+eDim_nod2D
      relax_alk(n)=surf_relax_Alk*(Alk_surf(n)-tr_arr(1,n,2+ialk)) ! 1 temp, 2 salt
@@ -423,7 +672,7 @@ subroutine bio_fluxes(mesh)
 !     call integrate_nod(virtual_alk, net)
 !     virtual_alk=virtual_alk-net/ocean_area
 !  end if
-  if (mype==0 .and. mstep==1) write(*,*), "call integrate_nod"   ! NEW: added print statement
+
 
   ! 3. restoring to Alkalinity climatology
   call integrate_nod(relax_alk, net, mesh)

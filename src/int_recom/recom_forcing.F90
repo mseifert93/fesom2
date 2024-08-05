@@ -10,24 +10,6 @@ subroutine REcoM_Forcing(zNodes, n, Nn, state, SurfSW, Loc_slp, Temp, Sali, Sali
             , OmegaC_watercolumn                                       &          ! NEW DISS
             , kspc_watercolumn                                         &          ! NEW DISS
             , rhoSW_watercolumn                                        &          ! NEW DISS
-            !, Nutlim_phy                                               &          ! NEWOUT
-            !, Nutlim_dia                                               &          ! NEWOUT
-            !, Nutlim_cocco                                             &          ! NEWOUT
-            !, Tlim_arr                                                 &          ! NEWOUT
-            !, Tlim_cocco                                               &          ! NEWOUT
-            !, Llim_phy                                                 &          ! NEWOUT
-            !, Llim_dia                                                 &          ! NEWOUT
-            !, Llim_cocco                                               &          ! NEWOUT
-            !, CO2lim_phy                                               &          ! NEWOUT
-            !, CO2lim_dia                                               &          ! NEWOUT
-            !, CO2lim_cocco                                             &          ! NEWOUT
-            !, PR_phy                                                   &          ! NEWOUT
-            !, PR_dia                                                   &          ! NEWOUT
-            !, PR_cocco                                                 &          ! NEWOUT
-            !, Cal_Tlim                                                 &          ! NEWOUT
-            !, Cal_CO2lim                                               &          ! NEWOUT
-            !, Cal_Nlim                                                 &          ! NEWOUT
-            !, Cal_pure                                                 &          ! NEWOUT
             , PAR, mesh)
 
   use REcoM_declarations
@@ -73,32 +55,13 @@ subroutine REcoM_Forcing(zNodes, n, Nn, state, SurfSW, Loc_slp, Temp, Sali, Sali
   Real(kind=8),dimension(mesh%nl-1)         :: OmegaC_watercolumn   ! NEW DISS
   Real(kind=8),dimension(mesh%nl-1)         :: kspc_watercolumn     ! NEW DISS
   Real(kind=8),dimension(mesh%nl-1)         :: rhoSW_watercolumn    ! NEW DISS
-! NEWOUT: new output to analyse limitations
-  !Real(kind=8),dimension(mesh%nl-1)         :: Nutlim_phy           ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: Nutlim_dia           ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: Nutlim_cocco         ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: Tlim_arr             ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: Tlim_cocco           ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: Llim_phy             ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: Llim_dia             ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: Llim_cocco           ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: CO2lim_phy           ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: CO2lim_dia           ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: CO2lim_cocco         ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: PR_phy               ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: PR_dia               ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: PR_cocco             ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: Cal_Tlim             ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: Cal_CO2lim           ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: Cal_Nlim             ! NEWOUT
-  !Real(kind=8),dimension(mesh%nl-1)         :: Cal_pure             ! NEWOUT
 
   real(kind=8),dimension(mesh%nl-1)         :: PAR
 
 ! Subroutine Depth
 
   Real(kind=8),dimension(mesh%nl)           :: zF                   ! [m] Depth of fluxes
-  Real(kind=8),dimension(mesh%nl,4)         :: SinkVel              ! [m/day]
+  Real(kind=8),dimension(mesh%nl,5)         :: SinkVel              ! [m/day]
   Real(kind=8),dimension(mesh%nl-1)         :: thick                ! [m] Vertical distance between two nodes = Thickness 
   Real(kind=8),dimension(mesh%nl-1)         :: recipthick           ! [1/m] reciprocal of thick
 
@@ -120,7 +83,7 @@ subroutine REcoM_Forcing(zNodes, n, Nn, state, SurfSW, Loc_slp, Temp, Sali, Sali
   Real(kind=8)                          :: REcoM_O2(1)            ! [mmol/m3] Conc of O2 in the surface water, used to calculate O2 flux
 
 ! Subroutine REcoM_sms
-  Real(kind=8),dimension(mesh%nl-1,bgc_num) :: sms, aux                ! matrix that entail changes in tracer concentrations
+  Real(kind=8),dimension(mesh%nl-1,bgc_num) :: sms                ! matrix that entail changes in tracer concentrations
 
 !Diagnostics
   integer                              :: idiags,n,k
@@ -131,30 +94,21 @@ subroutine REcoM_Forcing(zNodes, n, Nn, state, SurfSW, Loc_slp, Temp, Sali, Sali
 
     tiny_N   = tiny_chl/chl2N_max      ! 0.00001/ 3.15d0   Chl2N_max [mg CHL/mmol N] Maximum CHL a : N ratio = 0.3 gCHL gN^-1
     tiny_N_d = tiny_chl/chl2N_max_d    ! 0.00001/ 4.2d0
-    if (use_coccos) then     ! NEW switch
-       tiny_N_c = tiny_chl/chl2N_max_c    ! 0.00001/ 3.5d0    NEW
-    else
-       tiny_N_c = 0.d0
-    endif
+
     tiny_C   = tiny_N  /NCmax          ! NCmax   = 0.2d0   [mmol N/mmol C] Maximum cell quota of nitrogen (N:C)
     tiny_C_d = tiny_N_d/NCmax_d        ! NCmax_d = 0.2d0 
-    if (use_coccos) then     ! NEW switch
-       tiny_C_c = tiny_N_c/NCmax_c        ! NCmax_c = 0.15d0  NEW
-    else
-       tiny_C_c = 0.d0
-    endif
+
     tiny_Si  = tiny_C_d/SiCmax         ! SiCmax = 0.8d0
 
+#if defined (__coccos)
+    tiny_N_c = tiny_chl/chl2N_max_c    ! 0.00001/ 3.5d0    NEW
+    tiny_C_c = tiny_N_c/NCmax_c        ! NCmax_c = 0.15d0  NEW
+#endif
 
   call Cobeta(mesh)        
   call Depth_calculations(n, Nn,SinkVel,zF,thick,recipthick, mesh)
 
 !! ----- mocsy -------! 
-
-  !if((state(one,idic) > 100000.d0)) then               ! NEW: added this entire print statement (if to endif)
-  !   print*,'NEW ERROR: idic massively high !'
-  !   print*,'idic: ',state(one,idic)
-  !endif
 
 !! convert from mmol/m3 to mol/m3
   REcoM_DIC  = max(tiny*1e-3, state(one,idic)*1e-3)
@@ -210,7 +164,6 @@ subroutine REcoM_Forcing(zNodes, n, Nn, state, SurfSW, Loc_slp, Temp, Sali, Sali
       stop
     endif
 
-  
   call flxco2(co2flux, co2ex, dpco2surf,                                                    &
                   ph, pco2surf, fco2, co2, hco3, co3, OmegaA, OmegaC, BetaD, rhoSW, p, tempis,  &
                   REcoM_T, REcoM_S, REcoM_Alk, REcoM_DIC, REcoM_Si, REcoM_Phos, kw660, LocAtmCO2, Patm, thick(One), Nmocsy, Lond,Latd,     &
@@ -262,48 +215,21 @@ subroutine REcoM_Forcing(zNodes, n, Nn, state, SurfSW, Loc_slp, Temp, Sali, Sali
 
 if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_sms'//achar(27)//'[0m'
 
-
-!  addtiny(1:nn,1) = state(1:nn,isi)
-!  addtiny(1:nn,2) = state(1:nn,idetsi) 
-!  addtiny(1:nn,3) = state(1:nn,idiasi)
-!  addtiny(1:nn,4) = state(1:nn,idetz2si)
+!  call REcoM_sms(n, Nn, state, thick, recipthick, SurfSW, sms, Temp ,zF, PAR, mesh)
 
   call REcoM_sms(n, Nn, state, thick, recipthick, SurfSW, sms, Temp, Sali_depth &
-        , CO2_watercolumn                                              & ! NEW MOCSY [mol/m3]
-        , pH_watercolumn                                               & ! NEW MOCSY on total scale
-        , pCO2_watercolumn                                             & ! NEW MOCSY [uatm]
-        , HCO3_watercolumn                                             & ! NEW MOCSY [mol/m3]
-        , CO3_watercolumn                                              & ! NEW DISS [mol/m3]
-        , OmegaC_watercolumn                                           & ! NEW DISS calcite saturation state
-        , kspc_watercolumn                                             & ! NEW DISS stoichiometric solubility product [mol^2/kg^2]
-        , rhoSW_watercolumn                                            & ! NEW DISS in-situ density of seawater [kg/m3]
-        !, Nutlim_phy                                                   & ! NEWOUT nutrient limitation of small phytoplankton
-        !, Nutlim_dia                                                   & ! NEWOUT nutrient limitation of diatoms
-        !, Nutlim_cocco                                                 & ! NEWOUT nutrient limitation of coccolithophores
-        !, Tlim_arr                                                     & ! NEWOUT temperature limitation according to Arrhenius function
-        !, Tlim_cocco                                                   & ! NEWOUT temperature limitation of coccolithophores
-        !, Llim_phy                                                     & ! NEWOUT light limitation of small phytoplankton
-        !, Llim_dia                                                     & ! NEWOUT light limitation of diatoms
-        !, Llim_cocco                                                   & ! NEWOUT light limitation of coccolithophores
-        !, CO2lim_phy                                                   & ! NEWOUT CO2 limitation of small phytoplankton
-        !, CO2lim_dia                                                   & ! NEWOUT CO2 limitation of diatoms
-        !, CO2lim_cocco                                                 & ! NEWOUT CO2 limitation of coccolithophores
-        !, PR_phy                                                       & ! NEWOUT Photosynthesis rate of small phytoplankton
-        !, PR_dia                                                       & ! NEWOUT Photosynthesis rate of diatoms
-        !, PR_cocco                                                     & ! NEWOUT Photosynthesis rate of coccolithophores
-        !, Cal_Tlim                                                     & ! NEWOUT Temperature dependence of calcification
-        !, Cal_CO2lim                                                   & ! NEWOUT CO2 dependence of calcification
-        !, Cal_Nlim                                                     & ! NEWOUT Nitrate dependence of calcification
-        !, Cal_pure                                                     & ! NEWOUT PIC only dependent on PICPOCmax, CoccoC, T, N, CO2
-        , Loc_slp, SinkVel, zF, PAR, Lond, Latd, mesh)
+        , CO2_watercolumn                                              & ! MOCSY [mol/m3]
+        , pH_watercolumn                                               & ! MOCSY on total scale
+        , pCO2_watercolumn                                             & ! MOCSY [uatm]
+        , HCO3_watercolumn                                             & ! MOCSY [mol/m3]
+        , CO3_watercolumn                                              & ! DISS [mol/m3]
+        , OmegaC_watercolumn                                           & ! DISS calcite saturation state
+        , kspc_watercolumn                                             & ! DISS stoichiometric solubility product [mol^2/kg^2]
+        , rhoSW_watercolumn                                            & ! DISS in-situ density of seawater [kg/m3]
+        , Loc_slp & !, SinkVel
+        , zF, PAR, Lond, Latd, mesh)
 
-!  addtiny(1:nn,1) = (state(1:nn,isi)           - aux(1:nn,isi))
-!  addtiny(1:nn,2) = (state(1:nn,idetsi)        - aux(1:nn,idetsi))
-!  addtiny(1:nn,3) = (state(1:nn,idiasi)        - aux(1:nn,idiasi)) 
-!  addtiny(1:nn,4) = (state(1:nn,idetz2si)      - aux(1:nn,idetz2si))
-
-!  aux=0.0d0
-!  aux(1:nn,:)        = state(1:nn,:) + sms(1:nn,:)
+if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> ciso after REcoM_Forcing'//achar(27)//'[0m'
 
   state(1:nn,:)      = max(tiny,state(1:nn,:) + sms(1:nn,:))
   state(1:nn,ipchl)  = max(tiny_chl,state(1:nn,ipchl))
@@ -313,97 +239,140 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_sms'/
   state(1:nn,idian)  = max(tiny_N_d,state(1:nn,idian))
   state(1:nn,idiac)  = max(tiny_C_d,state(1:nn,idiac))
   state(1:nn,idiasi) = max(tiny_Si, state(1:nn,idiasi))
-  if (use_coccos) then    ! NEW switch
-     state(1:nn,icchl)  = max(tiny_chl,state(1:nn,icchl))                         ! NEW
-     state(1:nn,icocn)  = max(tiny_N_c,state(1:nn,icocn))                         ! NEW
-     state(1:nn,icocc)  = max(tiny_C_c,state(1:nn,icocc))                         ! NEW
-  else
-     state(1:nn,icchl)  = 0.d0
-     state(1:nn,icocn)  = 0.d0
-     state(1:nn,icocc)  = 0.d0
-  endif
-  if (REcoM_Third_Zoo) then   ! NEW 3Zoo
-     state(1:nn,imiczoon)  = max(tiny,state(1:nn,imiczoon))
-     state(1:nn,imiczooc)  = max(tiny,state(1:nn,imiczooc))
-  else
-     state(1:nn,imiczoon)  = 0.d0
-     state(1:nn,imiczooc)  = 0.d0
-  endif
 
-!  addtiny(1:nn,5) = (state(1:nn,isi)           - aux(1:nn,isi))
-!  addtiny(1:nn,6) = (state(1:nn,idetsi)        - aux(1:nn,idetsi))
-!  addtiny(1:nn,7) = (state(1:nn,idiasi)        - aux(1:nn,idiasi)) 
-!  addtiny(1:nn,8) = (state(1:nn,idetz2si)      - aux(1:nn,idetz2si))
+#if defined (__coccos)
+  state(1:nn,icchl)  = max(tiny_chl,state(1:nn,icchl))
+  state(1:nn,icocn)  = max(tiny_N_c,state(1:nn,icocn))
+  state(1:nn,icocc)  = max(tiny_C_c,state(1:nn,icocc))
+#endif
 
-!  addtiny(1:nn,5) = state(1:nn,isi)
-!  addtiny(1:nn,6) = state(1:nn,idetsi) 
-!  addtiny(1:nn,7) = state(1:nn,idiasi)
-!  addtiny(1:nn,8) = state(1:nn,idetz2si)
+#if defined (__3Zoo2Det)
+  state(1:nn,imiczoon)  = max(tiny,state(1:nn,imiczoon))
+  state(1:nn,imiczooc)  = max(tiny,state(1:nn,imiczooc))
+#endif
 
 if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> ciso after REcoM_Forcing'//achar(27)//'[0m'
+
   if (ciso) then
-!    Calculcate isotopic fractionation of 13|14C, radioactive decay of 14C is calculated in oce_ale_tracer.F90
-     kwco2  = kw660(1) * (660/scco2(REcoM_T(1)))**0.5 ! piston velocity (via mocsy)
-     co2sat = co2flux(1) / (kwco2 + tiny) + co2(1)    ! saturation concentration of CO2 (via mocsy)
+!   Calculate carbon-isotopic fractionation, radioactive decay is calculated in oce_ale_tracer.F90
 
-     do kj = one, nn
-        recom_dic    = max(tiny*1e-3,state(kj,idic)*1e-3)    ! overriding REcoM_DIC from above!
-        recom_dic_13 = max(tiny*1e-3,state(kj,idic_13)*1e-3)
-        recom_dic_14 = max(tiny*1e-3,state(kj,idic_14)*1e-3)
-        r_dic_13     = recom_dic_13(1) / recom_dic(1)
-        r_dic_14     = recom_dic_14(1) / recom_dic(1)
+!   Fractionation due to air-sea exchange and chemical speciation of CO2
+    call recom_ciso_airsea(recom_t(1), co3(1), recom_dic(1)) ! -> alpha_aq, alpha_dic. CO3 is taken from mocsy
 
-!       Air-sea exchange and chemical speciation of CO2, fco3 is taken from mocsy
-!       First calculate fractionation factors alpha_aq and alpha_dic. We ignore
-!       vertical fco3 variations, because the effect on alpha_dic (and hence on alpha_p)
-!       is much smaller than the effect of vertical temperature variations.
-        call recom_ciso_airsea(temp(kj), co3(1), recom_dic(1))
+!   Isotopic ratios of dissolved CO2, also needed to calculate biogenic fractionation
+    r_dic_13     = max(tiny*1e-3,state(1,idic_13)*1e-3) / recom_dic(1)
+    r_co2s_13    = alpha_aq_13 / alpha_dic_13 * r_dic_13
+!   Calculate air-sea fluxes of 13|14CO2 in mmol / m**2 / s
+    kwco2  = kw660(1) * (660/scco2(REcoM_T(1)))**0.5  ! Piston velocity (via mocsy)
+    co2sat = co2flux(1) / (kwco2 + tiny) + co2(1)     ! Saturation concentration of CO2 (via mocsy)
+!   co2flux_13   = kwco2 * alpha_k_13 * (alpha_aq_13 * r_atm_13 * co2sat - r_co2s_13 * co2(1))
+!   co2flux_13   = alpha_k_13 * alpha_aq_13 * kwco2 * (r_atm_13 * co2sat - r_dic_13 * co2(1) / alpha_dic_13)
+!   Fractionation factors were determined for freshwater, include a correction for enhanced fractionation in seawater
+    co2flux_13   = (alpha_k_13 * alpha_aq_13 - 0.0002) * kwco2 * (r_atm_13 * co2sat - r_dic_13 * co2(1) / alpha_dic_13)
+    co2flux_seaicemask_13 = co2flux_13 * 1.e3
 
-        r_co2s_13 = alpha_aq_13 / alpha_dic_13 * r_dic_13  ! for biogenic fractionation further below
-        r_co2s_14 = alpha_aq_14 / alpha_dic_14 * r_dic_14
+!   Biogenic fractionation due to photosynthesis of plankton
+!   phyc_13|14 and diac_13|14 are only used in REcoM_sms to calculate DIC_13|14, DOC_13|14 and DetC_13|14
 
-        if (kj == one) then
-           co2flux_13 = alpha_k_13 * alpha_aq_13 * kwco2 * (r_atm_13 * co2sat - r_dic_13 * co2(1) / alpha_dic_13)
-           co2flux_14 = alpha_k_14 * alpha_aq_14 * kwco2 * (r_atm_14 * co2sat - r_dic_14 * co2(1) / alpha_dic_14)
-           co2flux_seaicemask_13 = co2flux_13 * 1.e3 !  [mmol/m2/s]
-           co2flux_seaicemask_14 = co2flux_14 * 1.e3 !  [mmol/m2/s]
-        end if
-!       Biogenic fractionation due to photosynthesis
-!       Vertical variations of CO2* are estimated by a pressure correction (Weiss 1974, eq. 5)
-!       involving the surface density provided by flxco2 (mind that znodes(k) < 0):
-        prt = Patm(1) - 1.0e-5 * rhoSW(1) * 9.81 * znodes(kj)        ! total pressure at level k in atm
-!       CO2* at depth, pressure correction following Weiss (1974, eq. 5) and mocsy
-        co2s = co2(1) * exp((1 - prt) * vco2rgas / (Temp(kj) + C2K)) ! CO2* at depth
-        call recom_ciso_photo(Cphot_z(kj), Cphot_dia_z(kj), co2s, r_co2s_13, r_co2s_14, rhoSW(1)) ! -> alpha_p
-!       Now incorporate biogenic fractionation
-!       iphyc_13|14 and idiac_13|14 are only used in REcoM_sms to calculate
-!       DIC_13|14, DOC_13|14 and DetC_13|14
-        state(kj,iphyc_13) = state(kj,iphyc) * r_co2s_13 / alpha_p_13
-        state(kj,iphyc_14) = state(kj,iphyc) * r_co2s_14 / alpha_p_14
-        state(kj,idiac_13) = state(kj,idiac) * r_co2s_13 / alpha_p_dia_13
-        state(kj,idiac_14) = state(kj,idiac) * r_co2s_14 / alpha_p_dia_14
-     end do
-     state(:,iphyc_13)  = max(tiny_C,  state(:,iphyc_13))
-     state(:,iphyc_14)  = max(tiny_C,  state(:,iphyc_14))
-     state(:,idiac_13)  = max(tiny_C_d,state(:,idiac_13))
-     state(:,idiac_14)  = max(tiny_C_d,state(:,idiac_14))
+    call recom_ciso_photo(co2(1)) ! -> alpha_p
+    r_phyc_13 = r_co2s_13 / alpha_p_13
+    r_diac_13 = r_co2s_13 / alpha_p_dia_13
+    state(1:nn,iphyc_13)   = max((tiny_C   * r_phyc_13), (state(1:nn,iphyc) * r_phyc_13))
+    state(1:nn,idiac_13)   = max((tiny_C_d * r_diac_13), (state(1:nn,idiac) * r_diac_13))
+
+!   The same for radiocarbon, fractionation factors have been already derived above
+    if (ciso_14) then
+!   Air-sea exchange
+      r_dic_14   = max(tiny*1e-3,state(1,idic_14)*1e-3) / recom_dic(1)
+      r_co2s_14  = alpha_aq_14 / alpha_dic_14 * r_dic_14
+!     co2flux_14 = kwco2 * alpha_k_14 * (alpha_aq_14 * r_atm_14 * co2sat - r_co2s_14 * co2(1))
+!     Fractionation factors were determined for freshwater, include a correction for enhanced fractionation seawater
+      co2flux_14 = (alpha_k_14 * alpha_aq_14 - 0.0004) * kwco2 * (r_atm_14 * co2sat - r_dic_14 * co2(1) / alpha_dic_14)
+      co2flux_seaicemask_14 = co2flux_14 * 1.e3
+!   Biogenic fractionation
+      if (ciso_organic_14) then
+        r_phyc_14 = r_co2s_14 / alpha_p_14
+        r_diac_14 = r_co2s_14 / alpha_p_dia_14
+        state(1:nn,iphyc_14) = max((tiny_C   * r_phyc_14), (state(1:nn,iphyc) * r_phyc_14))
+        state(1:nn,idiac_14) = max((tiny_C_d * r_diac_14), (state(1:nn,idiac) * r_diac_14))
+      end if
+    end if
+!   Radiocarbon
   end if
+! ciso
+
 
  if (recom_debug .and. mype==0) write(*,*), "REcoM_forcing worked until here"      ! NEW: added print statement
 
 !-------------------------------------------------------------------------------
 ! Diagnostics
   if (Diags) then
-	do idiags = one,8                                                  ! NEW (changed from 8 to 12) -> no, changed it back for now bcs not added yet
-	  LocDiags2D(idiags) = sum(diags3Dloc(1:nn,idiags) * thick(1:nn))
-	end do
-        LocDiags2D(9)        = sum(diags3Dloc(1:nn,21) * thick(1:nn))      ! NEW cocco NPP (hard-coded, because cocco NPP etc. are appended to the numbers of 3D fields)
-        LocDiags2D(10)       = sum(diags3Dloc(1:nn,22) * thick(1:nn))      ! NEW cocco GPP
-        LocDiags2D(11)       = sum(diags3Dloc(1:nn,23) * thick(1:nn))      ! NEW cocco NNA
-        LocDiags2D(12)       = sum(diags3Dloc(1:nn,24) * thick(1:nn))      ! NEW cocco GNA or chl deg
-  end if
 
-  if (recom_debug .and. mype==0) write(*,*), "REcoM_forcing could read diagnostics"       ! NEW: added print statement
+!    logical, optional                 :: lNPPn
+
+!    if (present(lNPPn))then
+!        locNPPn = sum(diags3Dloc(1:nn,idiags) * thick(1:nn))
+!    endif    
+     locNPPn = sum(vertNPPn(1:nn) * thick(1:nn))
+     locNPPd = sum(vertNPPd(1:nn) * thick(1:nn))
+     locGPPn = sum(vertGPPn(1:nn) * thick(1:nn))
+     locGPPd = sum(vertGPPd(1:nn) * thick(1:nn))
+     locNNAn = sum(vertNNAn(1:nn) * thick(1:nn))
+     locNNAd = sum(vertNNAd(1:nn) * thick(1:nn))
+     locChldegn = sum(vertChldegn(1:nn) * thick(1:nn))
+     locChldegd = sum(vertChldegd(1:nn) * thick(1:nn))
+
+#if defined (__coccos)
+     locNPPc = sum(vertNPPc(1:nn) * thick(1:nn))
+     locGPPc = sum(vertGPPc(1:nn) * thick(1:nn))
+     locNNAc = sum(vertNNAc(1:nn) * thick(1:nn))
+     locChldegc = sum(vertChldegc(1:nn) * thick(1:nn))
+#endif
+
+
+
+     if (Grazing_detritus) then    ! only for the case if grazing detritus is used, as probably only needed for tuning which uses detritus grazing
+        ! Mesozooplankton
+        locgrazmeso_tot = sum(vertgrazmeso_tot(1:nn) * thick(1:nn))
+        locgrazmeso_n   = sum(vertgrazmeso_n(1:nn) * thick(1:nn))
+        locgrazmeso_d 	= sum(vertgrazmeso_d(1:nn) * thick(1:nn))
+#if defined (__coccos)
+        locgrazmeso_c   = sum(vertgrazmeso_c(1:nn) * thick(1:nn))
+#endif
+        locgrazmeso_det = sum(vertgrazmeso_det(1:nn) * thick(1:nn))
+#if defined (__3Zoo2Det)
+        locgrazmeso_mic = sum(vertgrazmeso_mic(1:nn) * thick(1:nn))
+        locgrazmeso_det2= sum(vertgrazmeso_det2(1:nn) * thick(1:nn))
+#endif
+
+#if defined (__3Zoo2Det)
+        ! Macrozooplankton
+        locgrazmacro_tot = sum(vertgrazmacro_tot(1:nn) * thick(1:nn))
+        locgrazmacro_n   = sum(vertgrazmacro_n(1:nn) * thick(1:nn))
+        locgrazmacro_d	 = sum(vertgrazmacro_d(1:nn) * thick(1:nn))
+#if defined (__coccos)
+        locgrazmacro_c   = sum(vertgrazmacro_c(1:nn) * thick(1:nn))
+#endif
+        locgrazmacro_mes = sum(vertgrazmacro_mes(1:nn) * thick(1:nn))
+        locgrazmacro_det = sum(vertgrazmacro_det(1:nn) * thick(1:nn))
+        locgrazmacro_mic = sum(vertgrazmacro_mic(1:nn) * thick(1:nn))
+        locgrazmacro_det2= sum(vertgrazmacro_det2(1:nn) * thick(1:nn))
+
+        ! Microzooplankton
+        locgrazmicro_tot = sum(vertgrazmicro_tot(1:nn) * thick(1:nn))
+        locgrazmicro_n   = sum(vertgrazmicro_n(1:nn) * thick(1:nn))
+        locgrazmicro_d   = sum(vertgrazmicro_d(1:nn) * thick(1:nn))
+#if defined (__coccos)
+        locgrazmicro_c   = sum(vertgrazmicro_c(1:nn) * thick(1:nn))
+#endif
+        
+#endif        
+     endif
+
+
+     
+
+  end if
 
 end subroutine REcoM_Forcing
 
