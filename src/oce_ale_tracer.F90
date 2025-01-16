@@ -1122,6 +1122,7 @@ subroutine ver_sinking_recom_benthos(tr_num,mesh)
         if (any(recom_dia_tracer_id == tracer_id(tr_num))) Vben = VDia
 #if defined (__coccos)
         if (any(recom_cocco_tracer_id == tracer_id(tr_num))) Vben = VCocco   ! check conditions (#if defined (__coccos)) and add the necessary tracers numbers below OG:
+        if (any(recom_phaeo_tracer_id == tracer_id(tr_num))) Vben = VPhaeo
 ! Adjust iphycalc
         if(tracer_id(tr_num)==1020) Vben = VCocco   !iphycal in case of coccos 
 #endif
@@ -1164,8 +1165,10 @@ subroutine ver_sinking_recom_benthos(tr_num,mesh)
             tracer_id(tr_num)==1007 .or. &  !idetn
 #if defined (__coccos) & defined (__3Zoo2Det)
             tracer_id(tr_num)==1029 .or. &  !icocn
+            tracer_id(tr_num)==1032 .or. &  !iphan
 #elif defined (__coccos) & !defined (__3Zoo2Det)
             tracer_id(tr_num)==1023 .or. &  !icocn
+            tracer_id(tr_num)==1026 .or. &  !iphan
 #endif
             tracer_id(tr_num)==1013 ) then  !idian
 !            tracer_id(tr_num)==1013 .or. &  !idian
@@ -1190,8 +1193,10 @@ subroutine ver_sinking_recom_benthos(tr_num,mesh)
             tracer_id(tr_num)==1008 .or. &  !idetc
 #if defined (__coccos) & defined (__3Zoo2Det)
             tracer_id(tr_num)==1030 .or. &  !icocc
+            tracer_id(tr_num)==1033 .or. &  !iphac
 #elif defined (__coccos) & !defined (__3Zoo2Det)
             tracer_id(tr_num)==1024 .or. &  !icocc
+            tracer_id(tr_num)==1027 .or. &  !iphan
 #endif
             tracer_id(tr_num)==1014 ) then
 !            tracer_id(tr_num)==1014 .or. &  !idiac
