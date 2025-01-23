@@ -120,6 +120,9 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         DetZ2Calc,&
         MicZooN,  & ! 3Zoo
         MicZooC,  & ! 3Zoo
+        HetAra,   & ! NEW CALC_ZOO
+        MicCal,   & ! NEW CALC_ZOO
+        DetZ2Ara, & ! NEW CALC_ZOO
 #endif
         FreeFe,  &
         O2
@@ -224,6 +227,12 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 
             PhyCalc = max(tiny,state(k,iphycal)      + sms(k,iphycal))
             DetCalc = max(tiny,state(k,idetcal)      + sms(k,idetcal))
+
+            if (calc_zoo) then   ! NEW CALC_ZOO
+               HetAra = max(tiny,state(k,ihetara)    + sms(k,ihetara))
+               MicCal = max(tiny,state(k,imiccal)    + sms(k,imiccal))
+               DetZ2Ara = max(tiny,state(k,idetz2ara)+ sms(k,idetz2ara))
+            endif
 
 !-------------------------------------------------------------------------------
 !< Quotas
@@ -514,6 +523,9 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 Ca        = (0.02128d0/40.078d0) * Sali_depth(k)/1.80655d0 ! Calcium ion concentration [mol/kg], function from varsolver.f90
                 CO3_sat   = (kspc_watercolumn(k) / Ca) * rhoSW_watercolumn(k) ! Saturated carbonate ion concentration, converted to [mol/m3]
                 calc_diss = calc_diss_omegac * max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))**(calc_diss_exp) ! Dissolution rate scaled by carbonate ratio, after Aumont et al. 2015
+                if (calc_zoo) then ! NEW CALC_ZOO
+                   calc_diss_ara = calc_diss_omegac * max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))**(calc_diss_exp) ! REPLACE WITH ARAGONITE VALUES!!
+                endif                
 #if defined (__3Zoo2Det)
                 calc_diss2 = calc_diss
 #endif
@@ -1267,7 +1279,48 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                     calc_loss_agg_14 = aggregationRate * PhyCalc_14
                     calc_loss_gra_14 = grazingFlux_phy * recipQuota_14/(PhyC_14 + tiny) * PhyCalc_14
                 end if
-            end if
+             end if
+
+             
+!< *** Microzooplankton calcification (calcite precipitation by forams) ***   ! NEW CALC_ZOO
+!< ************************************************************************
+
+#if defined (__3Zoo2Det)
+             calcification_miccal = ( &
+                  pic_poc_forams * calc_prod_ratio_micro &
+                  * ((grazingFlux_phy3 * recipQuota + grazingFlux_Dia3 * recipQuota_Dia) * grazEff3) &
+#if defined (__coccos)
+                  * ((grazingFlux_Cocco3 * recipQuota_Cocco + grazingFlux_Phaeo3 * recipQuota_Phaeo) * grazEff3) &
+#endif
+                  )
+#endif
+             
+             
+!< *** Mesozooplankton calcification (aragonite precipitation by pteropods) ***  ! NEW CALC_ZOO
+!< ****************************************************************************
+          if (Grazing_detritus) then
+#if defined (__3Zoo2Det)
+             calcification_hetara = ( &
+                  pic_poc_ptero * calc_prod_ratio_meso &
+                  * ((grazingFlux_phy * recipQuota + grazingFlux_Dia * recipQuota_Dia + grazingFlux_miczoo * recipQZoo3) * grazEff) &
+#if defined (__coccos)
+                  * ((grazingFlux_Cocco * recipQuota_Cocco + grazingFlux_Phaeo * recipQuota_Phaeo) * grazEff) &
+#endif
+                  * ((grazingFlux_DetZ2 * recipDet2 + grazingFlux_Det * recipDet) * grazEff) &
+                  )
+#endif
+          else
+#if defined (__3Zoo2Det)
+             calcification_hetara = ( &
+                  pic_poc_ptero * calc_prod_ratio_meso &
+                  * ((grazingFlux_phy * recipQuota + grazingFlux_Dia * recipQuota_Dia + grazingFlux_miczoo * recipQZoo3) * grazEff) &
+#if defined (__coccos)
+                  * ((grazingFlux_Cocco * recipQuota_Cocco + grazingFlux_Phaeo * recipQuota_Phaeo) * grazEff) &
+#endif
+                  )
+#endif
+          endif
+             
 
 !-------------------------------------------------------------------------------
 ! Sources minus sinks (SMS)
@@ -1304,6 +1357,37 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 
 !< rho_C1: Temperature dependent C degradation of extracellular organic C (EOC) [day^-1]
 
+    if (calc_zoo) then
+    sms(k,idic)      = (                              &
+        - Cphot                           * PhyC      & ! --> Small pyhtoplankton photosynthesis 
+        + phyRespRate                     * PhyC      & ! --> Small pyhtoplankton respiration 
+        - Cphot_Dia                       * DiaC      & ! --> Diatom photosynthesis 
+        + phyRespRate_Dia                 * DiaC      & ! --> Diatom respiration
+#if defined (__coccos)
+        - Cphot_Cocco                     * CoccoC    & ! --> Coccolithophore photosynthesis
+        + phyRespRate_Cocco               * CoccoC    & ! --> Coccolithophore respiration
+        - Cphot_Phaeo                     * PhaeoC    & ! --> Phaeocystis photosynthesis
+        + phyRespRate_Phaeo               * PhaeoC    & ! --> Phaeocystis respiration
+#endif
+        + rho_C1 * arrFunc * O2Func       * EOC       & ! --> Remineralization of DOC
+        + HetRespFlux                                 & ! --> Mesozooplankton respiration
+#if defined (__3Zoo2Det)                     
+        + Zoo2RespFlux                                & ! --> Macrozooplankton respiration            
+        + MicZooRespFlux                              & ! --> Microzooplankton respiration
+#endif          
+        + calc_diss                       * DetCalc   & ! --> Calcite dissolution from slow-sinking detritus 
+        + calc_loss_gra  * calc_diss_guts             & ! --> Additional dissolution in mesozooplankton guts
+#if defined (__3Zoo2Det)
+        + calc_loss_gra2 * calc_diss_guts             & ! --> Additional dissolution in macrozooplankton guts
+        + calc_loss_gra3 * calc_diss_guts             & ! --> Additional dissolution in microzooplankton guts
+        + calc_diss2                      * DetZ2Calc & ! --> Calcite dissolution from fast-sinking detritus
+        + calc_diss_ara                   * DetZ2Ara  & ! --> Aragonite dissolution from fast-sinking detritus   ! NEW CALC_ZOO
+        - calcification_miccal                        & ! --> Calcification of microzooplankton (forams -> calcite)
+        - calcification_hetara                        & ! --> Calcification of mesozooplankton (pterpods -> aragonite)  
+#endif
+        - calcification                               & ! --> Calcification
+             ) * dt_b + sms(k,idic)
+    else
     sms(k,idic)      = (                              &
         - Cphot                           * PhyC      & ! --> Small pyhtoplankton photosynthesis 
         + phyRespRate                     * PhyC      & ! --> Small pyhtoplankton respiration 
@@ -1329,7 +1413,10 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         + calc_diss2                      * DetZ2Calc & ! --> Calcite dissolution from fast-sinking detritus
 #endif
         - calcification                               & ! --> Calcification
-                                                     ) * dt_b + sms(k,idic)
+             ) * dt_b + sms(k,idic)
+    endif
+
+        
 !  if((Latd(1)<-45.0) .and. ((state(k,idic)+sms(k,idic))>2500)) then
 !     !co2flux(1)=0.0  
 !      print*,'ERROR: strange dic !'
@@ -1353,6 +1440,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 !< Alkalinity (Assumes that N:P follows a constant Redfield ratio
 !< N_assimC: 1.0625 = 1/16 + 1
 
+    if (calc_zoo) then
     sms(k,ialk)      = (                                   &
         + 1.0625 * N_assim                       * PhyC    &
         + 1.0625 * N_assim_Dia                   * DiaC    &
@@ -1367,9 +1455,33 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         + 2.d0 * calc_loss_gra2 * calc_diss_guts           &
         + 2.d0 * calc_loss_gra3 * calc_diss_guts           & ! 3Zoo
         + 2.d0 * calc_diss2            * DetZ2Calc         &
+        + 2.d0 * calc_diss_ara         * DetZ2Ara          & ! NEW CALC_ZOO
+        - 2.d0 * calcification_miccal                      & ! NEW CALC_ZOO
+        - 2.d0 * calcification_hetara                      & ! NEW CALC_ZOO
 #endif
-        - 2.d0 * calcification                             &                      
+        - 2.d0 * calcification                             &
                                                           ) * dt_b + sms(k,ialk)
+    else
+    sms(k,ialk)      = (                                   &
+        + 1.0625 * N_assim                       * PhyC    &
+        + 1.0625 * N_assim_Dia                   * DiaC    &
+#if defined (__coccos)
+        + 1.0625 * N_assim_Cocco                 * CoccoC  & 
+        + 1.0625 * N_assim_Phaeo                 * PhaeoC  & ! Phaeocystis
+#endif
+        - 1.0625 * rho_N * arrFunc * O2Func      * DON     &     
+        + 2.d0 * calc_diss                       * DetCalc &
+        + 2.d0 * calc_loss_gra  * calc_diss_guts           &
+#if defined (__3Zoo2Det)
+        + 2.d0 * calc_loss_gra2 * calc_diss_guts           &
+        + 2.d0 * calc_loss_gra3 * calc_diss_guts           & ! 3Zoo
+        + 2.d0 * calc_diss2                    * DetZ2Calc &
+#endif
+        - 2.d0 * calcification                             &
+                                                          ) * dt_b + sms(k,ialk)
+    endif
+
+
 !< *** Small Phytoplankton ***
 !< ***************************
 
@@ -2017,7 +2129,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         - grazingFlux_Cocco3                 &  ! 3Zoo 
 #endif
                                             ) * dt_b + sms(k,icocn)    
-
+!____________________________________________________________
 !< Phaeocystis N
 
 !< lossN_p:  Phaeocystis loss of organic N compounds [day^-1]
@@ -2067,6 +2179,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
        stop
     endif
 
+!____________________________________________________________    
 !< Phaeocystis C
 
 !< lossC_p: Phaeocystis loss of carbon [day^-1]
@@ -2098,6 +2211,8 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       - grazingFlux_Cocco3 * Chl2N_cocco            & ! 3Zoo
 #endif
                                                    ) * dt_b + sms(k,icchl)
+
+!__________________________________________________________    
 ! Phaeocystis ChlA
 
 !< Chl2N: Conversion factor from mmolN to mgChla 
@@ -2240,15 +2355,26 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 #if defined (__coccos)
 
 #if defined (__3Zoo2Det)
-    sms(k,idetcal)   = (                                &
+    if (calc_zoo) then ! NEW CALC_ZOO
+      sms(k,idetcal)   = (                              &
         + lossC_c           * limitFacN_cocco * PhyCalc &
         + phyRespRate_cocco                   * PhyCalc & 
         + calc_loss_agg                                 &
         + calc_loss_gra3                                &
+        + MicZooLossFlux * recipQZoo3      * MicCal     &  ! NEW CALC_ZOO
         - calc_loss_gra3    * calc_diss_guts            &
         - calc_diss                           * DetCalc &
                                                        ) * dt_b + sms(k,idetcal)
-
+    else
+      sms(k,idetcal)   = (                                &
+          + lossC_c           * limitFacN_cocco * PhyCalc &
+          + phyRespRate_cocco                   * PhyCalc &
+          + calc_loss_agg                                 &
+          + calc_loss_gra3                                &
+          - calc_loss_gra3    * calc_diss_guts            &
+          - calc_diss                           * DetCalc &
+                                                        ) * dt_b + sms(k,idetcal)
+    endif
 #else
     sms(k,idetcal)   = (                                &
         + lossC_c           * limitFacN_cocco * PhyCalc & 
@@ -2264,7 +2390,18 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 #else
 
 #if defined (__3Zoo2Det)
-    sms(k,idetcal)   = (                            &
+    if (calc_zoo) then  ! NEW CALC_ZOO
+      sms(k,idetcal)   = (                          &
+        + lossC          * limitFacN      * PhyCalc &
+        + phyRespRate                     * PhyCalc &
+        + calc_loss_agg                             &
+        + calc_loss_gra3                            &
+        + MicZooLossFlux * recipQZoo3     * MicCal  &  ! NEW CALC_ZOO
+        - calc_loss_gra3 * calc_diss_guts           &
+        - calc_diss                       * DetCalc &
+                                                   ) * dt_b + sms(k,idetcal)
+    else
+      sms(k,idetcal)   = (                          &
         + lossC          * limitFacN      * PhyCalc &
         + phyRespRate                     * PhyCalc &
         + calc_loss_agg                             &
@@ -2272,6 +2409,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         - calc_loss_gra3 * calc_diss_guts           &
         - calc_diss                       * DetCalc &
                                                    ) * dt_b + sms(k,idetcal)
+    endif
 #else
     sms(k,idetcal)   = (                           &
         + lossC         * limitFacN      * PhyCalc &
@@ -2284,6 +2422,28 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 #endif
 #endif
 
+
+!____________________________________________________________
+! Calcifying zooplankton    ! NEW CALC_ZOO    
+    if (calc_zoo) then
+#if defined (__3Zoo2Det) 
+       sms(k,ihetara) = (                      &     
+          + calcification_hetara               &
+          - hetLossFlux * recipQZoo * HetAra   &
+                                           ) * dt_b + sms(k,ihetara)
+ 
+       sms(k,imiccal) = (                         &
+          + calcification_miccal                  &
+          - MicZooLossFlux * recipQZoo3 * MicCal  &
+                                           ) * dt_b + sms(k,miccal)
+
+       sms(k,idetz2ara) = (                      &
+            + hetLossFlux * recipQZoo * HetAra   &
+            - calc_diss_ara * DetZ2Ara           &
+                                           ) * dt_b + sms(k,detz2ara)
+#endif
+    endif
+    
 !____________________________________________________________
 ! Oxygen
 

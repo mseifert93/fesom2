@@ -49,10 +49,14 @@ module recom_config
 
 #if defined (__coccos) & defined (__3Zoo2Det)
   Integer :: imiczoon = 35, imiczooc = 36
+  Integer :: ihetara  = 37, imiccal  = 38, idetz2ara = 39     ! NEW CALC_ZOO 
   integer, dimension(2)  :: recom_miczoo_tracer_id    = (/1035, 1036/)
+  integer, dimension(3)  :: recom_calcifzoo_tracer_id = (/1037, 1038, 1039/)    ! NEW CALC_ZOO
 #elif defined (__3Zoo2Det) & !defined (__coccos)  
   Integer :: imiczoon = 29, imiczooc = 30
+  Integer :: ihetara  = 31, imiccal  = 32, idetz2ara = 33     ! NEW CALC_ZOO
   integer, dimension(2)  :: recom_miczoo_tracer_id    = (/1029, 1030/)
+  integer, dimension(3)  :: recom_calcifzoo_tracer_id = (/1031, 1032, 1033/)    ! NEW CALC_ZOO
 #endif
 
   Integer :: ivphy = 1, ivdia = 2, ivdet = 3, ivdetsc = 4, ivcoc = 5, ivpha = 6 ! NEW ivcoc, ivpha (Phaeocystis)
@@ -86,9 +90,9 @@ module recom_config
   Logical                :: use_REcoM            = .true.
   Logical                :: REcoM_restart        = .false.
 
-  Integer                :: bgc_num               = 36      ! NEW increased the number from 28 to 34 (added coccos and respiration) ! NEW 3Zoo changed from 31 to 33
+  Integer                :: bgc_num               = 39      ! NEW increased the number from 28 to 34 (added coccos and respiration) ! NEW 3Zoo changed from 31 to 33  ! NEW CALC_ZOO changed from 36 to 39
   integer                :: bgc_base_num          = 22      ! standard tracers
-  Integer                :: diags3d_num           = 31      ! Number of diagnostic 3d tracers to be saved
+  Integer                :: diags3d_num           = 31      ! Number of diagnostic 3d tracers to be saved ! NEW CALC_ZOO changed from 31 to 33 (and back to debug)
   Real(kind=8)           :: VDet                  = 20.d0   ! Sinking velocity, constant through the water column and positive downwards
   Real(kind=8)           :: VDet_zoo2             = 200.d0  ! Sinking velocity, constant through the water column 
   Real(kind=8)           :: VPhy                  = 0.d0    !!! If the number of sinking velocities are different from 3, code needs to be changed !!!
@@ -109,6 +113,7 @@ module recom_config
   Logical                :: OmegaC_diss           = .true.     ! NEW DISS Use mocsy calcite omega to compute calcite dissolution
   Logical                :: CO2lim                = .true.     ! NEW Use CO2 dependence of growth and calcification
   !Logical                :: inter_CT_CL           = .true.    ! NEW inter use interaction between CO2 and both, temperature and light
+  Logical                :: calc_zoo              = .true.     ! NEW CALC_ZOO use calcifying zooplankton (micro: forams/calcite, meso: ptero/aragonite)
   Logical                :: Diags                 = .true.    !!!!!!!!!!!!!!!!!!!!!!Change in recom.F90 Diagnostics -> Diags
   Logical                :: constant_CO2          = .true.
   Logical                :: UseFeDust             = .true.     ! Turns dust input of iron off when set to.false.
@@ -151,7 +156,7 @@ module recom_config
                        diatom_mucus,                                                                      &
                        O2dep_remin,                       use_ballasting,        use_density_scaling,     & ! O2remin, NEW BALL
                        use_viscosity_scaling,             OmegaC_diss,           CO2lim,                  & ! BALL, DISS added OmegaC_diss, added CO2lim
-                       Diags      ,                       constant_CO2,                                   &
+                       calc_zoo,                          Diags,                 constant_CO2,            & ! NEW CALC_ZOO
                        UseFeDust,                         UseDustClim,           UseDustClimAlbani,       &
                        use_photodamage,                   HetRespFlux_plus,      REcoMDataPath,           &
                        restore_alkalinity,                useRivers,             useRivFe,                &
@@ -455,12 +460,16 @@ module recom_config
 !!------------------------------------------------------------------------------
 !! *** Calcification ***
   Real(kind=8)                 :: calc_prod_ratio = 0.02d0
+  Real(kind=8)                 :: calc_prod_ratio_micro = 0.01d0  ! NEW CALC_ZOO share of forams
+  Real(kind=8)                 :: calc_prod_ratio_meso  = 0.01d0  ! NEW CALC_ZOO share of pteropods
+  Real(kind=8)                 :: pic_poc_forams = 1.1d0          ! NEW CALC_ZOO PIC:POC ratio of foraminifera (share of micro)
+  Real(kind=8)                 :: pic_poc_ptero = 1.5d0           ! NEW CALC_ZOO PIC:POC ratio of pteropods (share of meso)
   Real(kind=8)                 :: calc_diss_guts  = 0.0d0
   Real(kind=8)                 :: calc_diss_rate  = 0.005714d0    !20.d0/3500.d0
   Real(kind=8)                 :: calc_diss_rate2 = 0.005714d0
   Real(kind=8)                 :: calc_diss_omegac = 0.197d0      ! NEW DISS value from Aumont et al. 2015, will be used with OmegaC_diss flag
   Real(kind=8)                 :: calc_diss_exp   = 1.d0          ! NEW DISS exponent in the dissolution rate of calcite, will be used with OmegaC_diss flag
-  namelist /pacalc/ calc_prod_ratio, calc_diss_guts, calc_diss_rate, calc_diss_rate2, calc_diss_omegac, calc_diss_exp  ! NEW DISS added calc_diss_omegac, calc_diss_exp
+  namelist /pacalc/ calc_prod_ratio, calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero,  calc_diss_guts, calc_diss_rate, calc_diss_rate2, calc_diss_omegac, calc_diss_exp  ! NEW DISS added calc_diss_omegac, calc_diss_exp ! NEW CALC_ZOO added calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero
 !!------------------------------------------------------------------------------
 !! *** Benthos ***
   Real(kind=8)                 :: decayRateBenN   = 0.005d0
@@ -667,9 +676,12 @@ Module REcoM_declarations
 !! *** Calcification  ***
   Real(kind=8)  :: calc_prod_ratio_cocco             ! NEW (before it was defined as a fixed value, but now dependent on cocco and T)
   Real(kind=8)  :: calcification
+  Real(kind=8)  :: calcification_hetara              ! NEW CALC_ZOO
+  Real(kind=8)  :: calcification_miccal              ! NEW CALC_ZOO
   Real(kind=8)  :: calc_loss_agg
   Real(kind=8)  :: calc_loss_gra
   Real(kind=8)  :: calc_diss
+  Real(kind=8)  :: calc_diss_ara                     ! NEW CALC_ZOO
   Real(kind=8)  :: calc_diss_ben                     ! NEW DISS
   Real(kind=8)  :: calc_loss_gra2                    ! zoo2 detritus
   Real(kind=8)  :: calc_diss2                        ! zoo2 detritus

@@ -37,6 +37,9 @@ module recom_diag
   real(kind=WP),  save,  target                 :: valDiaC
   real(kind=WP),  save,  target                 :: valPhyCalc
   real(kind=WP),  save,  target                 :: valDetCalc
+  real(kind=WP),  save,  target                 :: valHetAra    ! NEW CALC_ZOO
+  real(kind=WP),  save,  target                 :: valMicCal    ! NEW CALC_ZOO
+  real(kind=WP),  save,  target                 :: valDetz2Ara  ! NEW CALC_ZOO
   real(kind=WP),  save,  target                 :: valDSi
   real(kind=WP),  save,  target                 :: valDiaSi
   real(kind=WP),  save,  target                 :: valDetSi
@@ -136,9 +139,54 @@ subroutine compute_carbon_diag(mode,mesh)
            write(*,*) 'total integral of DetCalc at timestep :', mstep, valDetCalc
         end if
 
+
+        if (calc_zoo) then    ! NEW CALC_ZOO
+#if defined (__coccos) & defined (__3Zoo2Det)
+           call integrate_nod(tr_arr(:,:,39), valHetAra, mesh)
+           total_carbon=total_carbon+valHetAra
+           if (mype==0 .and. mod(mstep,recom_logfile_outfreq)==0) then
+              write(*,*) 'total integral of HetAra at timestep :', mstep, valHetAra
+           endif
+
+           call integrate_nod(tr_arr(:,:,40), valMicCal, mesh)
+           total_carbon=total_carbon+valMicCal
+           if (mype==0 .and. mod(mstep,recom_logfile_outfreq)==0) then
+              write(*,*) 'total integral of MicCal at timestep :', mstep, valMicCal
+           endif
+
+           call integrate_nod(tr_arr(:,:,41), valDetz2Ara, mesh)
+           total_carbon=total_carbon+valDetz2Ara
+           if (mype==0 .and. mod(mstep,recom_logfile_outfreq)==0) then
+              write(*,*) 'total integral of Detz2Ara at timestep :', mstep, valDetZ2Ara
+           endif
+           
+#elif defined (__3Zoo2Det) & !defined (__coccos)
+           call integrate_nod(tr_arr(:,:,33), valHetAra, mesh)
+           total_carbon=total_carbon+valHetAra
+           if (mype==0 .and. mod(mstep,recom_logfile_outfreq)==0) then
+              write(*,*) 'total integral of HetAra at timestep :', mstep, valHetAra
+           endif
+
+           call integrate_nod(tr_arr(:,:,34), valMicCal, mesh)
+           total_carbon=total_carbon+valMicCal
+           if (mype==0 .and. mod(mstep,recom_logfile_outfreq)==0) then
+              write(*,*) 'total integral of MicCal at timestep :', mstep, valMicCal
+           endif
+
+           call integrate_nod(tr_arr(:,:,35), valDetz2Ara, mesh)
+           total_carbon=total_carbon+valDetz2Ara
+           if (mype==0 .and. mod(mstep,recom_logfile_outfreq)==0) then
+              write(*,*) 'total integral of Detz2Ara at timestep :', mstep, valDetz2Ara
+           endif
+#endif
+        endif
+
+
         if (mype==0 .and. mod(mstep,recom_logfile_outfreq)==0) then
            write(*,*) 'total integral of carbon at timestep :', mstep, total_carbon
         end if
+        
+           
 
 end subroutine compute_carbon_diag
 
@@ -193,6 +241,7 @@ subroutine write_recom_diag(mode, mesh)
   character(2000)                    :: filename
   integer                            :: recID, tID, tcID, tsID, tsdelID
   integer                            :: valDICID, valDOCID, valPhyCID, valDetCID, valHetCID, valDiaCID, valPhyCalcID, valDetCalcID
+  integer                            :: valHetAraID, valMicCalID, valDetz2AraID   ! NEW CALC_ZOO
   integer                            :: valDSiID, valDiaSiID, valDetSiID, valDetz2SiID, valBenSiID
   integer                            :: rec_count=0
   character(2000)                    :: att_text
@@ -253,6 +302,10 @@ subroutine write_recom_diag(mode, mesh)
      status = nf_def_var(ncid, 'total_PhyCalc', NF_DOUBLE, 1, recID, valPhyCalcID)
      status = nf_def_var(ncid, 'total_DetCalc', NF_DOUBLE, 1, recID, valDetCalcID)
 
+     status = nf_def_var(ncid, 'total_HetAra', NF_DOUBLE, 1, recID, valHetAraID)
+     status = nf_def_var(ncid, 'total_MicCal', NF_DOUBLE, 1, recID, valMicCalID)
+     status = nf_def_var(ncid, 'total_Detz2Ara', NF_DOUBLE, 1, recID, valDetz2AraID)
+      
      status = nf_def_var(ncid, 'total_silicate', NF_DOUBLE, 1, recID, tsID)
 
      status = nf_def_var(ncid, 'total_DSi', NF_DOUBLE, 1, recID, valDSiID)
@@ -295,6 +348,13 @@ if (do_output) then
   status = nf_inq_varid(ncid, 'total_PhyCalc', valPhyCalcID)
   status = nf_inq_varid(ncid, 'total_DetCalc', valDetCalcID)
 
+  if (calc_zoo) then   ! NEW CALC_ZOO
+     status = nf_inq_varid(ncid, 'total_HetAra', valHetAraID)
+     status = nf_inq_varid(ncid, 'total_MicCal', valMicCalID)
+     status = nf_inq_varid(ncid, 'total_Detz2Ara', valDetz2AraID)
+  endif
+  
+
   status = nf_inq_varid(ncid, 'total_silicate', tsID)
 
   status = nf_inq_varid(ncid, 'total_DSi', valDSiID)
@@ -330,6 +390,12 @@ if (do_output) then
   status = nf_put_vara_double(ncid, valPhyCalcID, rec_count, 1, valPhyCalc, 1)
   status = nf_put_vara_double(ncid, valDetCalcID, rec_count, 1, valDetCalc, 1)
 
+  if (calc_zoo) then  ! NEW CALC_ZOO
+     status = nf_put_vara_double(ncid, valHetAraID, rec_count, 1, valHetAra, 1)
+     status = nf_put_vara_double(ncid, valMicCalID, rec_count, 1, valMicCal, 1)
+     status = nf_put_vara_double(ncid, valDetz2AraID, rec_count, 1, valDetz2Ara, 1)
+  endif
+  
   status = nf_put_vara_double(ncid, tsID, rec_count, 1, total_silicate, 1)
 
   status = nf_put_vara_double(ncid, valDSiID, rec_count, 1, valDSi, 1)

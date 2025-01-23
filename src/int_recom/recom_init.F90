@@ -609,10 +609,15 @@ Sinkvel2_tr(:,:,:)    = 0.0d0 ! OG 16.03.23
 #if defined (__coccos) & defined (__3Zoo2Det)
     tr_arr(:,:,37) = tiny                      ! tracer 34 = Zoo3N
     tr_arr(:,:,38) = tiny * Redfield           ! tracer 35 = Zoo3C
-#elif !defined (__coccos) & defined (__3Zoo2Det)
+    tr_arr(:,:,39) = tiny                      ! tracer 37 = HetAra  ! NEW CALC_ZOO
+    tr_arr(:,:,40) = tiny                      ! tracer 38 = MicCal  ! NEW CALC_ZOO
+    tr_arr(:,:,41) = tiny                      ! tracer 39 = DetZ2Ara! NEW CALC_ZOO
+#elif defined (__3Zoo2Det) & !defined (__coccos)
     tr_arr(:,:,31) = tiny                      ! tracer 31 = Zoo3N
     tr_arr(:,:,32) = tiny * Redfield           ! tracer 32 = Zoo3C
-
+    tr_arr(:,:,33) = tiny                      ! tracer 31 = HetAra  ! NEW CALC_ZOO
+    tr_arr(:,:,34) = tiny                      ! tracer 32 = MicCal  ! NEW CALC_ZOO
+    tr_arr(:,:,35) = tiny                      ! tracer 33 = DetZ2Ara! NEW CALC_ZOO
 #endif
 
   if (ciso) then
