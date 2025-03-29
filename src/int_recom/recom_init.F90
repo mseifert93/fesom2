@@ -247,6 +247,17 @@ subroutine recom_init(mesh)
   grazmicro_c = 0.d0
   allocate(grazmicro_p(node_size))
   grazmicro_p = 0.d0
+  allocate(miccal_loss(node_size))   ! NEW CALC_ZOO
+  miccal_loss = 0.d0
+  allocate(phycal_loss(node_size))   ! NEW CALC_ZOO
+  phycal_loss = 0.d0
+  allocate(hetara_loss(node_size))   ! NEW CALC_ZOO
+  hetara_loss = 0.d0
+  allocate(detz2ara_sources(node_size)) ! NEW CALC_ZOO
+  detz2ara_sources = 0.d0
+  allocate(detz2ara_loss(node_size)) ! NEW CALC_LOSS
+  detz2ara_loss = 0.d0
+  
 !--- Allocate 3D diagnostics
 !  allocate(grazmeso_tot(nl-1,node_size))  ! Comment Miriam (02/2024): changed grazing output from 3D to 2D diagnostics
 !  grazmeso_tot(:,:) = 0.d0
@@ -264,8 +275,18 @@ subroutine recom_init(mesh)
   respmicro(:,:) = 0.d0
   allocate(calcdiss(nl-1,node_size))
   calcdiss(:,:) = 0.d0
+  allocate(calcdiss_guts(nl-1,node_size)) ! NEW CALC_ZOO
+  calcdiss_guts(:,:) = 0.d0
+  allocate(calcdiss_detZ2(nl-1,node_size)) ! NEW CALC_ZOO
+  calcdiss_detZ2(:,:) = 0.d0
+  allocate(aradiss_detZ2(nl-1,node_size)) ! NEW CALC_ZOO
+  aradiss_detZ2(:,:) = 0.d0
   allocate(calcif(nl-1,node_size))
   calcif(:,:) = 0.d0
+  allocate(calcif_miccal(nl-1,node_size)) ! NEW CALC_ZOO
+  calcif_miccal(:,:) = 0.d0
+  allocate(calcif_hetara(nl-1,node_size)) ! NEW CALC_ZOO
+  calcif_hetara(:,:) = 0.d0
   allocate(aggn(nl-1,node_size))
   aggn(:,:) = 0.d0
   allocate(aggd(nl-1,node_size))

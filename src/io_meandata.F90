@@ -54,7 +54,7 @@ module io_MEANDATA
 !
 !--------------------------------------------------------------------------------------------
 !
-  type(Meandata), save, target :: io_stream(200) ! todo: find a way to increase the array withhout move_alloc to keep the derived types in Meandata intact
+  type(Meandata), save, target :: io_stream(250) ! todo: find a way to increase the array withhout move_alloc to keep the derived types in Meandata intact
   integer, save                             :: io_NSTREAMS=0
   real(kind=WP)                             :: ctime !current time in seconds from the beginning of the year
 !
@@ -547,6 +547,24 @@ CASE ('grazmicro_c')
 CASE ('grazmicro_p')
    call def_stream(nod2D,  myDim_nod2D,   'grazmicro_p','Grazing flux of microzooplankton on phaeocystis without grazing efficiency (i.e., = loss phaeocystis)','mmolC/(m2*d)', grazmicro_p, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
 
+
+
+! NEW CALC_ZOO
+CASE ('miccal_loss')
+   call def_stream(nod2D,  myDim_nod2D,   'miccal_loss','Loss of microzooplankton calcite due to grazing, respiration, excretion, mortality','mmolC/(m2*d)', miccal_loss, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('phycal_loss')
+   call def_stream(nod2D,  myDim_nod2D,   'phycal_loss','Loss of coccolithophore calcite to zooplankton and detritus','mmolC/(m2*d)', phycal_loss, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('hetara_loss')
+   call def_stream(nod2D,  myDim_nod2D,   'hetara_loss','Loss of mesozooplankton calcite due to grazing, respiration, excretion, mortality','mmolC/(m2*d)', hetara_loss, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('detz2ara_source')
+   call def_stream(nod2D,  myDim_nod2D,   'detz2ara_sources','Sources of detritus aragonite in the second detritus','mmolC/(m2*d)', detz2ara_sources, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('detz2ara_loss')
+   call def_stream(nod2D,  myDim_nod2D,   'detz2ara_loss','Loss of detritus aragonite in the second detritus','mmolC/(m2*d)', detz2ara_loss, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
 #endif
    
 !___________________________________________________________________________________________________________________________________    
@@ -638,12 +656,32 @@ CASE ('respmicro      ')
    endif 
 CASE ('calcdiss       ')
    if (use_REcoM) then
-   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'calcdiss','Calcite dissolution', 'mmolC/(m2*d)', calcdiss(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'calcdiss','Calcite dissolution in the first detritus class', 'mmolC/(m2*d)', calcdiss(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   endif
+CASE ('calcdiss_guts  ')   ! NEW CALC_ZOO
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'calcdiss_guts','Calcite dissolution in zooplankton guts', 'mmolC/(m2*d)', calcdiss_guts(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   endif
+CASE ('calcdiss_detZ2 ')   ! NEW CALC_ZOO 
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'calcdiss_detZ2','Calcite dissolution in the second detritus class', 'mmolC/(m2*d)', calcdiss_detZ2(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   endif
+CASE ('aradiss_detZ2  ')   ! NEW CALC_ZOO
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'aradiss_detZ2','Aragonite dissolution in the second detritus class', 'mmolC/(m2*d)', aradiss_detZ2(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
    endif
 CASE ('calcif         ')
    if (use_REcoM) then
    call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'calcif','Calcification', 'mmolC/(m2*d)', calcif(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
    endif
+CASE ('calcif_miccal  ')   ! NEW CALC_ZOO
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'calcif_miccal','Calcification of forams', 'mmolC/(m2*d)', calcif_miccal(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   endif
+CASE ('calcif_hetara  ')   ! NEW CALC_ZOO
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'calcif_hetara','Calcification of pteropods', 'mmolC/(m2*d)', calcif_hetara(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   endif 
 CASE ('aggn           ')
    if (use_REcoM) then
    call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'aggn','Aggregation of small phytoplankton', 'mmolC/(m2*d)', aggn(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)

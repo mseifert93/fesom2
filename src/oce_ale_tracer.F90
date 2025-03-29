@@ -1138,7 +1138,12 @@ subroutine ver_sinking_recom_benthos(tr_num,mesh)
         if(tracer_id(tr_num)==1025 .or. &  !idetz2n
            tracer_id(tr_num)==1026 .or. &  !idetz2c
            tracer_id(tr_num)==1027 .or. &  !idetz2si
-           tracer_id(tr_num)==1028 ) then  !idetz2calc
+           tracer_id(tr_num)==1028 .or. &  !idetz2calc
+#if defined (__coccos)
+           tracer_id(tr_num)==1039 ) then  !idetz2ara NEW CALC_ZOO
+#else
+           tracer_id(tr_num)==1033 ) then  !idetz2ara NEW CALC_ZOO
+#endif
            Vben = VDet_zoo2
         endif
 #endif

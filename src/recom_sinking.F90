@@ -92,10 +92,16 @@ subroutine recom_sinking_new(tr_num,mesh)
     elseif(tracer_id(tr_num)==1025 .or. &  !idetz2n
          tracer_id(tr_num)==1026 .or. &  !idetz2c
          tracer_id(tr_num)==1027 .or. &  !idetz2si
-         tracer_id(tr_num)==1028 ) then  !idetz2calc 
-            
+         tracer_id(tr_num)==1028 .or. &  !idetz2calc 
+#if defined (__coccos)   
+         tracer_id(tr_num)==1039 ) then  !idetz2ara NEW CALC_ZOO
+#else
+         tracer_id(tr_num)==1033 ) then  !idetz2ara NEW CALC_ZOO
+#endif
+       
             Vsink = VDet_zoo2            
 #endif
+            
     end if
 
 !! Very low or no sinking if background sinking velocity is less than 0.1 m/day
@@ -153,7 +159,12 @@ if (Vsink .gt. 0.1) then
             if(tracer_id(tr_num)==1025 .or. &  !idetz2n
                tracer_id(tr_num)==1026 .or. &  !idetz2c
                tracer_id(tr_num)==1027 .or. &  !idetz2si
-               tracer_id(tr_num)==1028 ) then  !idetz2calc  
+               tracer_id(tr_num)==1028 .or. &  !idetz2calc
+# if defined (__coccos)
+               tracer_id(tr_num)==1039 ) then  !idetz2ara NEW CALC_ZOO
+#else
+               tracer_id(tr_num)==1033 ) then  !idetz2ara NEW CALC_ZOO
+#endif
  
                if (use_ballasting) then    ! NEW BALL
 
@@ -387,10 +398,12 @@ subroutine get_particle_density(mesh)          ! NEW BALL developed by Cara and 
   real(kind=8)                                            :: a2(mesh%nl-1, myDim_nod2D+eDim_nod2D) ! [n.d.] fraction of nitrogen in detritus class
   real(kind=8)                                            :: a3(mesh%nl-1, myDim_nod2D+eDim_nod2D) ! [n.d.] fraction of Opal in detritus class
   real(kind=8)                                            :: a4(mesh%nl-1, myDim_nod2D+eDim_nod2D) ! [n.d.] fraction of CaCO3 in detritus class
+  real(kind=8)                                            :: a5(mesh%nl-1, myDim_nod2D+eDim_nod2D) ! [n.d.] fraction of aragonite in the second detritus class NEW CALC_ZOO
   real(kind=8)                                            :: b1(mesh%nl-1, myDim_nod2D+eDim_nod2D)
   real(kind=8)                                            :: b2(mesh%nl-1, myDim_nod2D+eDim_nod2D)
   real(kind=8)                                            :: b3(mesh%nl-1, myDim_nod2D+eDim_nod2D)
   real(kind=8)                                            :: b4(mesh%nl-1, myDim_nod2D+eDim_nod2D)
+  real(kind=8)                                            :: b5(mesh%nl-1, myDim_nod2D+eDim_nod2D) ! NEW CALC_ZOO
   real(kind=8)                                            :: aux(mesh%nl-1, myDim_nod2D+eDim_nod2D)
 
 #include "../associate_mesh.h"
@@ -428,12 +441,18 @@ subroutine get_particle_density(mesh)          ! NEW BALL developed by Cara and 
      b2 = 0.0
      b3 = 0.0
      b4 = 0.0
+     b5 = 0.0 ! NEW CALC_ZOO
      aux = 0.0
      do tr_num=1,num_tracers
         if (tracer_id(tr_num)==1026)  b1 = max(tiny,tr_arr(:,:,tr_num)) !idetz2c
         if (tracer_id(tr_num)==1025)  b2 = max(tiny,tr_arr(:,:,tr_num)) !idetz2n
         if (tracer_id(tr_num)==1027)  b3 = max(tiny,tr_arr(:,:,tr_num)) !idetz2si
-        if (tracer_id(tr_num)==1028)  b4 = max(tiny,tr_arr(:,:,tr_num)) !idetz2calc 
+        if (tracer_id(tr_num)==1028)  b4 = max(tiny,tr_arr(:,:,tr_num)) !idetz2calc
+#if defined (__coccos)
+        if (tracer_id(tr_num)==1039)  b5 = max(tiny,tr_arr(:,:,tr_num)) !idetz2ara  NEW CALC_ZOO
+#else
+        if (tracer_id(tr_num)==1033)  b5 = max(tiny,tr_arr(:,:,tr_num)) !idetz2ara  NEW CALC_ZOO
+#endif        
      end do
 
      do row=1,myDim_nod2d+eDim_nod2D   ! myDim is sufficient
@@ -444,7 +463,12 @@ subroutine get_particle_density(mesh)          ! NEW BALL developed by Cara and 
         a2(nzmin:nzmax,row)  = b2(nzmin:nzmax,row)/aux(nzmin:nzmax,row)
         a3(nzmin:nzmax,row)  = b3(nzmin:nzmax,row)/aux(nzmin:nzmax,row)
         a4(nzmin:nzmax,row)  = b4(nzmin:nzmax,row)/aux(nzmin:nzmax,row)
-        rho_particle2(nzmin:nzmax,row) = rho_CaCO3*a4(nzmin:nzmax,row) + rho_opal*a3(nzmin:nzmax,row) + rho_POC*a1(nzmin:nzmax,row) + rho_PON*a2(nzmin:nzmax,row)
+        a5(nzmin:nzmax,row)  = b5(nzmin:nzmax,row)/aux(nzmin:nzmax,row) ! NEW CALC_ZOO
+        if (calc_zoo) then  ! NEW CALC_ZOO
+           rho_particle2(nzmin:nzmax,row) = rho_CaCO3*a4(nzmin:nzmax,row) + rho_CaCO3*a5(nzmin:nzmax,row) + rho_opal*a3(nzmin:nzmax,row) + rho_POC*a1(nzmin:nzmax,row) + rho_PON*a2(nzmin:nzmax,row)
+        else
+           rho_particle2(nzmin:nzmax,row) = rho_CaCO3*a4(nzmin:nzmax,row) + rho_opal*a3(nzmin:nzmax,row) + rho_POC*a1(nzmin:nzmax,row) + rho_PON*a2(nzmin:nzmax,row)
+        endif
         rho_particle2(nzmax+1,row) = rho_particle2(nzmax,row)
      end do
 #endif

@@ -63,13 +63,24 @@ module recom_config
 
 !!MB TEST: tracer ids for revised remineralization and sinking in oce_ale_tracer.F90
   integer, dimension(8)  :: recom_remin_tracer_id   = (/1001, 1002, 1003, 1018, 1019, 1022, 1302, 1402/)
-  integer, dimension(32) :: recom_sinking_tracer_id = (/1007, 1008, 1017, 1021, 1004, 1005, 1020, 1006, &
-                                                        1013, 1014, 1016, 1015, 1025, 1026, 1027, 1028, &
+#if defined (__coccos) & defined (__3Zoo2Det)
+  integer, dimension(33) :: recom_sinking_tracer_id = (/1007, 1008, 1017, 1021, 1004, 1005, 1020, 1006, &  ! NEW CALC_ZOO increased dimension +1
+                                                        1013, 1014, 1016, 1015, 1025, 1026, 1027, 1028, & 
                                                         1029, 1030, 1031, &  ! OG Cocco
                                                         1032, 1033, 1034, &  ! Phaeo
+                                                        1039, &              ! NEW CALC_ZOO detz2ara
                                                         1308, 1321, 1305, 1320, & 
                                                         1314, 1408, 1421, 1405, 1420, 1414/)
-
+#elif defined (__3Zoo2Det) & !defined (__coccos)
+  integer, dimension(33) :: recom_sinking_tracer_id = (/1007, 1008, 1017, 1021, 1004, 1005, 1020, 1006, &  ! NEW CALC_ZOO and this needs to be added because ids change
+                                                        1013, 1014, 1016, 1015, 1025, 1026, 1027, 1028, &
+                                                        1023, 1024, 1025, &  ! OG Cocco
+                                                        1026, 1027, 1028, &  ! Phaeo
+                                                        1033, &              ! NEW CALC_ZOO detz2ara
+                                                        1308, 1321, 1305, 1320, &
+                                                        1314, 1408, 1421, 1405, 1420, 1414/)
+#endif
+  
   integer, dimension(8)  :: recom_det_tracer_id     = (/1007, 1008, 1017, 1021, 1308, 1321, 1408, 1421/)
   integer, dimension(8)  :: recom_phy_tracer_id     = (/1004, 1005, 1020, 1305, 1320, 1405, 1420, 1006/)
   integer, dimension(6)  :: recom_dia_tracer_id     = (/1013, 1014, 1314, 1414, 1016, 1015/)
@@ -465,11 +476,12 @@ module recom_config
   Real(kind=8)                 :: pic_poc_forams = 1.1d0          ! NEW CALC_ZOO PIC:POC ratio of foraminifera (share of micro)
   Real(kind=8)                 :: pic_poc_ptero = 1.5d0           ! NEW CALC_ZOO PIC:POC ratio of pteropods (share of meso)
   Real(kind=8)                 :: calc_diss_guts  = 0.0d0
+  Real(kind=8)                 :: ara_diss_guts = 0.0d0           ! NEW CALC_ZOO dissolution of aragonite in zooplankton guts
   Real(kind=8)                 :: calc_diss_rate  = 0.005714d0    !20.d0/3500.d0
   Real(kind=8)                 :: calc_diss_rate2 = 0.005714d0
   Real(kind=8)                 :: calc_diss_omegac = 0.197d0      ! NEW DISS value from Aumont et al. 2015, will be used with OmegaC_diss flag
   Real(kind=8)                 :: calc_diss_exp   = 1.d0          ! NEW DISS exponent in the dissolution rate of calcite, will be used with OmegaC_diss flag
-  namelist /pacalc/ calc_prod_ratio, calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero,  calc_diss_guts, calc_diss_rate, calc_diss_rate2, calc_diss_omegac, calc_diss_exp  ! NEW DISS added calc_diss_omegac, calc_diss_exp ! NEW CALC_ZOO added calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero
+  namelist /pacalc/ calc_prod_ratio, calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero,  calc_diss_guts, ara_diss_guts, calc_diss_rate, calc_diss_rate2, calc_diss_omegac, calc_diss_exp  ! NEW DISS added calc_diss_omegac, calc_diss_exp ! NEW CALC_ZOO added calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero, ara_diss_guts
 !!------------------------------------------------------------------------------
 !! *** Benthos ***
   Real(kind=8)                 :: decayRateBenN   = 0.005d0
@@ -688,6 +700,12 @@ Module REcoM_declarations
   Real(kind=8)  :: calc_loss_gra3                    ! NEW Zoo3 detritus
   Real(kind=8)  :: Ca                                ! NEW DISS (calcium ion concentration)
   Real(kind=8)  :: CO3_sat                           ! NEW DISS (saturated CO3 concentration, calculated from kspc and Ca)
+  Real(kind=8)  :: miccal_loss_gra                   ! NEW CALC_ZOO grazing from meso on micro calc
+  Real(kind=8)  :: miccal_loss_gra2                  ! NEW CALC_ZOO grazing from macro on micro calcite
+  Real(kind=8)  :: hetara_loss_gra2                  ! NEW CALC_ZOO grazing from macro on meso aragonite
+  Real(kind=8)  :: MicZooLossFlux_cal                ! NEW CALC_ZOO mortality term of micro scaled to CaCO3
+  Real(kind=8)  :: hetLossFlux_ara                   ! NEW CALC_ZOO mortality term of meso scaled to CaCO3
+  Real(kind=8)  :: Mesfecalloss_ara                  ! NEW CALC_ZOO fecal loss of meso scaled to CaCO3
 !!------------------------------------------------------------------------------                                                                                
 !! *** Diagnostics  ***
   Real(kind=8)  :: recipbiostep                         ! 1/number of steps per recom cycle
@@ -703,11 +721,13 @@ Module REcoM_declarations
   Real(kind=8)  :: locgrazmeso_tot, locgrazmeso_n, locgrazmeso_d, locgrazmeso_c, locgrazmeso_p, locgrazmeso_det, locgrazmeso_mic, locgrazmeso_det2
   Real(kind=8)  :: locgrazmacro_tot, locgrazmacro_n, locgrazmacro_d, locgrazmacro_c, locgrazmacro_p, locgrazmacro_mes, locgrazmacro_det, locgrazmacro_mic, locgrazmacro_det2
   Real(kind=8)  :: locgrazmicro_tot, locgrazmicro_n, locgrazmicro_d, locgrazmicro_c, locgrazmicro_p
+  Real(kind=8)  :: locmiccal_loss, locphycal_loss, lochetara_loss, locdetz2ara_sources, locdetz2ara_loss   ! NEW CALC_ZOO
   Real(kind=8),allocatable,dimension(:) :: vertgrazmeso_tot, vertgrazmeso_n, vertgrazmeso_d, vertgrazmeso_c, vertgrazmeso_p, vertgrazmeso_det, vertgrazmeso_mic, vertgrazmeso_det2
   Real(kind=8),allocatable,dimension(:) :: vertgrazmacro_tot, vertgrazmacro_n, vertgrazmacro_d, vertgrazmacro_c, vertgrazmacro_p, vertgrazmacro_mes, vertgrazmacro_det, vertgrazmacro_mic, vertgrazmacro_det2
   Real(kind=8),allocatable,dimension(:) :: vertgrazmicro_tot, vertgrazmicro_n, vertgrazmicro_d, vertgrazmicro_c, vertgrazmicro_p
   Real(kind=8),allocatable,dimension(:) :: vertrespmeso, vertrespmacro, vertrespmicro
-  Real(kind=8),allocatable,dimension(:) :: vertcalcdiss, vertcalcif
+  Real(kind=8),allocatable,dimension(:) :: vertcalcdiss, vertcalcdiss_guts, vertcalcdiss_detZ2, vertaradiss_detZ2, vertcalcif, vertcalcif_miccal, vertcalcif_hetara ! NEW CALC_ZOO exept from calcdiss and calcif
+  Real(kind=8),allocatable,dimension(:) :: vertmiccal_loss, vertphycal_loss, verthetara_loss, vertdetz2ara_sources, vertdetz2ara_loss ! NEW CALC_ZOO
   Real(kind=8),allocatable,dimension(:) :: vertaggn, vertaggd, vertaggc, vertaggp
   Real(kind=8),allocatable,dimension(:) :: vertdocexn, vertdocexd, vertdocexc, vertdocexp
   Real(kind=8),allocatable,dimension(:) :: vertrespn, vertrespd, vertrespc, vertrespp
@@ -827,11 +847,21 @@ Module REcoM_GloVar
   Real(kind=8),allocatable,dimension(:)     :: grazmicro_d
   Real(kind=8),allocatable,dimension(:)     :: grazmicro_c
   Real(kind=8),allocatable,dimension(:)     :: grazmicro_p     ! Phaeocystis
+  Real(kind=8),allocatable,dimension(:)     :: miccal_loss     ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: phycal_loss     ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: hetara_loss     ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: detz2ara_sources! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: detz2ara_loss   ! NEW CALC_ZOO
   Real(kind=8),allocatable,dimension(:,:)   :: respmeso
   Real(kind=8),allocatable,dimension(:,:)   :: respmacro
   Real(kind=8),allocatable,dimension(:,:)   :: respmicro
   Real(kind=8),allocatable,dimension(:,:)   :: calcdiss
+  Real(kind=8),allocatable,dimension(:,:)   :: calcdiss_guts    ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:,:)   :: calcdiss_detZ2   ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:,:)   :: aradiss_detZ2    ! NEW CALC_ZOO
   Real(kind=8),allocatable,dimension(:,:)   :: calcif
+  Real(kind=8),allocatable,dimension(:,:)   :: calcif_miccal    ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:,:)   :: calcif_hetara    ! NEW CALC_ZOO
   Real(kind=8),allocatable,dimension(:,:)   :: aggn
   Real(kind=8),allocatable,dimension(:,:)   :: aggd
   Real(kind=8),allocatable,dimension(:,:)   :: aggc
@@ -964,6 +994,7 @@ Module REcoM_locVar
   Real(kind=8) :: res_zoo2_a, res_zoo2_f
   Real(kind=8) :: grazingFluxcarbonzoo2     ! grazingfluxcarbon 
   Real(kind=8) :: grazingFluxcarbon_mes        ! Zoo3
+  Real(kind=8) :: grazingFluxara_mes           ! NEW CALC_ZOO aragonite part in the fecal pellet production
 
   Real(kind=8) :: PICPOCtemp                   ! (added to make the calcification dependent on the temperature, after Krumhardt et al. 2017/2019)
   Real(kind=8) :: PICPOCCO2                    ! (to make calcification dependent on CO2)

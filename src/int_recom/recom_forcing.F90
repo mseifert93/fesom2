@@ -369,7 +369,14 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> ciso after 
 #endif        
      endif
 
-
+#if defined (__3Zoo2Det)
+        locmiccal_loss = sum(vertmiccal_loss(1:nn) * thick(1:nn))  ! NEW CALC_ZOO
+        locphycal_loss = sum(vertphycal_loss(1:nn) * thick(1:nn))
+        lochetara_loss = sum(verthetara_loss(1:nn) * thick(1:nn))
+        locdetz2ara_sources = sum(vertdetz2ara_sources(1:n) * thick(1:nn))
+        locdetz2ara_loss    = sum(vertdetz2ara_loss(1:nn) * thick(1:nn))
+#endif
+     
      
 
   end if

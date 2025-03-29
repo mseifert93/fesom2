@@ -244,9 +244,14 @@ if (Diags) then
      vertrespmicro = 0.d0
 #endif
 
-     allocate(vertcalcdiss(nl-1), vertcalcif(nl-1))
-     vertcalcdiss = 0.d0
-     vertcalcif   = 0.d0
+     allocate(vertcalcdiss(nl-1), vertcalcdiss_guts(nl-1), vertcalcdiss_detZ2(nl-1), vertaradiss_detZ2(nl-1), vertcalcif(nl-1), vertcalcif_miccal(nl-1), vertcalcif_hetara(nl-1)) ! NEW CALC_ZOO except from calcdiss and calcif
+     vertcalcdiss       = 0.d0
+     vertcalcdiss_guts  = 0.d0
+     vertcalcdiss_detZ2 = 0.d0
+     vertaradiss_detZ2  = 0.d0
+     vertcalcif         = 0.d0
+     vertcalcif_miccal  = 0.d0
+     vertcalcif_hetara  = 0.d0
 
      allocate(vertaggn(nl-1), vertaggd(nl-1))
      vertaggn = 0.d0
@@ -375,6 +380,22 @@ if (Diags) then
 #endif
 #endif
      endif !Grazing_detritus
+
+#if defined (__3Zoo2Det)
+     if (calc_zoo) then   ! NEW CALC_ZOO
+        allocate(vertmiccal_loss(nl-1))
+        vertmiccal_loss = 0.d0
+        allocate(vertphycal_loss(nl-1))
+        vertphycal_loss = 0.d0
+        allocate(verthetara_loss(nl-1))
+        verthetara_loss = 0.d0
+        allocate(vertdetz2ara_sources(nl-1))
+        vertdetz2ara_sources = 0.d0
+        allocate(vertdetz2ara_loss(nl-1))
+        vertdetz2ara_loss = 0.d0
+     endif
+#endif
+     
 end if
 
 if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_Forcing'//achar(27)//'[0m'
@@ -461,8 +482,20 @@ if (Diags) then
 #endif
      
 #endif
+
      endif
+
+#if defined (__3Zoo2Det)
+     ! NEW CALC_ZOO
+     miccal_loss(n) = locmiccal_loss
+     phycal_loss(n) = locphycal_loss
+     hetara_loss(n) = lochetara_loss
+     detz2ara_sources(n) = locdetz2ara_sources
+     detz2ara_loss(n)    = locdetz2ara_loss
+#endif
      
+
+  
      !!---- Updating 3D diagnostics
 !     grazmeso_tot(1:nzmax,n) = vertgrazmeso_tot(1:nzmax)
 !     grazmeso_n(1:nzmax,n)   = vertgrazmeso_n(1:nzmax)
@@ -477,9 +510,14 @@ if (Diags) then
      respmacro(1:nzmax,n)    = vertrespmacro(1:nzmax)
      respmicro(1:nzmax,n)    = vertrespmicro(1:nzmax)
 #endif
-     calcdiss(1:nzmax,n)     = vertcalcdiss(1:nzmax)
-     calcif(1:nzmax,n)       = vertcalcif(1:nzmax)
-
+     calcdiss(1:nzmax,n)       = vertcalcdiss(1:nzmax)
+     calcdiss_guts(1:nzmax,n)  = vertcalcdiss_guts(1:nzmax)  ! NEW CALC_ZOO
+     calcdiss_detZ2(1:nzmax,n) = vertcalcdiss_detZ2(1:nzmax) ! NEW CALC_ZOO
+     aradiss_detZ2(1:nzmax,n)  = vertaradiss_detZ2(1:nzmax)  ! NEW CALC_ZOO
+     calcif(1:nzmax,n)         = vertcalcif(1:nzmax)
+     calcif_miccal(1:nzmax,n)  = vertcalcif_miccal(1:nzmax)  ! NEW CALC_ZOO
+     calcif_hetara(1:nzmax,n)  = vertcalcif_hetara(1:nzmax)  ! NEW CALC_ZOO
+     
      aggn(1:nzmax,n)         = vertaggn(1:nzmax)
      docexn(1:nzmax,n)       = vertdocexn(1:nzmax)
      respn(1:nzmax,n)        = vertrespn(1:nzmax)
@@ -555,9 +593,20 @@ if (Diags) then
 #if defined (__coccos)
         deallocate(vertgrazmicro_c)
         deallocate(vertgrazmicro_p)
-#endif        
+#endif
 #endif
      endif ! Grazing_detritus
+
+#if defined (__3Zoo2Det)
+     if (calc_zoo) then ! NEW CALC_ZOO
+        deallocate(vertmiccal_loss)
+        deallocate(vertphycal_loss)
+        deallocate(verthetara_loss)
+        deallocate(vertdetz2ara_sources)
+        deallocate(vertdetz2ara_loss)
+     endif
+#endif
+     
         
 
      !!---- Deallocating 3D Diagnistics
@@ -566,7 +615,7 @@ if (Diags) then
 #if defined (__3Zoo2Det)
      deallocate(vertrespmacro, vertrespmicro)
 #endif
-     deallocate(vertcalcdiss, vertcalcif)
+     deallocate(vertcalcdiss, vertcalcdiss_guts, vertcalcdiss_detZ2, vertaradiss_detZ2, vertcalcif, vertcalcif_miccal, vertcalcif_hetara) ! NEW CALC_ZOO exept from calcdiss and calcif
      deallocate(vertaggn, vertdocexn, vertrespn)
      deallocate(vertaggd, vertdocexd, vertrespd)
 
@@ -685,6 +734,13 @@ endif
     call exchange_nod(grazmicro_c)
     call exchange_nod(grazmicro_p)
 #endif
+#endif
+#if defined (__3Zoo2Det)
+    call exchange_nod(miccal_loss)   ! NEW CALC_ZOO
+    call exchange_nod(phycal_loss)   ! NEW CALC_ZOO
+    call exchange_nod(hetara_loss)   ! NEW CALC_ZOO
+    call exchange_nod(detz2ara_sources) ! NEW CALC_ZOO
+    call exchange_nod(detz2ara_loss)    ! NEW CALC_ZOO
 #endif
   endif
 
