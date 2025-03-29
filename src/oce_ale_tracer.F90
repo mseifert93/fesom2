@@ -1167,7 +1167,10 @@ subroutine ver_sinking_recom_benthos(tr_num,mesh)
 
         ! Particulate Organic Nitrogen
         if( tracer_id(tr_num)==1004 .or. &  !iphyn
-            tracer_id(tr_num)==1007 .or. &  !idetn
+             tracer_id(tr_num)==1007 .or. &  !idetn
+#if defined (__3Zoo2Det)
+             tracer_id(tr_num)==1025 .or. & !idetz2n NEW CALC_ZOO bugfix
+#endif             
 #if defined (__coccos) & defined (__3Zoo2Det)
             tracer_id(tr_num)==1029 .or. &  !icocn
             tracer_id(tr_num)==1032 .or. &  !iphan
@@ -1195,7 +1198,10 @@ subroutine ver_sinking_recom_benthos(tr_num,mesh)
          
         ! Particulate Organic Carbon
         if( tracer_id(tr_num)==1005 .or. &  !iphyc
-            tracer_id(tr_num)==1008 .or. &  !idetc
+             tracer_id(tr_num)==1008 .or. &  !idetc
+#if defined (__3Zoo2Det)
+             tracer_id(tr_num)==1026 .or. & !idetz2c NEW CALC_ZOO bugfix
+#endif             
 #if defined (__coccos) & defined (__3Zoo2Det)
             tracer_id(tr_num)==1030 .or. &  !icocc
             tracer_id(tr_num)==1033 .or. &  !iphac
@@ -1203,7 +1209,7 @@ subroutine ver_sinking_recom_benthos(tr_num,mesh)
             tracer_id(tr_num)==1024 .or. &  !icocc
             tracer_id(tr_num)==1027 .or. &  !iphan
 #endif
-            tracer_id(tr_num)==1014 ) then
+            tracer_id(tr_num)==1014 ) then   !idiac
 !            tracer_id(tr_num)==1014 .or. &  !idiac
 !            tracer_id(tr_num)==1026 ) then  !idetz2c
             !Benthos(n,2)= Benthos(n,2) + add_benthos_2d(n)
@@ -1221,7 +1227,10 @@ subroutine ver_sinking_recom_benthos(tr_num,mesh)
 
         ! Particulate Organic Silicon
         if( tracer_id(tr_num)==1016 .or. &  !idiasi
-            tracer_id(tr_num)==1017 ) then
+#if defined (__3Zoo2Det)
+             tracer_id(tr_num)==1027 .or. & ! detz2si NEW CALC_ZOO bugfix
+#endif
+            tracer_id(tr_num)==1017 ) then   !idetsi
 !            tracer_id(tr_num)==1017 .or. &  !idetsi
 !            tracer_id(tr_num)==1027 ) then  !idetz2si
             !Benthos(n,3)= Benthos(n,3) + add_benthos_2d(n)
@@ -1239,6 +1248,9 @@ subroutine ver_sinking_recom_benthos(tr_num,mesh)
 
         ! Cal
         if( tracer_id(tr_num)==1020 .or. &  !iphycal  ! computed using Vcocco in case of coccos, otherwise Vphy
+#if defined (__3Zoo2Det)
+             tracer_id(tr_num)==1028 .or. & !idetz2cal NEW CALC_ZOO bugfix
+#endif
             tracer_id(tr_num)==1021 ) then   !idetcal
 !            tracer_id(tr_num)==1021 .or. &  !idetcal
 !            tracer_id(tr_num)==1028 ) then  !idetz2cal

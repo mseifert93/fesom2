@@ -475,13 +475,15 @@ module recom_config
   Real(kind=8)                 :: calc_prod_ratio_meso  = 0.01d0  ! NEW CALC_ZOO share of pteropods
   Real(kind=8)                 :: pic_poc_forams = 1.1d0          ! NEW CALC_ZOO PIC:POC ratio of foraminifera (share of micro)
   Real(kind=8)                 :: pic_poc_ptero = 1.5d0           ! NEW CALC_ZOO PIC:POC ratio of pteropods (share of meso)
-  Real(kind=8)                 :: calc_diss_guts  = 0.0d0
+  Real(kind=8)                 :: calc_diss_guts_micro  = 0.0d0   ! NEW CALC_ZOO distinguish between different zoo gut dissolution rates
+  Real(kind=8)                 :: calc_diss_guts_meso   = 0.0d0   ! NEW CALC_ZOO distinguish between different zoo gut dissolution rates
+  Real(kind=8)                 :: calc_diss_guts_macro  = 0.0d0   ! NEW CALC_ZOO distinguish between different zoo gut dissolution rates
   Real(kind=8)                 :: ara_diss_guts = 0.0d0           ! NEW CALC_ZOO dissolution of aragonite in zooplankton guts
   Real(kind=8)                 :: calc_diss_rate  = 0.005714d0    !20.d0/3500.d0
   Real(kind=8)                 :: calc_diss_rate2 = 0.005714d0
   Real(kind=8)                 :: calc_diss_omegac = 0.197d0      ! NEW DISS value from Aumont et al. 2015, will be used with OmegaC_diss flag
   Real(kind=8)                 :: calc_diss_exp   = 1.d0          ! NEW DISS exponent in the dissolution rate of calcite, will be used with OmegaC_diss flag
-  namelist /pacalc/ calc_prod_ratio, calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero,  calc_diss_guts, ara_diss_guts, calc_diss_rate, calc_diss_rate2, calc_diss_omegac, calc_diss_exp  ! NEW DISS added calc_diss_omegac, calc_diss_exp ! NEW CALC_ZOO added calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero, ara_diss_guts
+  namelist /pacalc/ calc_prod_ratio, calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero,  calc_diss_guts_micro, calc_diss_guts_meso, calc_diss_guts_macro, ara_diss_guts, calc_diss_rate, calc_diss_rate2, calc_diss_omegac, calc_diss_exp  ! NEW DISS added calc_diss_omegac, calc_diss_exp ! NEW CALC_ZOO added calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero, calc_diss_guts_micro, calc_diss_guts_meso, calc_diss_guts_macro, ara_diss_guts
 !!------------------------------------------------------------------------------
 !! *** Benthos ***
   Real(kind=8)                 :: decayRateBenN   = 0.005d0
