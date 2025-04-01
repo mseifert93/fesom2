@@ -525,6 +525,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 calc_diss = calc_diss_omegac * max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))**(calc_diss_exp) ! Dissolution rate scaled by carbonate ratio, after Aumont et al. 2015
                 if (calc_zoo) then ! NEW CALC_ZOO
                    calc_diss_ara = calc_diss_omegac * max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))**(calc_diss_exp) ! REPLACE WITH ARAGONITE VALUES!!
+                   calc_diss_ben_ara = calc_diss_ara
                 endif                
 #if defined (__3Zoo2Det)
                 calc_diss2 = calc_diss
@@ -534,8 +535,9 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                 calc_diss = calc_diss_rate * Sink_Vel/20.d0 ! Dissolution rate of CaCO3 scaled by the sinking velocity at the current depth
 #if defined (__3Zoo2Det)
                 calc_diss2 = calc_diss_rate2* Sink_Vel/20.d0
-            if (calc_zoo) then
-                calc_diss_ara = calc_diss_rate2* Sink_Vel/20.d0 ! NEW CALC_ZOO
+            if (calc_zoo) then ! NEW CALC_ZOO
+                calc_diss_ara = calc_diss_rate2* Sink_Vel/20.d0 
+                calc_diss_ben_ara = calc_diss_ara
             endif
 #endif
                 calc_diss_ben = calc_diss_rate * Sink_Vel/20.0
@@ -3013,14 +3015,24 @@ if (Diags) then
 
 #if defined (__3Zoo2Det)
 !*** calc_diss_guts                        ! NEW CALC_ZOO
-        vertcalcdiss_guts(k) = vertcalcdiss_guts(k) + ( &
-        + calc_loss_gra    * calc_diss_guts_meso        &
-        + calc_loss_gra2   * calc_diss_guts_macro       &
+        vertcalcdiss_guts_micro(k) = vertcalcdiss_guts_micro(k) + ( &
         + calc_loss_gra3   * calc_diss_guts_micro       &
+        ) * recipbiostep
+
+        vertcalcdiss_guts_meso(k) = vertcalcdiss_guts_meso(k) + ( &
+        + calc_loss_gra    * calc_diss_guts_meso        &
         + miccal_loss_gra  * calc_diss_guts_meso        &
+        ) * recipbiostep
+        
+        vertcalcdiss_guts_macro(k) = vertcalcdiss_guts_macro(k) + ( &
+        + calc_loss_gra2   * calc_diss_guts_macro       &
         + miccal_loss_gra2 * calc_diss_guts_macro       &
+        ) * recipbiostep
+
+        vertcalcdiss_guts_macro_ara(k) = vertcalcdiss_guts_macro_ara(k) + ( &
         + hetara_loss_gra2 * ara_diss_guts              &
         ) * recipbiostep
+             
 
 !*** calc_diss_detZ2                       ! NEW CALC_ZOO
         vertcalcdiss_detZ2(k) = vertcalcdiss_detZ2(k) + ( &
@@ -3199,6 +3211,17 @@ endif
   decayBenthos(4) = calc_diss_ben * LocBenthos(4)
   LocBenthos(4)      = LocBenthos(4)   - decayBenthos(4) * dt_b
 
+!*** Arag: DIC, Alk ***  ! NEW CALC_ZOO
+  if (calc_zoo) then
+     if (ciso) then
+        decayBenthos(9) = calc_diss_ben_ara * LocBenthos(9)
+        LocBenthos(9)      = LocBenthos(9)   - decayBenthos(9) * dt_b
+     else
+        decayBenthos(5) = calc_diss_ben_ara * LocBenthos(5)
+        LocBenthos(5)      = LocBenthos(5)   - decayBenthos(5) * dt_b
+     endif
+  endif
+  
     if (ciso) then
 !*** DIC_13 ***  We ignore isotopic fractionation during remineralization.
         decayBenthos(5) = alpha_dcal_13   * decayRateBenC   * LocBenthos(5)

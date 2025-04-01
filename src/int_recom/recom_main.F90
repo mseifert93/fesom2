@@ -244,14 +244,17 @@ if (Diags) then
      vertrespmicro = 0.d0
 #endif
 
-     allocate(vertcalcdiss(nl-1), vertcalcdiss_guts(nl-1), vertcalcdiss_detZ2(nl-1), vertaradiss_detZ2(nl-1), vertcalcif(nl-1), vertcalcif_miccal(nl-1), vertcalcif_hetara(nl-1)) ! NEW CALC_ZOO except from calcdiss and calcif
-     vertcalcdiss       = 0.d0
-     vertcalcdiss_guts  = 0.d0
-     vertcalcdiss_detZ2 = 0.d0
-     vertaradiss_detZ2  = 0.d0
-     vertcalcif         = 0.d0
-     vertcalcif_miccal  = 0.d0
-     vertcalcif_hetara  = 0.d0
+     allocate(vertcalcdiss(nl-1), vertcalcdiss_guts_micro(nl-1), vertcalcdiss_guts_meso(nl-1), vertcalcdiss_guts_macro(nl-1), vertcalcdiss_guts_macro_ara(nl-1), vertcalcdiss_detZ2(nl-1), vertaradiss_detZ2(nl-1), vertcalcif(nl-1), vertcalcif_miccal(nl-1), vertcalcif_hetara(nl-1)) ! NEW CALC_ZOO except from calcdiss and calcif
+     vertcalcdiss                 = 0.d0
+     vertcalcdiss_guts_micro      = 0.d0
+     vertcalcdiss_guts_meso       = 0.d0
+     vertcalcdiss_guts_macro      = 0.d0
+     vertcalcdiss_guts_macro_ara  = 0.d0
+     vertcalcdiss_detZ2           = 0.d0
+     vertaradiss_detZ2            = 0.d0
+     vertcalcif                   = 0.d0
+     vertcalcif_miccal            = 0.d0
+     vertcalcif_hetara            = 0.d0
 
      allocate(vertaggn(nl-1), vertaggd(nl-1))
      vertaggn = 0.d0
@@ -510,13 +513,16 @@ if (Diags) then
      respmacro(1:nzmax,n)    = vertrespmacro(1:nzmax)
      respmicro(1:nzmax,n)    = vertrespmicro(1:nzmax)
 #endif
-     calcdiss(1:nzmax,n)       = vertcalcdiss(1:nzmax)
-     calcdiss_guts(1:nzmax,n)  = vertcalcdiss_guts(1:nzmax)  ! NEW CALC_ZOO
-     calcdiss_detZ2(1:nzmax,n) = vertcalcdiss_detZ2(1:nzmax) ! NEW CALC_ZOO
-     aradiss_detZ2(1:nzmax,n)  = vertaradiss_detZ2(1:nzmax)  ! NEW CALC_ZOO
-     calcif(1:nzmax,n)         = vertcalcif(1:nzmax)
-     calcif_miccal(1:nzmax,n)  = vertcalcif_miccal(1:nzmax)  ! NEW CALC_ZOO
-     calcif_hetara(1:nzmax,n)  = vertcalcif_hetara(1:nzmax)  ! NEW CALC_ZOO
+     calcdiss(1:nzmax,n)                = vertcalcdiss(1:nzmax)
+     calcdiss_guts_micro(1:nzmax,n)     = vertcalcdiss_guts_micro(1:nzmax)  ! NEW CALC_ZOO
+     calcdiss_guts_meso(1:nzmax,n)      = vertcalcdiss_guts_meso(1:nzmax)  ! NEW CALC_ZOO
+     calcdiss_guts_macro(1:nzmax,n)     = vertcalcdiss_guts_macro(1:nzmax)  ! NEW CALC_ZOO
+     calcdiss_guts_macro_ara(1:nzmax,n) = vertcalcdiss_guts_macro_ara(1:nzmax)  ! NEW CALC_ZOO
+     calcdiss_detZ2(1:nzmax,n)          = vertcalcdiss_detZ2(1:nzmax) ! NEW CALC_ZOO
+     aradiss_detZ2(1:nzmax,n)           = vertaradiss_detZ2(1:nzmax)  ! NEW CALC_ZOO
+     calcif(1:nzmax,n)                  = vertcalcif(1:nzmax)
+     calcif_miccal(1:nzmax,n)           = vertcalcif_miccal(1:nzmax)  ! NEW CALC_ZOO
+     calcif_hetara(1:nzmax,n)           = vertcalcif_hetara(1:nzmax)  ! NEW CALC_ZOO
      
      aggn(1:nzmax,n)         = vertaggn(1:nzmax)
      docexn(1:nzmax,n)       = vertdocexn(1:nzmax)

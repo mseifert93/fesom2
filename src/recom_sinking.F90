@@ -183,6 +183,7 @@ if (Vsink .gt. 0.1) then
             endif ! second detritus tracers
 #endif
 
+         ! Here, the calc indices are only used as representatives to write out the sinking velocities of detritus 1 and 2
          if (tracer_id(tr_num)==1021) Sinkvel1_tr(nz,n,tr_num) = Wvel_flux(nz) !-1.0d0/SecondsPerDay  !idetcal  
 #if defined (__3Zoo2Det) 
          if (tracer_id(tr_num)==1028) Sinkvel2_tr(nz,n,tr_num) = Wvel_flux(nz)  !idetz2calc

@@ -357,6 +357,14 @@ CASE ('benCalc   ')
     if (use_REcoM) then
     call def_stream(nod2D,  myDim_nod2D,   'benCalc','Benthos calcite','mmol', Benthos(:,4), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
     end if
+ CASE ('benArag   ')
+    if (use_REcoM) then
+       if (ciso) then
+          call def_stream(nod2D,  myDim_nod2D,   'benArag','Benthos aragonite','mmol', Benthos(:,9), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+       else
+          call def_stream(nod2D,  myDim_nod2D,   'benArag','Benthos aragonite','mmol', Benthos(:,5), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+       endif
+    endif
 ! ciso 
 CASE ('benC_13   ')
     if (use_REcoM) then

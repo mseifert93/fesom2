@@ -1264,7 +1264,30 @@ subroutine ver_sinking_recom_benthos(tr_num,mesh)
 ! kh 25.03.22 buffer sums per tracer index to avoid non bit identical results regarding global sums when running the tracer loop in parallel
                Benthos_tr(n,4,tr_num)= Benthos_tr(n,4,tr_num) + add_benthos_2d(n)
             endif
-        endif
+         endif
+
+         ! Aragonite ! NEW CALC_ZOO use index benthos_num because it can either be 5 (without isotops) or 9 (with isotops)
+#if defined (__3Zoo2Det) & defined (__coccos)
+         if( tracer_id(tr_num)==1039 ) then     !idetz2ara
+            if (use_MEDUSA) then
+               SinkFlx_tr(n,benthos_num,tr_num) = SinkFlx_tr(n,benthos_num,tr_num) + add_benthos_2d(n) / area(1,n)/dt
+            endif
+            if ((.not.use_MEDUSA).or.(sedflx_num.eq.0)) then
+               Benthos_tr(n,benthos_num,tr_num)= Benthos_tr(n,benthos_num,tr_num) + add_benthos_2d(n)
+            endif
+         endif
+         
+#elif defined (__3Zoo2Det) & !defined (__coccos)
+         if( tracer_id(tr_num)==1033 ) then     !idetz2ara 
+            if (use_MEDUSA) then
+               SinkFlx_tr(n,benthos_num,tr_num) = SinkFlx_tr(n,benthos_num,tr_num) + add_benthos_2d(n) / area(1,n)/dt
+            endif
+            if ((.not.use_MEDUSA).or.(sedflx_num.eq.0)) then
+               Benthos_tr(n,benthos_num,tr_num)= Benthos_tr(n,benthos_num,tr_num) + add_benthos_2d(n)
+            endif
+         endif         
+#endif
+         
 
         ! flux of 13C into the sediment
         if (ciso) then             
@@ -1456,10 +1479,18 @@ else
   SELECT CASE (id)
     CASE (1001)
       bottom_flux = GlodecayBenthos(:,1) !*** DIN [mmolN/m^2/s] ***
-    CASE (1002)
-      bottom_flux = GlodecayBenthos(:,2) + GlodecayBenthos(:,4) !*** DIC + calcification ***
-    CASE (1003)
-      bottom_flux = GlodecayBenthos(:,4) * 2.0_WP - 1.0625_WP * GlodecayBenthos(:,1) !*** Alk ***
+   CASE (1002)
+      if (calc_zoo) then
+         bottom_flux = GlodecayBenthos(:,2) + GlodecayBenthos(:,4) + GlodecayBenthos(:,benthos_num) !*** DIC + calcification *** ! NEW CALC_ZOO with aragonite
+      else 
+         bottom_flux = GlodecayBenthos(:,2) + GlodecayBenthos(:,4) !*** DIC + calcification ***
+      endif
+   CASE (1003)
+      if (calc_zoo) then
+         bottom_flux = GlodecayBenthos(:,4) * 2.0_WP - 1.0625_WP * GlodecayBenthos(:,1) + GlodecayBenthos(:,benthos_num) * 2.0_WP !*** Alk ***  ! NEW CALC_ZOO with aragonite
+      else
+         bottom_flux = GlodecayBenthos(:,4) * 2.0_WP - 1.0625_WP * GlodecayBenthos(:,1) !*** Alk ***
+      endif
     CASE (1018)
       bottom_flux = GlodecayBenthos(:,3) !*** Si ***
     CASE (1019)

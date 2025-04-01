@@ -246,6 +246,14 @@ subroutine ini_bio_io(year, mesh)
   call def_variable(bid, 'BenC',       (/nod2D/), 'Benthos Carbon',   'mmol/m3',   Benthos(:,2));
   call def_variable(bid, 'BenSi',      (/nod2D/), 'Benthos Silicate', 'mmol/m3',   Benthos(:,3));
   call def_variable(bid, 'BenCalc',    (/nod2D/), 'Benthos Calcite',  'mmol/m3',   Benthos(:,4));
+  if (calc_zoo) then  ! NEW CALC_ZOO
+     if (ciso) then
+        call def_variable(bid, 'BenArag',    (/nod2D/), 'Benthos Aragonite',  'mmol/m3',   Benthos(:,9));
+     else
+        call def_variable(bid, 'BenArag',    (/nod2D/), 'Benthos Aragonite',  'mmol/m3',   Benthos(:,5));
+     endif
+  endif
+  
 !  call def_variable(bid, 'HPlus',      (/nod2D/), 'Conc. of H-plus ions in the surface water', 'mol/kg',   GloHplus);
   if (ciso) then
     call def_variable(bid, 'BenC_13',       (/nod2D/), 'Benthos Carbon-13',   'mmol/m3',   Benthos(:,5));

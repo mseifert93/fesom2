@@ -147,12 +147,12 @@ module recom_config
   integer                :: Nmocsy                = 1          ! Length of the vector that is passed to mocsy (always one for recom)
   logical                :: recom_debug           = .true.
   logical                :: ciso                  = .false.    !MB main switch to enable/disable carbon isotopes (13|14C)
-  integer                :: benthos_num           = 4          !MB number of sediment tracers = 8 if ciso = .true.
+  integer                :: benthos_num           = 5          !MB number of sediment tracers = 8 if ciso = .true.   ! NEW CALC_ZOO changed to 5 (+aragonite)
   Logical                :: use_MEDUSA            = .true.    ! main switch for sediment model
   integer                :: sedflx_num            = 0         ! number of sedimentary fluxs from MEDUSA, = 7 if ciso
   Logical                :: add_loopback          = .false.
   real(kind=8)           :: lb_tscale             = 1.d0      ! time scale to balance the burial loss
-  integer                :: bottflx_num           = 4         ! number of stored sinking fluxes from the bottom layer, = 6 if C13 and = 8 if C14
+  integer                :: bottflx_num           = 5         ! number of stored sinking fluxes from the bottom layer, = 6 if C13 and = 8 if C14 ! NEW CALC_ZOO changed to 5 (+aragonite)
   Logical                :: use_atbox             = .false.   ! switch for atmospheric box model for CO2
 
   namelist /pavariables/ use_REcoM,                       REcoM_restart,                                  &
@@ -697,6 +697,7 @@ Module REcoM_declarations
   Real(kind=8)  :: calc_diss
   Real(kind=8)  :: calc_diss_ara                     ! NEW CALC_ZOO
   Real(kind=8)  :: calc_diss_ben                     ! NEW DISS
+  Real(kind=8)  :: calc_diss_ben_ara                 ! NEW CALC_ZOO
   Real(kind=8)  :: calc_loss_gra2                    ! zoo2 detritus
   Real(kind=8)  :: calc_diss2                        ! zoo2 detritus
   Real(kind=8)  :: calc_loss_gra3                    ! NEW Zoo3 detritus
@@ -728,7 +729,9 @@ Module REcoM_declarations
   Real(kind=8),allocatable,dimension(:) :: vertgrazmacro_tot, vertgrazmacro_n, vertgrazmacro_d, vertgrazmacro_c, vertgrazmacro_p, vertgrazmacro_mes, vertgrazmacro_det, vertgrazmacro_mic, vertgrazmacro_det2
   Real(kind=8),allocatable,dimension(:) :: vertgrazmicro_tot, vertgrazmicro_n, vertgrazmicro_d, vertgrazmicro_c, vertgrazmicro_p
   Real(kind=8),allocatable,dimension(:) :: vertrespmeso, vertrespmacro, vertrespmicro
-  Real(kind=8),allocatable,dimension(:) :: vertcalcdiss, vertcalcdiss_guts, vertcalcdiss_detZ2, vertaradiss_detZ2, vertcalcif, vertcalcif_miccal, vertcalcif_hetara ! NEW CALC_ZOO exept from calcdiss and calcif
+  Real(kind=8),allocatable,dimension(:) :: vertcalcdiss, vertcalcdiss_guts_micro, vertcalcdiss_guts_meso, vertcalcdiss_guts_macro, vertcalcdiss_guts_macro_ara ! NEW CALC_ZOO exept from calcdiss
+  Real(kind=8),allocatable,dimension(:) :: vertcalcdiss_detZ2, vertaradiss_detZ2 ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:) :: vertcalcif, vertcalcif_miccal, vertcalcif_hetara ! NEW CALC_ZOO exept from calcif
   Real(kind=8),allocatable,dimension(:) :: vertmiccal_loss, vertphycal_loss, verthetara_loss, vertdetz2ara_sources, vertdetz2ara_loss ! NEW CALC_ZOO
   Real(kind=8),allocatable,dimension(:) :: vertaggn, vertaggd, vertaggc, vertaggp
   Real(kind=8),allocatable,dimension(:) :: vertdocexn, vertdocexd, vertdocexc, vertdocexp
