@@ -2442,11 +2442,11 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       sms(k,idetcal)   = (                              &
         + lossC_c           * limitFacN_cocco * PhyCalc &
         + phyRespRate_cocco                   * PhyCalc &
-        + res_miczoo * q10_mic_res            * MicCal  &  ! NEW CALC_ZOO
+        !+ res_miczoo * q10_mic_res            * MicCal  &  ! NEW CALC_ZOO -> outcommented because no realistic source
         + calc_loss_agg                                 &
         + calc_loss_gra3                                &
         + MicZooLossFlux_cal                            &  ! NEW CALC_ZOO
-        + lossC_z3                            * MicCal  &  ! NEW CALC_ZOO
+        !+ lossC_z3                            * MicCal  &  ! NEW CALC_ZOO -> outcommented because no realistic source
         - calc_loss_gra3    * calc_diss_guts_micro      &  ! NEW CALC_ZOO added _micro
         - calc_diss                           * DetCalc &
                                                        ) * dt_b + sms(k,idetcal)
@@ -2479,11 +2479,11 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
       sms(k,idetcal)   = (                          &
         + lossC          * limitFacN      * PhyCalc &
         + phyRespRate                     * PhyCalc &
-        + res_miczoo * q10_mic_res        * MicCal  &  ! NEW CALC_ZOO 
+        !+ res_miczoo * q10_mic_res        * MicCal  &  ! NEW CALC_ZOO -> outcommented because no realistic source
         + calc_loss_agg                             &
         + calc_loss_gra3                            &
         + MicZooLossFlux_cal                        &  ! NEW CALC_ZOO
-        + lossC_z3                        * MicCal  &  ! NEW CALC_ZOO
+        !+ lossC_z3                        * MicCal  &  ! NEW CALC_ZOO -> outcommented because no realistic source
         - calc_loss_gra3 * calc_diss_guts_micro     &  ! NEW CALC_ZOO added _micro
         - calc_diss                       * DetCalc &
                                                    ) * dt_b + sms(k,idetcal)
@@ -2518,9 +2518,9 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
           + calcification_hetara                  &
           - hetara_loss_gra2                      & ! goes to 2nd det aragonite & DIC & Alk
           - hetLossFlux_ara                       & ! goes to 2nd det aragonite
-          - res_het * q10_mes_res * HetAra        & ! goes to 2nd det aragonite
-          - lossC_z * HetAra                      & ! goes to 2nd det aragonite
-          - Mesfecalloss_ara                      & ! goes to 2nd det aragonite
+          !- res_het * q10_mes_res * HetAra        & ! goes to 2nd det aragonite -> outcommented because no realistic loss
+          !- lossC_z * HetAra                      & ! goes to 2nd det aragonite -> outcommented because no realistic loss
+          !- Mesfecalloss_ara                      & ! goes to 2nd det aragonite -> outcommented because no realistic loss
                                            ) * dt_b + sms(k,ihetara)
  
        sms(k,imiccal) = (                         &
@@ -2528,8 +2528,8 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
           - miccal_loss_gra                       & ! goes to 2nd det calcite & DIC & Alk
           - miccal_loss_gra2                      & ! goes to 2nd det calcite & DIC & Alk
           - MicZooLossFlux_cal                    & ! goes to 1st det calcite
-          - res_miczoo * q10_mic_res * MicCal     & ! goes to 1st det calcite
-          - lossC_z3 * MicCal                     & ! goes to 1st det calcite
+          !- res_miczoo * q10_mic_res * MicCal     & ! goes to 1st det calcite -> outcommented because no realistic loss
+          !- lossC_z3 * MicCal                     & ! goes to 1st det calcite -> outcommented because no realistic loss
                                            ) * dt_b + sms(k,imiccal)
 
        sms(k,idetz2ara) = (                         &
@@ -2537,9 +2537,9 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             - calc_diss_ara * DetZ2Ara              & 
             + hetara_loss_gra2                      &
             - hetara_loss_gra2 * ara_diss_guts      &
-            + res_het * q10_mes_res * HetAra        &
-            + lossC_z * HetAra                      &
-            + Mesfecalloss_ara                      &
+            !+ res_het * q10_mes_res * HetAra        & -> outcommented because no realistic source
+            !+ lossC_z * HetAra                      & -> outcommented because no realistic source
+            !+ Mesfecalloss_ara                      & -> outcommented because no realistic source
                                            ) * dt_b + sms(k,idetz2ara)
 #endif
     endif
@@ -3111,8 +3111,8 @@ if (Diags) then
            + miccal_loss_gra                           &
            + miccal_loss_gra2                          &
            + MicZooLossFlux_cal                        &
-           + res_miczoo * q10_mic_res * MicCal         &
-           + lossC_z3 * MicCal                         &
+           !+ res_miczoo * q10_mic_res * MicCal         & -> outcommented because no realistic loss
+           !+ lossC_z3 * MicCal                         & -> outcommented because no realistic loss
            ) * recipbiostep
 
            vertphycal_loss(k) = vertphycal_loss(k) + ( &
@@ -3127,9 +3127,9 @@ if (Diags) then
            verthetara_loss(k) = verthetara_loss(k) + ( &
            + hetara_loss_gra2                          &
            + hetLossFlux_ara                           &
-           + res_het * q10_mes_res * HetAra            &
-           + lossC_z * HetAra                          &
-           + Mesfecalloss_ara                          &
+           !+ res_het * q10_mes_res * HetAra            & -> outcommented because no realistic loss
+           !+ lossC_z * HetAra                          & -> outcommented because no realistic loss
+           !+ Mesfecalloss_ara                          & -> outcommented because no realistic loss
            ) * recipbiostep
         endif
 #endif
@@ -3140,9 +3140,9 @@ if (Diags) then
            vertdetz2ara_sources(k) = vertdetz2ara_sources(k) + ( &
            + hetLossFlux_ara                                     &
            + hetara_loss_gra2                                    &
-           + res_het * q10_mes_res * HetAra                      &
-           + lossC_z * HetAra                                    &
-           + Mesfecalloss_ara                                    &
+           !+ res_het * q10_mes_res * HetAra                      & -> outcommented because no realistic loss
+           !+ lossC_z * HetAra                                    & -> outcommented because no realistic loss
+           !+ Mesfecalloss_ara                                    & -> outcommented because no realistic loss
            ) * recipbiostep
 
            vertdetz2ara_loss(k) = vertdetz2ara_loss(k) + ( &

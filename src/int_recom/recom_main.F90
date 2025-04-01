@@ -621,7 +621,7 @@ if (Diags) then
 #if defined (__3Zoo2Det)
      deallocate(vertrespmacro, vertrespmicro)
 #endif
-     deallocate(vertcalcdiss, vertcalcdiss_guts, vertcalcdiss_detZ2, vertaradiss_detZ2, vertcalcif, vertcalcif_miccal, vertcalcif_hetara) ! NEW CALC_ZOO exept from calcdiss and calcif
+     deallocate(vertcalcdiss, vertcalcdiss_guts_micro, vertcalcdiss_guts_meso, vertcalcdiss_guts_macro, vertcalcdiss_guts_macro_ara, vertcalcdiss_detZ2, vertaradiss_detZ2, vertcalcif, vertcalcif_miccal, vertcalcif_hetara) ! NEW CALC_ZOO exept from calcdiss and calcif
      deallocate(vertaggn, vertdocexn, vertrespn)
      deallocate(vertaggd, vertdocexd, vertrespd)
 

@@ -666,9 +666,21 @@ CASE ('calcdiss       ')
    if (use_REcoM) then
    call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'calcdiss','Calcite dissolution in the first detritus class', 'mmolC/(m2*d)', calcdiss(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
    endif
-CASE ('calcdiss_guts  ')   ! NEW CALC_ZOO
+CASE ('calcdiss_gutmic')   ! NEW CALC_ZOO
    if (use_REcoM) then
-   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'calcdiss_guts','Calcite dissolution in zooplankton guts', 'mmolC/(m2*d)', calcdiss_guts(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'calcdiss_gutmic','Calcite dissolution in microzooplankton guts', 'mmolC/(m2*d)', calcdiss_guts_micro(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   endif
+CASE ('calcdiss_gutmes')   ! NEW CALC_ZOO
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'calcdiss_gutmes','Calcite dissolution in mesozooplankton guts', 'mmolC/(m2*d)', calcdiss_guts_meso(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   endif
+CASE ('calcdiss_gutmac')   ! NEW CALC_ZOO
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'calcdiss_gutmac','Calcite dissolution in macrozooplankton guts', 'mmolC/(m2*d)', calcdiss_guts_macro(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   endif
+CASE ('aradiss_gutmac')   ! NEW CALC_ZOO
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'aradiss_gutmac','Aragonite dissolution in macrozooplankton guts', 'mmolC/(m2*d)', calcdiss_guts_macro_ara(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
    endif
 CASE ('calcdiss_detZ2 ')   ! NEW CALC_ZOO 
    if (use_REcoM) then

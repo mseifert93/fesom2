@@ -275,8 +275,14 @@ subroutine recom_init(mesh)
   respmicro(:,:) = 0.d0
   allocate(calcdiss(nl-1,node_size))
   calcdiss(:,:) = 0.d0
-  allocate(calcdiss_guts(nl-1,node_size)) ! NEW CALC_ZOO
-  calcdiss_guts(:,:) = 0.d0
+  allocate(calcdiss_guts_micro(nl-1,node_size)) ! NEW CALC_ZOO
+  calcdiss_guts_micro(:,:) = 0.d0
+  allocate(calcdiss_guts_meso(nl-1,node_size)) ! NEW CALC_ZOO
+  calcdiss_guts_meso(:,:) = 0.d0
+  allocate(calcdiss_guts_macro(nl-1,node_size)) ! NEW CALC_ZOO
+  calcdiss_guts_macro(:,:) = 0.d0
+  allocate(calcdiss_guts_macro_ara(nl-1,node_size)) ! NEW CALC_ZOO   
+  calcdiss_guts_macro_ara(:,:) = 0.d0
   allocate(calcdiss_detZ2(nl-1,node_size)) ! NEW CALC_ZOO
   calcdiss_detZ2(:,:) = 0.d0
   allocate(aradiss_detZ2(nl-1,node_size)) ! NEW CALC_ZOO

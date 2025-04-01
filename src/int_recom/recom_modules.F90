@@ -861,7 +861,10 @@ Module REcoM_GloVar
   Real(kind=8),allocatable,dimension(:,:)   :: respmacro
   Real(kind=8),allocatable,dimension(:,:)   :: respmicro
   Real(kind=8),allocatable,dimension(:,:)   :: calcdiss
-  Real(kind=8),allocatable,dimension(:,:)   :: calcdiss_guts    ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:,:)   :: calcdiss_guts_micro     ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:,:)   :: calcdiss_guts_meso      ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:,:)   :: calcdiss_guts_macro     ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:,:)   :: calcdiss_guts_macro_ara ! NEW CALC_ZOO
   Real(kind=8),allocatable,dimension(:,:)   :: calcdiss_detZ2   ! NEW CALC_ZOO
   Real(kind=8),allocatable,dimension(:,:)   :: aradiss_detZ2    ! NEW CALC_ZOO
   Real(kind=8),allocatable,dimension(:,:)   :: calcif
