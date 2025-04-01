@@ -522,9 +522,29 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             if (OmegaC_diss) then    ! Calcdiss dependent on carbonate saturation
                 Ca        = (0.02128d0/40.078d0) * Sali_depth(k)/1.80655d0 ! Calcium ion concentration [mol/kg], function from varsolver.f90
                 CO3_sat   = (kspc_watercolumn(k) / Ca) * rhoSW_watercolumn(k) ! Saturated carbonate ion concentration, converted to [mol/m3]
-                calc_diss = calc_diss_omegac * max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))**(calc_diss_exp) ! Dissolution rate scaled by carbonate ratio, after Aumont et al. 2015
+                if (Aumont_2015) then
+                   calc_diss = calc_diss_omegac * max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))**(calc_diss_exp) ! Dissolution rate scaled by carbonate ratio, after Aumont et al. 2015
+                endif
+                if (Naviaux_2019) then  ! NEW CALC_ZOO
+                   omegac_caco3 = CO3_watercolumn(k)/CO3_sat
+                   if (omegac_caco3 > 0.8) then  ! low undersaturation
+                      calc_diss = calc_diss_fac_low *  max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))**(calc_diss_exp_low)
+                   else                          ! high undersaturation
+                      calc_diss = calc_diss_fac_high *  max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))**(calc_diss_exp_high)
+                   endif
+                endif
                 if (calc_zoo) then ! NEW CALC_ZOO
-                   calc_diss_ara = calc_diss_omegac * max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))**(calc_diss_exp) ! REPLACE WITH ARAGONITE VALUES!!
+                   if (Aumont_2015) then
+                      calc_diss_ara = calc_diss_omegac * max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))**(calc_diss_exp) ! REPLACE WITH ARAGONITE VALUES!!
+                   endif
+                   if (Naviaux_2019) then  ! REPLACE WITH ARAGONITE VALUES !! CURRENTLY THE SAME AS CALCITE !!
+                      omegac_caco3 = CO3_watercolumn(k)/CO3_sat
+                      if (omegac_caco3 > 0.8) then	 ! low undersaturation
+                         calc_diss = calc_diss_fac_low *  max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))**(calc_diss_exp_low)
+                      else                               ! high undersaturation
+                         calc_diss = calc_diss_fac_high *  max(zero,(1-(CO3_watercolumn(k)/CO3_sat)))**(calc_diss_exp_high)
+                      endif
+                   endif
                    calc_diss_ben_ara = calc_diss_ara
                 endif                
 #if defined (__3Zoo2Det)

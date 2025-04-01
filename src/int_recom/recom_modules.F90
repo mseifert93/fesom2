@@ -121,7 +121,9 @@ module recom_config
   Logical                :: use_ballasting        = .true.     ! NEW BALL
   Logical                :: use_density_scaling   = .true.     ! NEW BALL
   Logical                :: use_viscosity_scaling = .true.     ! NEW BALL
-  Logical                :: OmegaC_diss           = .true.     ! NEW DISS Use mocsy calcite omega to compute calcite dissolution
+  Logical                :: OmegaC_diss           = .true.     ! NEW DISS Use mocsy calcite omega to compute calcite dissolution (only works if either Aumont_2015 = true or Naviaux_2019 = true)
+  Logical                :: Aumont_2015           = .false.    ! NEW CALC_ZOO CaCO3 dissolution following Aumont et al. 2015 (only works with OmegaC_diss = true)
+  Logical                :: Naviaux_2019          = .true.     ! NEW CALC_Zoo CaCO3 dissolution following Naviaux et al. 2019 (only works with OmegaC_diss = true)
   Logical                :: CO2lim                = .true.     ! NEW Use CO2 dependence of growth and calcification
   !Logical                :: inter_CT_CL           = .true.    ! NEW inter use interaction between CO2 and both, temperature and light
   Logical                :: calc_zoo              = .true.     ! NEW CALC_ZOO use calcifying zooplankton (micro: forams/calcite, meso: ptero/aragonite)
@@ -166,7 +168,8 @@ module recom_config
                                                                                  het_resp_noredfield,     &
                        diatom_mucus,                                                                      &
                        O2dep_remin,                       use_ballasting,        use_density_scaling,     & ! O2remin, NEW BALL
-                       use_viscosity_scaling,             OmegaC_diss,           CO2lim,                  & ! BALL, DISS added OmegaC_diss, added CO2lim
+                       use_viscosity_scaling,             OmegaC_diss,           Aumont_2015,             & ! NEW BALL, DISS added OmegaC_diss; NEW CALC_ZOO added Aumont_2015
+                       Naviaux_2019,                      CO2lim,                                         & ! NEW BALL, DISS added CO2lim; NEW CALC_ZOO added Naviaux_2019
                        calc_zoo,                          Diags,                 constant_CO2,            & ! NEW CALC_ZOO
                        UseFeDust,                         UseDustClim,           UseDustClimAlbani,       &
                        use_photodamage,                   HetRespFlux_plus,      REcoMDataPath,           &
@@ -483,7 +486,11 @@ module recom_config
   Real(kind=8)                 :: calc_diss_rate2 = 0.005714d0
   Real(kind=8)                 :: calc_diss_omegac = 0.197d0      ! NEW DISS value from Aumont et al. 2015, will be used with OmegaC_diss flag
   Real(kind=8)                 :: calc_diss_exp   = 1.d0          ! NEW DISS exponent in the dissolution rate of calcite, will be used with OmegaC_diss flag
-  namelist /pacalc/ calc_prod_ratio, calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero,  calc_diss_guts_micro, calc_diss_guts_meso, calc_diss_guts_macro, ara_diss_guts, calc_diss_rate, calc_diss_rate2, calc_diss_omegac, calc_diss_exp  ! NEW DISS added calc_diss_omegac, calc_diss_exp ! NEW CALC_ZOO added calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero, calc_diss_guts_micro, calc_diss_guts_meso, calc_diss_guts_macro, ara_diss_guts
+  Real(kind=8)                 :: calc_diss_fac_low  = 0.000004d0 ! NEW CALC_ZOO needed for the Naviaux dissolution (= 8.64 * 10^-6.3 mol m-2 d-1 = 10^-14.3 mol cm-2 s-1)
+  Real(kind=8)                 :: calc_diss_exp_low  = 0.11       ! NEW CALC_ZOO needed for the Naviaux dissolution
+  Real(kind=8)                 :: calc_diss_fac_high = 0.0137d0   ! NEW CALC_ZOO needed for the Naviaux dissolution (= 8.64 * 10^-2.8 mol m-2 d-1 = 10^-10.8 mol cm-2 s-1)
+  Real(kind=8)                 :: calc_diss_exp_high = 4.7        ! NEW CALC_ZOO needed for the Naviaux dissolution
+  namelist /pacalc/ calc_prod_ratio, calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero,  calc_diss_guts_micro, calc_diss_guts_meso, calc_diss_guts_macro, ara_diss_guts, calc_diss_rate, calc_diss_rate2, calc_diss_omegac, calc_diss_exp, calc_diss_fac_low, calc_diss_exp_low, calc_diss_fac_high, calc_diss_exp_high  ! NEW DISS added calc_diss_omegac, calc_diss_exp ! NEW CALC_ZOO added calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero, calc_diss_guts_micro, calc_diss_guts_meso, calc_diss_guts_macro, ara_diss_guts, calc_diss_fac_low, calc_diss_exp_low, calc_diss_fac_high, calc_diss_exp_high
 !!------------------------------------------------------------------------------
 !! *** Benthos ***
   Real(kind=8)                 :: decayRateBenN   = 0.005d0
@@ -703,6 +710,7 @@ Module REcoM_declarations
   Real(kind=8)  :: calc_loss_gra3                    ! NEW Zoo3 detritus
   Real(kind=8)  :: Ca                                ! NEW DISS (calcium ion concentration)
   Real(kind=8)  :: CO3_sat                           ! NEW DISS (saturated CO3 concentration, calculated from kspc and Ca)
+  Real(kind=8)  :: omegac_caco3                      ! NEW CALC_ZOO calcite saturation state; needed for the Naviaux 2019 dissolution
   Real(kind=8)  :: miccal_loss_gra                   ! NEW CALC_ZOO grazing from meso on micro calc
   Real(kind=8)  :: miccal_loss_gra2                  ! NEW CALC_ZOO grazing from macro on micro calcite
   Real(kind=8)  :: hetara_loss_gra2                  ! NEW CALC_ZOO grazing from macro on meso aragonite
