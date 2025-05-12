@@ -63,7 +63,9 @@ subroutine recom(mesh)
   real(kind=8),  allocatable :: HCO3_watercolumn(:)                                       ! NEW MOCSY
   real(kind=8),  allocatable :: CO3_watercolumn(:)                                        ! NEW DISS
   real(kind=8),  allocatable :: OmegaC_watercolumn(:)                                     ! NEW DISS
+  real(kind=8),  allocatable :: OmegaA_watercolumn(:)                                     ! NEW CALC_ZOO
   real(kind=8),  allocatable :: kspc_watercolumn(:)                                       ! NEW DISS
+  real(kind=8),  allocatable :: kspa_watercolumn(:)                                       ! NEW CALC_ZOO
   real(kind=8),  allocatable :: rhoSW_watercolumn(:)                                      ! NEW DISS
 
   character(len=2)           :: tr_num_name
@@ -71,7 +73,7 @@ subroutine recom(mesh)
 
   allocate(Temp(nl-1), Sali_depth(nl-1), zr(nl-1) , PAR(nl-1))
   allocate(CO2_watercolumn(nl-1), pH_watercolumn(nl-1), pCO2_watercolumn(nl-1) , HCO3_watercolumn(nl-1))
-  allocate(CO3_watercolumn(nl-1), OmegaC_watercolumn(nl-1), kspc_watercolumn(nl-1) , rhoSW_watercolumn(nl-1))
+  allocate(CO3_watercolumn(nl-1), OmegaC_watercolumn(nl-1), OmegaA_watercolumn(nl-1), kspc_watercolumn(nl-1), kspa_watercolumn(nl-1), rhoSW_watercolumn(nl-1)) ! NEW CALC_ZOO added OmegaA and kspa
   allocate(C(nl-1,bgc_num))
 
   if (.not. use_REcoM) return
@@ -197,7 +199,9 @@ end if ! use_MEDUSA and sedflx_num not 0
      HCO3_watercolumn(1:nzmax)   = HCO33D(1:nzmax, n)                              ! NEW MOCSY
      CO3_watercolumn(1:nzmax)    = CO33D(1:nzmax, n)                               ! NEW DISS
      OmegaC_watercolumn(1:nzmax) = OmegaC3D(1:nzmax, n)                            ! NEW DISS
+     OmegaA_watercolumn(1:nzmax) = OmegaA3D(1:nzmax, n)                            ! NEW CALC_ZOO
      kspc_watercolumn(1:nzmax)   = kspc3D(1:nzmax, n)                              ! NEW DISS
+     kspa_watercolumn(1:nzmax)   = kspa3D(1:nzmax, n)                              ! NEW CALC_ZOO
      rhoSW_watercolumn(1:nzmax)  = rhoSW3D(1:nzmax, n)                             ! NEW DISS
 
      !!---- Biogeochemical tracers
@@ -412,7 +416,9 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_Forci
            , HCO3_watercolumn                                    & ! NEW MOCSY HCO3 for the whole watercolumn
            , CO3_watercolumn                                     & ! NEW DISS CO3 for the whole watercolumn
            , OmegaC_watercolumn                                  & ! NEW DISS OmegaC for the whole watercolumn
+           , OmegaA_watercolumn                                  & ! NEW CALC_ZOO OmegaA for the whole watercolumn
            , kspc_watercolumn                                    & ! NEW DISS stoichiometric solubility product for calcite [mol^2/kg^2]
+           , kspa_watercolumn                                    & ! NEW CALC_ZOO stoichiometric solubility product for aragonite [mol^2/kg^2]  
            , rhoSW_watercolumn                                   & ! NEW DISS in-situ density of seawater [mol/m^3]
            , PAR, mesh)
 
@@ -669,7 +675,9 @@ endif
      HCO33D(1:nzmax,n)            = HCO3_watercolumn(1:nzmax)      ! NEW MOCSY
      CO33D(1:nzmax,n)             = CO3_watercolumn(1:nzmax)       ! NEW MOCSY
      OmegaC3D(1:nzmax,n)          = OmegaC_watercolumn(1:nzmax)    ! NEW DISS
+     OmegaA3D(1:nzmax,n)          = OmegaA_watercolumn(1:nzmax)    ! NEW CALC_ZOO
      kspc3D(1:nzmax,n)            = kspc_watercolumn(1:nzmax)      ! NEW DISS
+     kspa3D(1:nzmax,n)            = kspa_watercolumn(1:nzmax)      ! NEW CALC_ZOO
      rhoSW3D(1:nzmax,n)           = rhoSW_watercolumn(1:nzmax)     ! NEW DISS
 
   end do
@@ -781,7 +789,9 @@ endif
   call exchange_nod(HCO33D)
   call exchange_nod(CO33D)
   call exchange_nod(OmegaC3D)
+  call exchange_nod(OmegaA3D)  ! NEW CALC_ZOO
   call exchange_nod(kspc3D)
+  call exchange_nod(kspa3D)    ! NEW CALC_ZOO
   call exchange_nod(rhoSW3D)
 
 end subroutine recom

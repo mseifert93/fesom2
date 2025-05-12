@@ -609,9 +609,17 @@ CASE ('OmegaC    ')
    if (use_REcoM) then
    call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'OmegaC','calcite saturation state', 'NN',        OmegaC3D(:,:),        io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
    end if
+CASE ('OmegaA    ')
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'OmegaA','aragonite saturation state', 'NN',        OmegaA3D(:,:),        io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   end if
 CASE ('kspc      ')
    if (use_REcoM) then
    call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'kspc', 'calcite solubility product', 'mol^2/kg^2',kspc3D(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+   end if
+CASE ('kspa      ')
+   if (use_REcoM) then
+   call def_stream((/nl-1, nod2D/),  (/nl-1, myDim_nod2D/),   'kspa', 'aragonite solubility product', 'mol^2/kg^2',kspa3D(:,:),          io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
    end if
 CASE ('rhoSW     ')
    if (use_REcoM) then

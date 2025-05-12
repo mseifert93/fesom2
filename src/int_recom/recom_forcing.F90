@@ -8,7 +8,9 @@ subroutine REcoM_Forcing(zNodes, n, Nn, state, SurfSW, Loc_slp, Temp, Sali, Sali
             , HCO3_watercolumn                                         &          ! NEW MOCSY
             , CO3_watercolumn                                          &          ! NEW DISS
             , OmegaC_watercolumn                                       &          ! NEW DISS
+            , OmegaA_watercolumn                                       &          ! NEW CALC_ZOO
             , kspc_watercolumn                                         &          ! NEW DISS
+            , kspa_watercolumn                                         &          ! NEW CALC_ZOO
             , rhoSW_watercolumn                                        &          ! NEW DISS
             , PAR, mesh)
 
@@ -53,7 +55,9 @@ subroutine REcoM_Forcing(zNodes, n, Nn, state, SurfSW, Loc_slp, Temp, Sali, Sali
   Real(kind=8),dimension(mesh%nl-1)         :: HCO3_watercolumn     ! NEW MOCSY
   Real(kind=8),dimension(mesh%nl-1)         :: CO3_watercolumn      ! NEW DISS
   Real(kind=8),dimension(mesh%nl-1)         :: OmegaC_watercolumn   ! NEW DISS
+  Real(kind=8),dimension(mesh%nl-1)         :: OmegaA_watercolumn   ! NEW CALC_ZOO
   Real(kind=8),dimension(mesh%nl-1)         :: kspc_watercolumn     ! NEW DISS
+  Real(kind=8),dimension(mesh%nl-1)         :: kspa_watercolumn     ! NEW CALC_ZOO
   Real(kind=8),dimension(mesh%nl-1)         :: rhoSW_watercolumn    ! NEW DISS
 
   real(kind=8),dimension(mesh%nl-1)         :: PAR
@@ -224,7 +228,9 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> REcoM_sms'/
         , HCO3_watercolumn                                             & ! MOCSY [mol/m3]
         , CO3_watercolumn                                              & ! DISS [mol/m3]
         , OmegaC_watercolumn                                           & ! DISS calcite saturation state
-        , kspc_watercolumn                                             & ! DISS stoichiometric solubility product [mol^2/kg^2]
+        , OmegaA_watercolumn                                           & ! NEW CALC_ZOO aragonite saturation state
+        , kspc_watercolumn                                             & ! DISS stoichiometric solubility product of calcite [mol^2/kg^2]
+        , kspa_watercolumn                                             & ! NEW CALC_ZOO stoichiometric solubility product of aragonite [mol^2/kg^2]
         , rhoSW_watercolumn                                            & ! DISS in-situ density of seawater [kg/m3]
         , Loc_slp & !, SinkVel
         , zF, PAR, Lond, Latd, mesh)

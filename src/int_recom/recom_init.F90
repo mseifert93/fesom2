@@ -394,8 +394,14 @@ subroutine recom_init(mesh)
     allocate(OmegaC3D(nl-1,node_size))                !NEW DISS
     OmegaC3D(:,:)       = 0.d0
 
+    allocate(OmegaA3D(nl-1,node_size))                ! NEW CALC_ZOO
+    OmegaA3D(:,:)       = 0.d0
+
     allocate(kspc3D(nl-1,node_size))                  !NEW DISS
     kspc3D(:,:)         = 0.d0
+
+    allocate(kspa3D(nl-1,node_size))                  ! NEW CALC_ZOO
+    kspa3D(:,:)         = 0.d0
 
     allocate(rhoSW3D(nl-1,node_size))                 !NEW DISS
     rhoSW3D(:,:)        = 0.d0

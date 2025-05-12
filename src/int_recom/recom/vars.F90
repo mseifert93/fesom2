@@ -237,9 +237,10 @@ SUBROUTINE vars(ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, BetaD, rhoSW, p,
   ! practical salinity (psu)
   REAL(kind=rx), DIMENSION(N) :: salprac
   REAL(kind=rx), DIMENSION(N) :: kspc_out     ! NEW
+  REAL(kind=rx), DIMENSION(N) :: kspa_out     ! NEW CALC_ZOO
   
   ! Call the subroutine that actually computes
-  call vars_sprac (ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, kspc_out, BetaD, rhoSW, p, tempis,  & ! NEW: added kspc_out
+  call vars_sprac (ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, kspc_out, kspa_out, BetaD, rhoSW, p, tempis,  & ! NEW: added kspc_out ! NEW CALC_ZOO added kspa_out
                 temp, sal, alk, dic, sil, phos, Patm, depth, lat, N,                         &
                 optCON, optT, optP, optB, optK1K2, optKf, optGAS, optS, lon, salprac, verbose   )
                 
@@ -251,7 +252,7 @@ END SUBROUTINE vars
 !!    Its output parameter is "Practical Salinity", when Absolute Salinity is passed in,
 !!    is used by those internal calling routines.
 !!
-SUBROUTINE vars_sprac (ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, kspc_out, BetaD, rhoSW, p, tempis,  & ! NEW: added kspc_out
+SUBROUTINE vars_sprac (ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, kspc_out, kspa_out, BetaD, rhoSW, p, tempis,  & ! NEW: added kspc_out ! NEW CALC_ZOO added kspa_out
                 temp, sal, alk, dic, sil, phos, Patm, depth, lat, N,                             &
                 optCON, optT, optP, optB, optK1K2, optKf, optGAS, optS, lon, salprac, verbose    )
 
@@ -344,6 +345,8 @@ SUBROUTINE vars_sprac (ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, kspc_out,
   REAL(kind=rx), INTENT(out), DIMENSION(N) :: OmegaC
   !> Stoichiometric solubility product of calcite        ! NEW
   REAL(kind=rx), INTENT(out), DIMENSION(N) :: kspc_out   ! NEW
+  !> Stoichiometric solubility product of aragonite      ! NEW CALC_ZOO
+  REAL(kind=rx), INTENT(out), DIMENSION(N) :: kspa_out   ! NEW CALC_ZOO
   !> Revelle factor, i.e., dpCO2/pCO2 / dDIC/DIC
   REAL(kind=rx), INTENT(out), DIMENSION(N) :: BetaD
   !> in-situ density of seawater; rhoSW = f(s, t, p) in <b>[kg/m3]</b>
@@ -660,6 +663,7 @@ SUBROUTINE vars_sprac (ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, kspc_out,
         OmegaA(i) = SGLE(dOmegaA)
         OmegaC(i) = SGLE(dOmegaC)
         kspc_out(i)=SGLE(aKspc(1)) ! NEW
+        kspa_out(i)=SGLE(aKspa(1)) ! NEW CALC_ZOO
 
 !       Compute Revelle factor numerically (derivative using centered-difference scheme)
         DO j=1,2
@@ -692,6 +696,7 @@ SUBROUTINE vars_sprac (ph, pco2, fco2, co2, hco3, co3, OmegaA, OmegaC, kspc_out,
         OmegaA(i) = 1.e20_rx
         OmegaC(i) = 1.e20_rx
         kspc_out(i)=1.e20_rx   ! NEW
+        kspa_out(i)=1.e20_rx   ! NEW CALC_ZOO
         BetaD(i)  = 1.e20_rx
         rhoSW(i)  = 1.e20_rx
         p(i)      = 1.e20_rx

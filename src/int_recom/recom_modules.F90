@@ -490,7 +490,12 @@ module recom_config
   Real(kind=8)                 :: calc_diss_exp_low  = 0.11       ! NEW CALC_ZOO needed for the Naviaux dissolution
   Real(kind=8)                 :: calc_diss_fac_high = 0.0137d0   ! NEW CALC_ZOO needed for the Naviaux dissolution (= 8.64 * 10^-2.8 mol m-2 d-1 = 10^-10.8 mol cm-2 s-1)
   Real(kind=8)                 :: calc_diss_exp_high = 4.7        ! NEW CALC_ZOO needed for the Naviaux dissolution
-  namelist /pacalc/ calc_prod_ratio, calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero,  calc_diss_guts_micro, calc_diss_guts_meso, calc_diss_guts_macro, ara_diss_guts, calc_diss_rate, calc_diss_rate2, calc_diss_omegac, calc_diss_exp, calc_diss_fac_low, calc_diss_exp_low, calc_diss_fac_high, calc_diss_exp_high  ! NEW DISS added calc_diss_omegac, calc_diss_exp ! NEW CALC_ZOO added calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero, calc_diss_guts_micro, calc_diss_guts_meso, calc_diss_guts_macro, ara_diss_guts, calc_diss_fac_low, calc_diss_exp_low, calc_diss_fac_high, calc_diss_exp_high
+  Real(kind=8)                 :: ara_diss_fac_low   = 0.0026d0   ! NEW CALC_ZOO needed for the Naviaux dissolution
+  Real(kind=8)                 :: ara_diss_exp_low   = 0.13d0     ! NEW CALC_ZOO needed for the Naviaux dissolution
+  Real(kind=8)                 :: ara_diss_fac_high  = 0.028d0    ! NEW CALC_ZOO needed for the Naviaux dissolution
+  Real(kind=8)                 :: ara_diss_exp_high  = 1.5d0      ! NEW CALC_ZOO needed for the Naviaux dissolution
+  Real(kind=8)                 :: diss_threshold     = 0.8d0      ! NEW CALC_ZOO needed for the Naviaux dissolution (omega threshold between lower and higher resolution)
+  namelist /pacalc/ calc_prod_ratio, calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero,  calc_diss_guts_micro, calc_diss_guts_meso, calc_diss_guts_macro, ara_diss_guts, calc_diss_rate, calc_diss_rate2, calc_diss_omegac, calc_diss_exp, calc_diss_fac_low, calc_diss_exp_low, calc_diss_fac_high, calc_diss_exp_high, ara_diss_fac_low, ara_diss_exp_low, ara_diss_fac_high, ara_diss_exp_high, diss_threshold  ! NEW DISS added calc_diss_omegac, calc_diss_exp ! NEW CALC_ZOO added calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero, calc_diss_guts_micro, calc_diss_guts_meso, calc_diss_guts_macro, ara_diss_guts, calc_diss_fac_low, calc_diss_exp_low, calc_diss_fac_high, calc_diss_exp_high, ara_diss_fac_low, ara_diss_exp_low, ara_diss_fac_high, ara_diss_exp_high, diss_threshold
 !!------------------------------------------------------------------------------
 !! *** Benthos ***
   Real(kind=8)                 :: decayRateBenN   = 0.005d0
@@ -710,7 +715,9 @@ Module REcoM_declarations
   Real(kind=8)  :: calc_loss_gra3                    ! NEW Zoo3 detritus
   Real(kind=8)  :: Ca                                ! NEW DISS (calcium ion concentration)
   Real(kind=8)  :: CO3_sat                           ! NEW DISS (saturated CO3 concentration, calculated from kspc and Ca)
+  Real(kind=8)  :: CO3_sat_ara                       ! NEW CALC_ZOO (saturated CO3 concentration, calculated from kspa and Ca) 
   Real(kind=8)  :: omegac_caco3                      ! NEW CALC_ZOO calcite saturation state; needed for the Naviaux 2019 dissolution
+  Real(kind=8)  :: omegaa_caco3                      ! NEW CALC_ZOO aragonite saturation state; needed for the Naviaux 2019 dissolution
   Real(kind=8)  :: miccal_loss_gra                   ! NEW CALC_ZOO grazing from meso on micro calc
   Real(kind=8)  :: miccal_loss_gra2                  ! NEW CALC_ZOO grazing from macro on micro calcite
   Real(kind=8)  :: hetara_loss_gra2                  ! NEW CALC_ZOO grazing from macro on meso aragonite
@@ -802,7 +809,9 @@ Module REcoM_GloVar
   Real(kind=8),allocatable,dimension(:,:)   :: HCO33D           ! MOCSY: [mol/m3] Bicarbonate ion concentration
   Real(kind=8),allocatable,dimension(:,:)   :: CO33D            ! DISS: [mol/m3] Carbonate ion concentration
   Real(kind=8),allocatable,dimension(:,:)   :: OmegaC3D         ! DISS: calcite saturation state
+  Real(kind=8),allocatable,dimension(:,:)   :: OmegaA3D         ! NEW CALC_ZOO: aragonite saturation state
   Real(kind=8),allocatable,dimension(:,:)   :: kspc3D           ! DISS: [mol^2/kg^2] stoichiometric solubility product of calcite
+  Real(kind=8),allocatable,dimension(:,:)   :: kspa3D           ! NEW CALC_ZOO: [mol^2/kg^2] stoichiometric solubility product of aragonite
   Real(kind=8),allocatable,dimension(:,:)   :: rhoSW3D          ! DISS: [mol/m3] in-situ density of seawater
 
   Real(kind=8),allocatable,dimension(:,:)   :: rho_particle1       ! BALL: density of particle class 1
@@ -988,6 +997,7 @@ Module REcoM_locVar
   Real(kind=8) :: OmegaC_depth(1)              ! NEW MOCSY Omega for calcite, i.e., the   calcite saturation state
   Real(kind=8) :: BetaD_depth(1)               ! NEW MOCSY BetaD = Revelle factor   dpCO2/pCO2 / dDIC/DIC
   Real(kind=8) :: kspc_depth(1)                ! NEW DISS  stoichiometric solubility product of calcite (mol^2/kg^2)
+  Real(kind=8) :: kspa_depth(1)                ! NEW CALC_ZOO stoichiometric solubility product of aragonite (mol^2/kg^2)
   Real(kind=8) :: rhoSW_depth(1)               ! NEW MOCSY rhoSW  = in-situ density of seawater; rhoSW = f(s, t, p)
   Real(kind=8) :: p_depth(1)                   ! NEW MOCSY pressure [decibars]; p = f(depth, latitude) if computed from depth [m] OR p = depth if [db]
   Real(kind=8) :: tempis_depth(1)              ! NEW MOCSY in-situ temperature [degrees C]
