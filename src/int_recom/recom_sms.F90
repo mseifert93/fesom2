@@ -1473,6 +1473,8 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 #if defined (__3Zoo2Det)
         + calc_loss_gra2   * grazEff2     * calc_diss_guts_macro & ! --> Additional dissolution in macrozooplankton guts ! NEW CALC_ZOO added _macro and grazEff2
         + calc_loss_gra3   * grazEff3     * calc_diss_guts_micro & ! --> Additional dissolution in microzooplankton guts ! NEW CALC_ZOO added _micro and grazEff3
+        + lossC_c          * limitFacN_cocco * PhyCalc           & ! --> Cocco excretion loss ! NEW CALC_ZOO SUR
+        + phyRespRate_cocco * PhyCalc                            & ! --> Cocco respiration loss ! NEW CAlC_ZOO SUR 
         + miccal_loss_gra  * grazEff      * calc_diss_guts_meso  & ! --> Additional dissolution in mesozooplankton guts (of micro calcite) ! NEW CALC_ZOO
         + miccal_loss_gra2 * grazEff2     * calc_diss_guts_macro & ! --> Additional dissolution in macrozooplankton guts (of micro calcite) ! NEW CALC_ZOO
         + hetara_loss_gra2 * grazEff2     * ara_diss_guts        & ! --> Additional dissolution in macrozooplankton guts (of meso aragonite) ! NEW CALC_ZOO
@@ -1548,6 +1550,8 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         + 2.d0 * calc_diss                   * DetCalc              &
         + 2.d0 * calc_loss_gra    * grazEff  * calc_diss_guts_meso  & ! NEW CALC_ZOO added _meso and grazEff
 #if defined (__3Zoo2Det)
+        + 2.d0 * lossC_c          * limitFacN_cocco * PhyCalc       & ! --> Cocco excretion loss ! NEW CALC_ZOO SUR
+        + 2.d0 * phyRespRate_cocco * PhyCalc                        & ! --> Cocco respiration loss ! NEW CAlC_ZOO SUR 
         + 2.d0 * calc_loss_gra2   * grazEff2 * calc_diss_guts_macro & ! NEW CALC_ZOO added _macro and grazEff2
         + 2.d0 * calc_loss_gra3   * grazEff3 * calc_diss_guts_micro & ! 3Zoo ! NEW CALC_ZOO added _micro and grazEff3
         + 2.d0 * miccal_loss_gra  * grazEff  * calc_diss_guts_meso  & ! NEW CALC_ZOO
@@ -2471,8 +2475,8 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 #if defined (__3Zoo2Det)
     if (calc_zoo) then ! NEW CALC_ZOO
       sms(k,idetcal)   = (                                           &
-        + lossC_c           * limitFacN_cocco * PhyCalc              &
-        + phyRespRate_cocco                   * PhyCalc              &
+        !+ lossC_c           * limitFacN_cocco * PhyCalc              & ! NEW CALC_ZOO SUR 
+        !+ phyRespRate_cocco                   * PhyCalc              & ! NEW CALC_ZOO SUR
         !+ res_miczoo       * q10_mic_res     * MicCal               &  ! NEW CALC_ZOO -> outcommented because no realistic source
         + calc_loss_agg                                              &
         + calc_loss_gra3                                             &
@@ -3048,6 +3052,8 @@ if (Diags) then
 !*** calc_diss_guts                        ! NEW CALC_ZOO
         vertcalcdiss_guts_micro(k) = vertcalcdiss_guts_micro(k) + ( &
         + calc_loss_gra3   * grazEff3 * calc_diss_guts_micro        &
+        + lossC_c * limitFacN_cocco * PhyCalc &  ! NEW CALC_ZOO SUR
+        + phyRespRate_cocco * PhyCalc & ! NEW CALC_ZOO SUR         
         ) * recipbiostep
 
         vertcalcdiss_guts_meso(k) = vertcalcdiss_guts_meso(k) + ( &
