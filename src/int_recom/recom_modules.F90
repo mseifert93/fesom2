@@ -476,8 +476,10 @@ module recom_config
   Real(kind=8)                 :: calc_prod_ratio = 0.02d0
   Real(kind=8)                 :: calc_prod_ratio_micro = 0.01d0  ! NEW CALC_ZOO share of forams
   Real(kind=8)                 :: calc_prod_ratio_meso  = 0.01d0  ! NEW CALC_ZOO share of pteropods
+  Real(kind=8)                 :: calc_prod_ratio_macro = 0.01d0  ! NEW CALC_ZOO share of polar pteropods
   Real(kind=8)                 :: pic_poc_forams = 1.1d0          ! NEW CALC_ZOO PIC:POC ratio of foraminifera (share of micro)
   Real(kind=8)                 :: pic_poc_ptero = 1.5d0           ! NEW CALC_ZOO PIC:POC ratio of pteropods (share of meso)
+  Real(kind=8)                 :: pic_poc_ptero_polar = 0.5d0     ! NEW CALC_ZOO PIC:POC ratio of polar pteropods (share of macro)
   Real(kind=8)                 :: calc_diss_guts_micro  = 0.0d0   ! NEW CALC_ZOO distinguish between different zoo gut dissolution rates
   Real(kind=8)                 :: calc_diss_guts_meso   = 0.0d0   ! NEW CALC_ZOO distinguish between different zoo gut dissolution rates
   Real(kind=8)                 :: calc_diss_guts_macro  = 0.0d0   ! NEW CALC_ZOO distinguish between different zoo gut dissolution rates
@@ -495,7 +497,7 @@ module recom_config
   Real(kind=8)                 :: ara_diss_fac_high  = 0.028d0    ! NEW CALC_ZOO needed for the Naviaux dissolution
   Real(kind=8)                 :: ara_diss_exp_high  = 1.5d0      ! NEW CALC_ZOO needed for the Naviaux dissolution
   Real(kind=8)                 :: diss_threshold     = 0.8d0      ! NEW CALC_ZOO needed for the Naviaux dissolution (omega threshold between lower and higher resolution)
-  namelist /pacalc/ calc_prod_ratio, calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero,  calc_diss_guts_micro, calc_diss_guts_meso, calc_diss_guts_macro, ara_diss_guts, calc_diss_rate, calc_diss_rate2, calc_diss_omegac, calc_diss_exp, calc_diss_fac_low, calc_diss_exp_low, calc_diss_fac_high, calc_diss_exp_high, ara_diss_fac_low, ara_diss_exp_low, ara_diss_fac_high, ara_diss_exp_high, diss_threshold  ! NEW DISS added calc_diss_omegac, calc_diss_exp ! NEW CALC_ZOO added calc_prod_ratio_micro, calc_prod_ratio_meso, pic_poc_forams, pic_poc_ptero, calc_diss_guts_micro, calc_diss_guts_meso, calc_diss_guts_macro, ara_diss_guts, calc_diss_fac_low, calc_diss_exp_low, calc_diss_fac_high, calc_diss_exp_high, ara_diss_fac_low, ara_diss_exp_low, ara_diss_fac_high, ara_diss_exp_high, diss_threshold
+  namelist /pacalc/ calc_prod_ratio, calc_prod_ratio_micro, calc_prod_ratio_meso, calc_prod_ratio_macro, pic_poc_forams, pic_poc_ptero, pic_poc_ptero_polar,  calc_diss_guts_micro, calc_diss_guts_meso, calc_diss_guts_macro, ara_diss_guts, calc_diss_rate, calc_diss_rate2, calc_diss_omegac, calc_diss_exp, calc_diss_fac_low, calc_diss_exp_low, calc_diss_fac_high, calc_diss_exp_high, ara_diss_fac_low, ara_diss_exp_low, ara_diss_fac_high, ara_diss_exp_high, diss_threshold  ! NEW DISS added calc_diss_omegac, calc_diss_exp ! NEW CALC_ZOO added calc_prod_ratio_micro, calc_prod_ratio_meso, calc_prod_ratio_macro, pic_poc_forams, pic_poc_ptero, pic_poc_ptero_polar, calc_diss_guts_micro, calc_diss_guts_meso, calc_diss_guts_macro, ara_diss_guts, calc_diss_fac_low, calc_diss_exp_low, calc_diss_fac_high, calc_diss_exp_high, ara_diss_fac_low, ara_diss_exp_low, ara_diss_fac_high, ara_diss_exp_high, diss_threshold
 !!------------------------------------------------------------------------------
 !! *** Benthos ***
   Real(kind=8)                 :: decayRateBenN   = 0.005d0
@@ -703,6 +705,7 @@ Module REcoM_declarations
   Real(kind=8)  :: calc_prod_ratio_cocco             ! NEW (before it was defined as a fixed value, but now dependent on cocco and T)
   Real(kind=8)  :: calcification
   Real(kind=8)  :: calcification_hetara              ! NEW CALC_ZOO
+  Real(kind=8)  :: calcification_macara              ! NEW CALC_ZOO
   Real(kind=8)  :: calcification_miccal              ! NEW CALC_ZOO
   Real(kind=8)  :: calc_loss_agg
   Real(kind=8)  :: calc_loss_gra
@@ -724,6 +727,7 @@ Module REcoM_declarations
   Real(kind=8)  :: MicZooLossFlux_cal                ! NEW CALC_ZOO mortality term of micro scaled to CaCO3
   Real(kind=8)  :: hetLossFlux_ara                   ! NEW CALC_ZOO mortality term of meso scaled to CaCO3
   Real(kind=8)  :: Mesfecalloss_ara                  ! NEW CALC_ZOO fecal loss of meso scaled to CaCO3
+  Real(kind=8)  :: macLossFlux_ara                   ! NEW CALC_ZOO mortality term of macro scaled to CaCO3
 !!------------------------------------------------------------------------------                                                                                
 !! *** Diagnostics  ***
   Real(kind=8)  :: recipbiostep                         ! 1/number of steps per recom cycle
@@ -740,6 +744,9 @@ Module REcoM_declarations
   Real(kind=8)  :: locgrazmacro_tot, locgrazmacro_n, locgrazmacro_d, locgrazmacro_c, locgrazmacro_p, locgrazmacro_mes, locgrazmacro_det, locgrazmacro_mic, locgrazmacro_det2
   Real(kind=8)  :: locgrazmicro_tot, locgrazmicro_n, locgrazmicro_d, locgrazmicro_c, locgrazmicro_p
   Real(kind=8)  :: locmiccal_loss, locphycal_loss, lochetara_loss, locdetz2ara_sources, locdetz2ara_loss   ! NEW CALC_ZOO
+  Real(kind=8)  :: lochetmort_ara, locmacmort_ara, locmicmort_cal ! NEW CALC_ZOO
+  Real(kind=8)  :: lochetgra2_ara, locmicgra_cal, locmicgra2_cal ! NEW CALC_ZOO
+  Real(kind=8)  :: loccocco_excr_cal, loccocco_resp_cal, loccocco_agg_cal, loccoccogra_cal, loccoccogra2_cal, loccoccogra3_cal ! NEW CALC_ZOO
   Real(kind=8),allocatable,dimension(:) :: vertgrazmeso_tot, vertgrazmeso_n, vertgrazmeso_d, vertgrazmeso_c, vertgrazmeso_p, vertgrazmeso_det, vertgrazmeso_mic, vertgrazmeso_det2
   Real(kind=8),allocatable,dimension(:) :: vertgrazmacro_tot, vertgrazmacro_n, vertgrazmacro_d, vertgrazmacro_c, vertgrazmacro_p, vertgrazmacro_mes, vertgrazmacro_det, vertgrazmacro_mic, vertgrazmacro_det2
   Real(kind=8),allocatable,dimension(:) :: vertgrazmicro_tot, vertgrazmicro_n, vertgrazmicro_d, vertgrazmicro_c, vertgrazmicro_p
@@ -751,6 +758,9 @@ Module REcoM_declarations
   Real(kind=8),allocatable,dimension(:) :: vertaggn, vertaggd, vertaggc, vertaggp
   Real(kind=8),allocatable,dimension(:) :: vertdocexn, vertdocexd, vertdocexc, vertdocexp
   Real(kind=8),allocatable,dimension(:) :: vertrespn, vertrespd, vertrespc, vertrespp
+  Real(kind=8),allocatable,dimension(:) :: verthetmort_ara, vertmacmort_ara, vertmicmort_cal ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:) :: verthetgra2_ara, vertmicgra_cal, vertmicgra2_cal ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:) :: vertcocco_excr_cal, vertcocco_resp_cal, vertcocco_agg_cal, vertcoccogra_cal, vertcoccogra2_cal, vertcoccogra3_cal ! NEW CALC_ZOO
 !!------------------------------------------------------------------------------                                                                                
 !! *** Benthos  ***
   Real(kind=8),allocatable,dimension(:) :: decayBenthos ! [1/day] Decay rate of detritus in the benthic layer
@@ -874,6 +884,18 @@ Module REcoM_GloVar
   Real(kind=8),allocatable,dimension(:)     :: hetara_loss     ! NEW CALC_ZOO
   Real(kind=8),allocatable,dimension(:)     :: detz2ara_sources! NEW CALC_ZOO
   Real(kind=8),allocatable,dimension(:)     :: detz2ara_loss   ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: hetmort_ara     ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: macmort_ara     ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: micmort_cal     ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: hetgra2_ara     ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: micgra_cal      ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: micgra2_cal     ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: cocco_excr_cal  ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: cocco_resp_cal  ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: cocco_agg_cal   ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: coccogra_cal    ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: coccogra2_cal   ! NEW CALC_ZOO
+  Real(kind=8),allocatable,dimension(:)     :: coccogra3_cal   ! NEW CALC_ZOO
   Real(kind=8),allocatable,dimension(:,:)   :: respmeso
   Real(kind=8),allocatable,dimension(:,:)   :: respmacro
   Real(kind=8),allocatable,dimension(:,:)   :: respmicro

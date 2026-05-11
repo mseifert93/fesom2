@@ -1274,7 +1274,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
             PICPOCN = -0.31 * (DIN/(DIN + k_din_c)) + 1.31
             PICPOCN = max(tiny,PICPOCN)
     
-            calcification = 1.d0 * Cphot_cocco * CoccoC * PICPOCtemp * PICPOCN
+            calcification = 1.0d0 * Cphot_cocco * CoccoC * PICPOCtemp * PICPOCN
             if (CO2lim) calcification = calcification * PICPOCCO2
 
 #else
@@ -1375,7 +1375,8 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
                   ))
 #endif
           endif
-
+      
+          
           ! Grazing
 #if defined (__3Zoo2Det)
              aux = recipQZoo/(HetC + tiny) * HetAra
@@ -1412,8 +1413,53 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
              
              ! Mortality
 #if defined (__3Zoo2Det)
-             hetLossFlux_ara = hetLossFlux * (recipQZoo/(HetC + tiny) * HetAra) ! instead of multiplying with recipquota, this scales to C:CaCO3 ratio 
+             hetLossFlux_ara = hetLossFlux * (recipQZoo/(HetC + tiny) * (HetAra * (HetC / (HetC + Zoo2C)))) ! instead of multiplying with recipquota, this scales to C:CaCO3 ratio; * (HetC / (HetC + Zoo2C)) computes the share of het in the total ara pool (possible because of constant PIC:POC ratio) 
 #endif
+
+
+             
+!< *** Macrozoplankton calcification (aragonite precipitation by polar pteropods) *** ! NEW CALC_ZOO
+!< ****************************************************************************
+          ! Calcification                                                         
+          if (Grazing_detritus) then
+#if defined (__3Zoo2Det)
+             calcification_macara = ( &
+                  pic_poc_ptero_polar * calc_prod_ratio_macro &
+                  * ((grazingFlux_phy2 * recipQuota * grazEff2) &
+                  + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2) &
+                  + (grazingFlux_het2 * recipQZoo * grazEff2) &
+                  + (grazingFlux_miczoo2 * recipQZoo3 * grazEff2) &
+                  + (grazingFlux_Det2 * recipDet * grazEff2) &
+                  + (grazingFlux_DetZ22 * recipDet2 * grazEff2) &
+#if defined (__coccos)
+                  + (grazingFlux_Cocco2 * recipQuota_Cocco * grazEff2) &
+                  + (grazingFlux_Phaeo2 * recipQuota_Phaeo * grazEff2) &
+#endif
+                  ))
+#endif
+          else
+#if defined (__3Zoo2Det)
+             calcification_macara = ( &
+                  pic_poc_ptero_polar * calc_prod_ratio_macro &
+                  * ((grazingFlux_phy2 * recipQuota * grazEff2) &
+                  + (grazingFlux_Dia2 * recipQuota_Dia * grazEff2) &
+                  + (grazingFlux_het2 * recipQZoo * grazEff2) &
+                  + (grazingFlux_miczoo2 * recipQZoo3 * grazEff2) &
+#if defined (__coccos)
+                  + (grazingFlux_Cocco2 * recipQuota_Cocco * grazEff2) &
+                  + (grazingFlux_Phaeo2 * recipQuota_Phaeo * grazEff2) &
+#endif
+                  ))
+#endif
+          endif
+
+
+          ! Mortality
+#if defined (__3Zoo2Det)
+          macLossFlux_ara = Zoo2LossFlux * (recipQZoo2/(Zoo2C + tiny) * (Zoo2C * (Zoo2C / (HetC + Zoo2C)))) ! instead of multiplying with recipquota, this scales to C:CaCO3 ratio; * (Zoo2C / (HetC + Zoo2C)) computes the share of het in the total ara pool (possible because of constant PIC:POC ratio)
+#endif
+          
+             
 
 !-------------------------------------------------------------------------------
 ! Sources minus sinks (SMS)
@@ -1474,7 +1520,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         + calc_loss_gra2   * grazEff2     * calc_diss_guts_macro & ! --> Additional dissolution in macrozooplankton guts ! NEW CALC_ZOO added _macro and grazEff2
         + calc_loss_gra3   * grazEff3     * calc_diss_guts_micro & ! --> Additional dissolution in microzooplankton guts ! NEW CALC_ZOO added _micro and grazEff3
         + lossC_c          * limitFacN_cocco * PhyCalc           & ! --> Cocco excretion loss ! NEW CALC_ZOO SUR
-        + phyRespRate_cocco * PhyCalc                            & ! --> Cocco respiration loss ! NEW CAlC_ZOO SUR 
+        !+ phyRespRate_cocco * PhyCalc                            & ! --> Cocco respiration loss ! NEW CAlC_ZOO SUR 
         + miccal_loss_gra  * grazEff      * calc_diss_guts_meso  & ! --> Additional dissolution in mesozooplankton guts (of micro calcite) ! NEW CALC_ZOO
         + miccal_loss_gra2 * grazEff2     * calc_diss_guts_macro & ! --> Additional dissolution in macrozooplankton guts (of micro calcite) ! NEW CALC_ZOO
         + hetara_loss_gra2 * grazEff2     * ara_diss_guts        & ! --> Additional dissolution in macrozooplankton guts (of meso aragonite) ! NEW CALC_ZOO
@@ -1482,6 +1528,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         + calc_diss_ara                   * DetZ2Ara             & ! --> Aragonite dissolution from fast-sinking detritus   ! NEW CALC_ZOO
         - calcification_miccal                                   & ! --> Calcification of microzooplankton (forams -> calcite) ! NEW CALC_ZOO
         - calcification_hetara                                   & ! --> Calcification of mesozooplankton (pterpods -> aragonite)  ! NEW CALC_ZOO
+        - calcification_macara                                   & ! --> Calcification of macrozooplankton (polar pteropods -> aragonite) ! NEW CALC_ZOO
 #endif
         - calcification                                          & ! --> Calcification
              ) * dt_b + sms(k,idic)
@@ -1551,7 +1598,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         + 2.d0 * calc_loss_gra    * grazEff  * calc_diss_guts_meso  & ! NEW CALC_ZOO added _meso and grazEff
 #if defined (__3Zoo2Det)
         + 2.d0 * lossC_c          * limitFacN_cocco * PhyCalc       & ! --> Cocco excretion loss ! NEW CALC_ZOO SUR
-        + 2.d0 * phyRespRate_cocco * PhyCalc                        & ! --> Cocco respiration loss ! NEW CAlC_ZOO SUR 
+        !+ 2.d0 * phyRespRate_cocco * PhyCalc                        & ! --> Cocco respiration loss ! NEW CAlC_ZOO SUR 
         + 2.d0 * calc_loss_gra2   * grazEff2 * calc_diss_guts_macro & ! NEW CALC_ZOO added _macro and grazEff2
         + 2.d0 * calc_loss_gra3   * grazEff3 * calc_diss_guts_micro & ! 3Zoo ! NEW CALC_ZOO added _micro and grazEff3
         + 2.d0 * miccal_loss_gra  * grazEff  * calc_diss_guts_meso  & ! NEW CALC_ZOO
@@ -1561,6 +1608,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
         + 2.d0 * calc_diss_ara               * DetZ2Ara             & ! NEW CALC_ZOO
         - 2.d0 * calcification_miccal                               & ! NEW CALC_ZOO
         - 2.d0 * calcification_hetara                               & ! NEW CALC_ZOO
+        - 2.d0 * calcification_macara                               & ! NEW CALC_ZOO
 #endif
         - 2.d0 * calcification                                      &
                                                           ) * dt_b + sms(k,ialk)
@@ -2446,7 +2494,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
     sms(k,iphycal)    = (                               &
         + calcification                                 & ! --> Calcification
         - lossC_c           * limitFacN_cocco * PhyCalc & ! --> Excretion loss 
-        - phyRespRate_cocco                   * PhyCalc & ! --> Respiration      
+        !- phyRespRate_cocco                   * PhyCalc & ! --> Respiration   -- NEW CALCZOO Nov25 take this out as not a real loss
         - calc_loss_agg                                 & ! --> Aggregation loss
         - calc_loss_gra                                 & ! --> Grazing loss
 #if defined (__3Zoo2Det)
@@ -2551,8 +2599,10 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 #if defined (__3Zoo2Det) 
        sms(k,ihetara) = (                         &     
           + calcification_hetara                  &
+          + calcification_macara                  & ! NEW added this to account for polar pteropods; remaining fluxes (grazing, detritus) stay fixed to meso
           - hetara_loss_gra2                      & ! goes to 2nd det aragonite & DIC & Alk
           - hetLossFlux_ara                       & ! goes to 2nd det aragonite
+          - macLossFlux_ara                       & ! goes to 2nd det aragonite
           !- res_het * q10_mes_res * HetAra        & ! goes to 2nd det aragonite -> outcommented because no realistic loss
           !- lossC_z * HetAra                      & ! goes to 2nd det aragonite -> outcommented because no realistic loss
           !- Mesfecalloss_ara                      & ! goes to 2nd det aragonite -> outcommented because no realistic loss
@@ -2569,6 +2619,7 @@ subroutine REcoM_sms(n,Nn,state,thick,recipthick,SurfSR,sms,Temp, Sali_depth &
 
        sms(k,idetz2ara) = (                               &
             + hetLossFlux_ara                             &
+            + macLossFlux_ara                             &
             - calc_diss_ara    * DetZ2Ara                 & 
             + hetara_loss_gra2                            &
             - hetara_loss_gra2 * grazEff2 * ara_diss_guts &
@@ -3053,7 +3104,7 @@ if (Diags) then
         vertcalcdiss_guts_micro(k) = vertcalcdiss_guts_micro(k) + ( &
         + calc_loss_gra3   * grazEff3 * calc_diss_guts_micro        &
         + lossC_c * limitFacN_cocco * PhyCalc &  ! NEW CALC_ZOO SUR
-        + phyRespRate_cocco * PhyCalc & ! NEW CALC_ZOO SUR         
+        !+ phyRespRate_cocco * PhyCalc & ! NEW CALC_ZOO SUR         
         ) * recipbiostep
 
         vertcalcdiss_guts_meso(k) = vertcalcdiss_guts_meso(k) + ( &
@@ -3137,6 +3188,7 @@ if (Diags) then
 
            vertcalcif_hetara(k) = vertcalcif_hetara(k) + ( &
            + calcification_hetara                          &
+           + calcification_macara                          &  ! NEW
            ) * recipbiostep
         endif
 #endif
@@ -3154,7 +3206,7 @@ if (Diags) then
 
            vertphycal_loss(k) = vertphycal_loss(k) + ( &
            + lossC_c * limitFacN_cocco * PhyCalc       &
-           + phyRespRate_cocco * PhyCalc               &
+           !+ phyRespRate_cocco * PhyCalc               & -> outcommented because not a real loss (Nov25)
            + calc_loss_agg                             &
            + calc_loss_gra                             &
            + calc_loss_gra2                            &
@@ -3164,10 +3216,60 @@ if (Diags) then
            verthetara_loss(k) = verthetara_loss(k) + ( &
            + hetara_loss_gra2                          &
            + hetLossFlux_ara                           &
+           + macLossFlux_ara                           &  !NEW
            !+ res_het * q10_mes_res * HetAra            & -> outcommented because no realistic loss
            !+ lossC_z * HetAra                          & -> outcommented because no realistic loss
            !+ Mesfecalloss_ara                          & -> outcommented because no realistic loss
            ) * recipbiostep
+
+           verthetmort_ara(k) = verthetmort_ara(k) + ( &
+           + hetLossFlux_ara                           &
+           ) * recipbiostep
+
+           vertmacmort_ara(k) = vertmacmort_ara(k) + ( &
+           + macLossFlux_ara                           &
+           ) * recipbiostep
+
+           vertmicmort_cal(k) = vertmicmort_cal(k) + ( &
+           + MicZooLossFlux_cal                        &
+           ) * recipbiostep
+
+           verthetgra2_ara(k) = verthetgra2_ara(k) + ( &
+           + hetara_loss_gra2                          &
+           ) * recipbiostep
+
+           vertmicgra_cal(k) = vertmicgra_cal(k) + ( &
+           + miccal_loss_gra                         &
+           ) * recipbiostep
+
+           vertmicgra2_cal(k) = vertmicgra2_cal(k) + ( &
+           + miccal_loss_gra2                          &
+           ) * recipbiostep
+
+           vertcocco_excr_cal(k) = vertcocco_excr_cal(k) + ( &
+           + lossC_c * limitFacN_cocco * PhyCalc             &
+           ) * recipbiostep
+
+           !vertcocco_resp_cal(k) = vertcocco_resp_cal(k) + ( &  ! Nov25 outcommented because not a real loss term of calc
+           !+ phyRespRate_cocco * PhyCalc                     &
+           !) * recipbiostep
+
+           vertcocco_agg_cal(k) = vertcocco_agg_cal(k) + ( &
+           + calc_loss_agg                                 &
+           ) * recipbiostep
+
+           vertcoccogra_cal(k) = vertcoccogra_cal(k) + ( &
+           + calc_loss_gra                               & 
+           ) * recipbiostep
+
+           vertcoccogra2_cal(k) = vertcoccogra2_cal(k) + ( &
+           + calc_loss_gra2                                &
+           ) * recipbiostep
+
+           vertcoccogra3_cal(k) = vertcoccogra3_cal(k) + ( &
+           + calc_loss_gra3                                &
+           ) * recipbiostep
+           
         endif
 #endif
 
@@ -3176,6 +3278,7 @@ if (Diags) then
         if (calc_zoo) then
            vertdetz2ara_sources(k) = vertdetz2ara_sources(k) + ( &
            + hetLossFlux_ara                                     &
+           + macLossFlux_ara                                     &
            + hetara_loss_gra2                                    &
            !+ res_het * q10_mes_res * HetAra                      & -> outcommented because no realistic loss
            !+ lossC_z * HetAra                                    & -> outcommented because no realistic loss

@@ -257,6 +257,30 @@ subroutine recom_init(mesh)
   detz2ara_sources = 0.d0
   allocate(detz2ara_loss(node_size)) ! NEW CALC_LOSS
   detz2ara_loss = 0.d0
+  allocate(hetmort_ara(node_size))   ! NEW CALC_ZOO
+  hetmort_ara = 0.d0
+  allocate(macmort_ara(node_size))   ! NEW CALC_ZOO
+  macmort_ara = 0.d0
+  allocate(micmort_cal(node_size))   ! NEW CALC_ZOO
+  micmort_cal = 0.d0
+  allocate(hetgra2_ara(node_size))   ! NEW CALC_ZOO  
+  hetgra2_ara = 0.d0
+  allocate(micgra_cal(node_size))    ! NEW CALC_ZOO  
+  micgra_cal = 0.d0
+  allocate(micgra2_cal(node_size))   ! NEW CALC_ZOO  
+  micgra2_cal = 0.d0
+  allocate(cocco_excr_cal(node_size)) ! NEW CALC_ZOO  
+  cocco_excr_cal = 0.d0
+  allocate(cocco_resp_cal(node_size)) ! NEW CALC_ZOO  
+  cocco_resp_cal = 0.d0
+  allocate(cocco_agg_cal(node_size)) ! NEW CALC_ZOO  
+  cocco_agg_cal = 0.d0
+  allocate(coccogra_cal(node_size))  ! NEW CALC_ZOO  
+  coccogra_cal = 0.d0
+  allocate(coccogra2_cal(node_size)) ! NEW CALC_ZOO  
+  coccogra2_cal = 0.d0
+  allocate(coccogra3_cal(node_size)) ! NEW CALC_ZOO  
+  coccogra3_cal = 0.d0
   
 !--- Allocate 3D diagnostics
 !  allocate(grazmeso_tot(nl-1,node_size))  ! Comment Miriam (02/2024): changed grazing output from 3D to 2D diagnostics

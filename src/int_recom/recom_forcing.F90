@@ -376,11 +376,26 @@ if (recom_debug .and. mype==0) print *, achar(27)//'[36m'//'     --> ciso after 
      endif
 
 #if defined (__3Zoo2Det)
+     if (calc_zoo) then
         locmiccal_loss = sum(vertmiccal_loss(1:nn) * thick(1:nn))  ! NEW CALC_ZOO
         locphycal_loss = sum(vertphycal_loss(1:nn) * thick(1:nn))
         lochetara_loss = sum(verthetara_loss(1:nn) * thick(1:nn))
         locdetz2ara_sources = sum(vertdetz2ara_sources(1:n) * thick(1:nn))
         locdetz2ara_loss    = sum(vertdetz2ara_loss(1:nn) * thick(1:nn))
+
+        lochetmort_ara    = sum(verthetmort_ara(1:nn) * thick(1:nn))
+        locmacmort_ara    = sum(vertmacmort_ara(1:nn) * thick(1:nn))
+        locmicmort_cal    = sum(vertmicmort_cal(1:nn) * thick(1:nn))
+        lochetgra2_ara    = sum(verthetgra2_ara(1:nn) * thick(1:nn))
+        locmicgra_cal     = sum(vertmicgra_cal(1:nn) * thick(1:nn))
+        locmicgra2_cal    = sum(vertmicgra2_cal(1:nn) * thick(1:nn))
+        loccocco_excr_cal = sum(vertcocco_excr_cal(1:nn) * thick(1:nn))
+        loccocco_resp_cal = sum(vertcocco_resp_cal(1:nn) * thick(1:nn))
+        loccocco_agg_cal  = sum(vertcocco_agg_cal(1:nn) * thick(1:nn))
+        loccoccogra_cal   = sum(vertcoccogra_cal(1:nn) * thick(1:nn))
+        loccoccogra2_cal  = sum(vertcoccogra2_cal(1:nn) * thick(1:nn))
+        loccoccogra3_cal  = sum(vertcoccogra3_cal(1:nn) * thick(1:nn))
+     endif 
 #endif
      
      

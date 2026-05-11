@@ -400,6 +400,32 @@ if (Diags) then
         vertdetz2ara_sources = 0.d0
         allocate(vertdetz2ara_loss(nl-1))
         vertdetz2ara_loss = 0.d0
+
+        allocate(verthetmort_ara(nl-1))
+        verthetmort_ara = 0.d0
+        allocate(vertmacmort_ara(nl-1))
+        vertmacmort_ara = 0.d0
+        allocate(vertmicmort_cal(nl-1))
+        vertmicmort_cal = 0.d0
+        allocate(verthetgra2_ara(nl-1))
+        verthetgra2_ara = 0.d0
+        allocate(vertmicgra_cal(nl-1))
+        vertmicgra_cal = 0.d0
+        allocate(vertmicgra2_cal(nl-1))
+        vertmicgra2_cal = 0.d0
+        allocate(vertcocco_excr_cal(nl-1))
+        vertcocco_excr_cal = 0.d0
+        allocate(vertcocco_resp_cal(nl-1))
+        vertcocco_resp_cal = 0.d0
+        allocate(vertcocco_agg_cal(nl-1))
+        vertcocco_agg_cal = 0.d0
+        allocate(vertcoccogra_cal(nl-1))
+        vertcoccogra_cal = 0.d0
+        allocate(vertcoccogra2_cal(nl-1))
+        vertcoccogra2_cal = 0.d0
+        allocate(vertcoccogra3_cal(nl-1))
+        vertcoccogra3_cal = 0.d0
+        
      endif
 #endif
      
@@ -501,6 +527,20 @@ if (Diags) then
      hetara_loss(n) = lochetara_loss
      detz2ara_sources(n) = locdetz2ara_sources
      detz2ara_loss(n)    = locdetz2ara_loss
+
+     hetmort_ara(n)    = lochetmort_ara
+     macmort_ara(n)    = locmacmort_ara
+     micmort_cal(n)    = locmicmort_cal
+     hetgra2_ara(n)    = lochetgra2_ara
+     micgra_cal(n)     = locmicgra_cal
+     micgra2_cal(n)    = locmicgra2_cal
+     cocco_excr_cal(n) = loccocco_excr_cal
+     cocco_resp_cal(n) = loccocco_resp_cal
+     cocco_agg_cal(n)  = loccocco_agg_cal
+     coccogra_cal(n)   = loccoccogra_cal
+     coccogra2_cal(n)  = loccoccogra2_cal
+     coccogra3_cal(n)  = loccoccogra3_cal
+     
 #endif
      
 
@@ -616,6 +656,20 @@ if (Diags) then
         deallocate(verthetara_loss)
         deallocate(vertdetz2ara_sources)
         deallocate(vertdetz2ara_loss)
+
+        deallocate(verthetmort_ara)
+        deallocate(vertmacmort_ara)
+        deallocate(vertmicmort_cal)
+        deallocate(verthetgra2_ara)
+        deallocate(vertmicgra_cal)
+        deallocate(vertmicgra2_cal)
+        deallocate(vertcocco_excr_cal)
+        deallocate(vertcocco_resp_cal)
+        deallocate(vertcocco_agg_cal)
+        deallocate(vertcoccogra_cal)
+        deallocate(vertcoccogra2_cal)
+        deallocate(vertcoccogra3_cal)
+        
      endif
 #endif
      
@@ -755,6 +809,20 @@ endif
     call exchange_nod(hetara_loss)   ! NEW CALC_ZOO
     call exchange_nod(detz2ara_sources) ! NEW CALC_ZOO
     call exchange_nod(detz2ara_loss)    ! NEW CALC_ZOO
+
+    call exchange_nod(hetmort_ara)      ! NEW CALC_ZOO
+    call exchange_nod(macmort_ara)	! NEW CALC_ZOO
+    call exchange_nod(micmort_cal)	! NEW CALC_ZOO
+    call exchange_nod(hetgra2_ara)	! NEW CALC_ZOO
+    call exchange_nod(micgra_cal)	! NEW CALC_ZOO
+    call exchange_nod(micgra2_cal)	! NEW CALC_ZOO
+    call exchange_nod(cocco_excr_cal)	! NEW CALC_ZOO
+    call exchange_nod(cocco_resp_cal)	! NEW CALC_ZOO
+    call exchange_nod(cocco_agg_cal)	! NEW CALC_ZOO
+    call exchange_nod(coccogra_cal)	! NEW CALC_ZOO
+    call exchange_nod(coccogra2_cal)	! NEW CALC_ZOO
+    call exchange_nod(coccogra3_cal)	! NEW CALC_ZOO
+    
 #endif
   endif
 

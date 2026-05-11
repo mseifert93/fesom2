@@ -573,6 +573,48 @@ CASE ('detz2ara_source')
 CASE ('detz2ara_loss')
    call def_stream(nod2D,  myDim_nod2D,   'detz2ara_loss','Loss of detritus aragonite in the second detritus','mmolC/(m2*d)', detz2ara_loss, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
 
+CASE ('hetmort_ara')
+   call def_stream(nod2D,  myDim_nod2D,   'hetmort_ara','Loss of mesozooplankton aragonite due to mortality','mmolC/(m2*d)', hetmort_ara, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('macmort_ara')
+   call def_stream(nod2D,  myDim_nod2D,   'macmort_ara','Loss of macrozooplankton aragonite due to mortality','mmolC/(m2*d)', macmort_ara, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('micmort_cal')
+   call def_stream(nod2D,  myDim_nod2D,   'micmort_cal','Loss of microzooplankton calcite due to mortality','mmolC/(m2*d)', micmort_cal, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('hetgra2_ara')
+   call def_stream(nod2D,  myDim_nod2D,   'hetgra2_ara','Loss of macrozooplankton aragonite due to macrozooplankton grazing','mmolC/(m2*d)', hetgra2_ara, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('micgra_cal')
+   call def_stream(nod2D,  myDim_nod2D,   'micgra_cal','Loss of microzooplankton calcite due to mesozooplankton grazing','mmolC/(m2*d)', micgra_cal, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('micgra2_cal')
+   call def_stream(nod2D,  myDim_nod2D,   'micgra2_cal','Loss of microzooplankton calcite due to macrozooplankton grazing','mmolC/(m2*d)',micgra2_cal, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('cocco_excr_cal')
+   call def_stream(nod2D,  myDim_nod2D,   'cocco_excr_cal','Loss of coccolithophore calcite due to excretion','mmolC/(m2*d)', cocco_excr_cal, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('cocco_resp_cal')
+   call def_stream(nod2D,  myDim_nod2D,   'cocco_resp_cal','Loss of coccolithophore calcite due to respiration','mmolC/(m2*d)', cocco_resp_cal, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('cocco_agg_cal')
+   call def_stream(nod2D,  myDim_nod2D,   'cocco_agg_cal','Loss of coccolithophore calcite due to aggregation','mmolC/(m2*d)', cocco_agg_cal, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('coccogra_cal')
+   call def_stream(nod2D,  myDim_nod2D,   'coccogra_cal','Loss of coccolithophore calcite due to mesozooplankton grazing','mmolC/(m2*d)', coccogra_cal, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('coccogra2_cal')
+   call def_stream(nod2D,  myDim_nod2D,   'coccogra2_cal','Loss of coccolithophore calcite due to macrozooplankton grazing','mmolC/(m2*d)', coccogra2_cal, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('coccogra3_cal')
+   call def_stream(nod2D,  myDim_nod2D,   'coccogra3_cal','Loss of coccolithophore calcite due to microzooplankton grazing','mmolC/(m2*d)', coccogra3_cal, io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('bencalcdiss')
+   call def_stream(nod2D,  myDim_nod2D,   'bencalcdiss','Calcite dissolution in benthos','mmol/(m2*s)', GlodecayBenthos(:,4), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
+CASE ('bencalcdiss_ara')
+   call def_stream(nod2D,  myDim_nod2D,   'bencalcdiss_ara','Aragonite dissolution in benthos','mmol/(m2*s)', GlodecayBenthos(:,9), io_list(i)%freq, io_list(i)%unit, io_list(i)%precision, mesh)
+
 #endif
    
 !___________________________________________________________________________________________________________________________________    
